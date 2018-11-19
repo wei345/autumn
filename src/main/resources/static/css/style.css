@@ -1,0 +1,25 @@
+body {
+    color: #333;
+    font-family: Helvetica, Arial, Freesans, Clean, Sans-serif, serif;
+}
+
+.tree .node > .children {
+    padding-left: 20px;
+}
+
+.tree .node .title .icon {
+    padding-right: 5px;
+    cursor: pointer;
+}
+
+.tree .node.folded > .children {
+    display: none;
+}
+
+.tree .node.unfolded > .children {
+    display: block;
+}
+
+.tree .node .title.selected {
+    background: bisque;
+}
