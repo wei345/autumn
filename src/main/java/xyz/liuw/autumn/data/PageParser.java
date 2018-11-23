@@ -34,7 +34,7 @@ public class PageParser {
     private static Logger logger = LoggerFactory.getLogger(PageParser.class);
 
     public static Page parse(File file) {
-        logger.info("parsing {}", file.getAbsolutePath());
+        logger.info("Parsing {}", file.getAbsolutePath());
         String text;
         try {
             text = FileUtil.toString(file);

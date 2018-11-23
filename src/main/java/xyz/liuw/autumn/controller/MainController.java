@@ -7,8 +7,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
-import xyz.liuw.autumn.MarkdownParser;
-import xyz.liuw.autumn.data.*;
+import xyz.liuw.autumn.data.Page;
+import xyz.liuw.autumn.data.TemplateWatcher;
+import xyz.liuw.autumn.data.TreeJson;
+import xyz.liuw.autumn.service.DataService;
+import xyz.liuw.autumn.service.MarkdownParser;
+import xyz.liuw.autumn.service.SecurityService;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -23,7 +27,7 @@ public class MainController {
 
     private static final String TPL_MAIN = "main";
     @Autowired
-    private DataSource dataSource;
+    private DataService dataService;
     @Autowired
     private TemplateWatcher templateWatcher;
     @Autowired
@@ -31,11 +35,10 @@ public class MainController {
     @Autowired
     private ResourceHttpRequestHandler resourceHttpRequestHandler;
 
-
     @RequestMapping(value = "/tree.json", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public String treeJson(WebRequest webRequest) {
-        TreeJson treeJson = dataSource.getTreeJson();
+        TreeJson treeJson = dataService.getTreeJson();
         if (webRequest.checkNotModified(treeJson.getMd5())) {
             return null;
         }
@@ -44,13 +47,27 @@ public class MainController {
     }
 
     @RequestMapping("/**")
-    public String index(WebRequest webRequest, HttpServletRequest request, HttpServletResponse response, Map<String, Object> model) throws ServletException, IOException {
+    public String index(WebRequest webRequest,
+                        HttpServletRequest request,
+                        HttpServletResponse response,
+                        Map<String, Object> model) throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        Page page = dataSource.getPage(path);
 
-        if (page == null) {
+        if (path.endsWith(".js") ||
+                path.endsWith(".css") ||
+                path.endsWith(".png") ||
+                path.endsWith(".jpg")) {
             resourceHttpRequestHandler.handleRequest(request, response);
+            return null;
+        }
+
+        Page page = dataService.getPage(path);
+        if (page == null) {
+            if (!SecurityService.isLogged() && dataService.pageExist(path)) {
+                return "redirect:/login?ret=" + path;
+            }
+            response.setStatus(404);
             return null;
         }
 

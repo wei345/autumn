@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html>
 <head>
     <link rel="stylesheet" href="/css/normalize.css"/>
     <link rel="stylesheet" href="/css/milligram.css"/>
@@ -18,7 +18,7 @@
         <div class="tree"></div>
         </div>
         <div class="column column-75">
-            <h1>${title}</h1>${body}
+            <h1>${title!}</h1>${body!}
         </div>
     </div>
 

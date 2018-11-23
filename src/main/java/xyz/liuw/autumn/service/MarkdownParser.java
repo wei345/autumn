@@ -1,4 +1,4 @@
-package xyz.liuw.autumn;
+package xyz.liuw.autumn.service;
 
 import org.commonmark.Extension;
 import org.commonmark.ext.autolink.AutolinkExtension;

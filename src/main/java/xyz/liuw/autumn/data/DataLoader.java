@@ -33,9 +33,11 @@ public class DataLoader {
     @Value("${autumn.data.reload-interval-seconds:10}")
     private long reloadIntervalSeconds;
     private int reloadContinuousFailures; // default 0
+    private Page homepage;
 
     @PostConstruct
     void start() {
+        homepage = newHomepage();
         load();
         timingReload();
     }
@@ -130,6 +132,7 @@ public class DataLoader {
 
         sortAndRemoveEmptyNode(root);
 
+        pageMap.put("/", homepage);
         String json = jsonMapper.toJson(root);
         dataSource.pageData = new PageData(new TreeJson(json), pageMap);
         setPageDataPublished(root);
@@ -215,7 +218,23 @@ public class DataLoader {
 
         removeEmptyDirNode(allDirNodes);
 
+        pageMap.put("/", homepage);
         String json = jsonMapper.toJson(root);
         dataSource.pageDataPublished = new PageData(new TreeJson(json), pageMap);
+    }
+
+    private Page newHomepage() {
+        String body = "Welcome";
+        Date now = new Date();
+        Page page = new Page();
+        page.setCreated(now);
+        page.setModified(now);
+        page.setPublished(true);
+        page.setBody(body);
+        page.setSource(body);
+        page.setTitle("");
+        page.setBodyHtml(body);
+        page.setLastModified(now.getTime());
+        return page;
     }
 }

@@ -5,11 +5,11 @@ import org.springframework.util.DigestUtils;
 import java.nio.charset.StandardCharsets;
 
 public class TreeJson {
-    public static final TreeJson EMPTY = new TreeJson("{}");
+    static final TreeJson EMPTY = new TreeJson("{}");
     private String json;
     private String md5;
 
-    public TreeJson(String json) {
+    TreeJson(String json) {
         this.json = json;
         this.md5 = DigestUtils.md5DigestAsHex(json.getBytes(StandardCharsets.UTF_8));
     }
