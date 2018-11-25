@@ -26,13 +26,6 @@ path
 
 有时 Command + R，浏览器不发送请求，Command + Shift + R 会发送请求。
 
-## TODO
-
-登录
-显示数据目录里的图片
-
-Interceptor 里发生异常没有转到 freemarker 页面
-
 ## 功能
 
 页面
@@ -55,6 +48,8 @@ Interceptor 里发生异常没有转到 freemarker 页面
 
 * /logout
 
+TODO 显示数据目录里的图片
+
 TODO 搜索
   页面快速搜索页面名
   搜索文件内容
@@ -67,3 +62,4 @@ TODO 合并 css
 
 TODO 合并 js
 
+TODO Interceptor 里发生异常没有转到 freemarker 页面

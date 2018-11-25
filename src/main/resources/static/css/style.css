@@ -7,9 +7,12 @@ body {
     padding-left: 20px;
 }
 
-.tree .node .title .icon {
-    padding-right: 5px;
+.tree .node .header {
     cursor: pointer;
+}
+
+.tree .node .header .icon {
+    padding-right: 5px;
 }
 
 .tree .node.folded > .children {
@@ -20,6 +23,6 @@ body {
     display: block;
 }
 
-.tree .node .title.selected {
+.tree .node .header.selected {
     background: bisque;
 }
