@@ -2,7 +2,6 @@ package xyz.liuw.autumn.service;
 
 import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.io.IOUtil;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,26 +19,37 @@ import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPOutputStream;
 
 @Component
-public class ContentService {
+public class MediaService {
 
     /**
      * 需要被Gzip压缩的Mime类型.
      */
-    private static final String[] GZIP_MIME_TYPES = {"text/html", "application/xhtml+xml", "text/plain", "text/css",
+    private static final String[] GZIP_MIME_TYPES = {"text/html", "text/html;charset=UTF-8", "application/xhtml+xml", "text/plain", "text/css",
             "text/javascript", "application/x-javascript", "application/json"};
     /**
      * 需要被Gzip压缩的最小文件大小.
      */
     private static final int GZIP_MINI_LENGTH = 512;
-    private static Logger logger = LoggerFactory.getLogger(ContentService.class);
+    private static Logger logger = LoggerFactory.getLogger(MediaService.class);
     private MimetypesFileTypeMap mimetypesFileTypeMap;
 
     private int cacheFileMaxLength = 1024 * 100;
 
-    public ContentService() {
+    public MediaService() {
         // 初始化mimeTypes, 默认缺少css的定义,添加之.
         mimetypesFileTypeMap = new MimetypesFileTypeMap();
         mimetypesFileTypeMap.addMimeTypes("text/css css");
+        mimetypesFileTypeMap.addMimeTypes("image/png png");
+    }
+
+    /**
+     * 检查浏览器客户端是否支持gzip编码.
+     */
+    private static boolean checkAccetptGzip(HttpServletRequest request) {
+        // Http1.1 header
+        String acceptEncoding = request.getHeader("Accept-Encoding");
+
+        return StringUtils.contains(acceptEncoding, "gzip");
     }
 
     public void output(Media media, WebRequest webRequest,
@@ -103,18 +113,19 @@ public class ContentService {
             setFileDownloadHeader(response, filename);
         }
 
-        boolean needGzip = (length >= GZIP_MINI_LENGTH) && ArrayUtils.contains(GZIP_MIME_TYPES, mimeType);
-
-        // 构造OutputStream
         OutputStream output;
+        /* 已经启用 Spring Boot gzip，这里不要 gzip，否则二者冲突 response body 无内容
+        boolean needGzip = (length >= GZIP_MINI_LENGTH) && ArrayUtils.contains(GZIP_MIME_TYPES, mimeType);
         if (checkAccetptGzip(request) && needGzip) {
             // 使用压缩传输的 outputstream, 使用 http1.1 trunked 编码不设置 content-length.
             output = buildGzipOutputStream(response);
         } else {
-            // 使用普通 outputstream, 设置content-length.
+            // 使用普通 outputstream, 设置 content-length.
             response.setContentLength(length);
             output = response.getOutputStream();
-        }
+        }*/
+        response.setContentLength(length);
+        output = response.getOutputStream();
 
         IOUtil.copy(in, output);
         output.flush();
@@ -140,16 +151,6 @@ public class ContentService {
             return etag;
         }
         return "\"" + etag + "\"";
-    }
-
-    /**
-     * 检查浏览器客户端是否支持gzip编码.
-     */
-    private static boolean checkAccetptGzip(HttpServletRequest request) {
-        // Http1.1 header
-        String acceptEncoding = request.getHeader("Accept-Encoding");
-
-        return StringUtils.contains(acceptEncoding, "gzip");
     }
 
     /**

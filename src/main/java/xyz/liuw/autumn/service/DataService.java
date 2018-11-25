@@ -1,5 +1,7 @@
 package xyz.liuw.autumn.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import xyz.liuw.autumn.data.DataSource;
@@ -14,6 +16,8 @@ import xyz.liuw.autumn.data.TreeJson;
 @Component
 public class DataService {
 
+    private static Logger logger = LoggerFactory.getLogger(DataService.class);
+
     @Autowired
     private DataSource dataSource;
 
@@ -23,16 +27,28 @@ public class DataService {
                 dataSource.getPublishedData().getTreeJson();
     }
 
+    public Media getMedia(String path) {
+        return SecurityService.isLogged() ?
+                dataSource.getAllData().getMediaMap().get(path) :
+                dataSource.getPublishedData().getMediaMap().get(path);
+    }
+
+    public Page.ViewCache getViewCache(Page page) {
+        return SecurityService.isLogged() ? page.getUserViewCache() : page.getGuestViewCache();
+    }
+
     public Page getPage(String path) {
         return SecurityService.isLogged() ?
                 dataSource.getAllData().getPageMap().get(path) :
                 dataSource.getPublishedData().getPageMap().get(path);
     }
 
-    public Media getMedia(String path) {
-        return SecurityService.isLogged() ?
-                dataSource.getAllData().getMediaMap().get(path) :
-                dataSource.getPublishedData().getMediaMap().get(path);
+    public void setViewCache(Page page, Page.ViewCache viewCache) {
+        if (SecurityService.isLogged()) {
+            page.setUserViewCache(viewCache);
+        } else {
+            page.setGuestViewCache(viewCache);
+        }
     }
 
     /**

@@ -37,6 +37,11 @@ public class TemplateWatcher {
                 }
             });
 
+    @PostConstruct
+    public void init() {
+        setTemplateDir();
+    }
+
     public long getTemplateLastModified(String name) {
         try {
             return cache.get(name);
@@ -56,10 +61,7 @@ public class TemplateWatcher {
         return file.lastModified();
     }
 
-    @PostConstruct
-    public void init() {
-        setTemplateDir();
-    }
+
 
     private void setTemplateDir() {
         String templateLoaderPath = freeMarkerProperties.getTemplateLoaderPath()[0];

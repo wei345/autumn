@@ -122,6 +122,7 @@ public class DataLoader {
                         Page page = oldPageMap.get(path);
                         if (page == null || page.getLastModified() != file.lastModified()) {
                             page = PageParser.parse(file);
+                            page.setPath(path);
                         }
                         pageMap.put(path, page);
 

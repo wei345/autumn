@@ -19,6 +19,27 @@ public class Page {
     private volatile String bodyHtml;
     private String source; // file content
     private long lastModified; // file last modified
+    private volatile ViewCache userViewCache; // 已登录用户页面缓存
+    private volatile ViewCache guestViewCache; // 未登录用户页面缓存
+    private String path;
+
+    public static class ViewCache {
+        private byte[] content;
+        private String etag;
+
+        public ViewCache(byte[] content, String etag) {
+            this.content = content;
+            this.etag = etag;
+        }
+
+        public byte[] getContent() {
+            return content;
+        }
+
+        public String getEtag() {
+            return etag;
+        }
+    }
 
     public Date getCreated() {
         return created;
@@ -98,5 +119,29 @@ public class Page {
 
     public void setLastModified(long lastModified) {
         this.lastModified = lastModified;
+    }
+
+    public ViewCache getUserViewCache() {
+        return userViewCache;
+    }
+
+    public void setUserViewCache(ViewCache userViewCache) {
+        this.userViewCache = userViewCache;
+    }
+
+    public ViewCache getGuestViewCache() {
+        return guestViewCache;
+    }
+
+    public void setGuestViewCache(ViewCache guestViewCache) {
+        this.guestViewCache = guestViewCache;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 }
