@@ -3,6 +3,7 @@ package xyz.liuw.autumn.data;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.stereotype.Component;
 
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,79 +15,68 @@ import java.util.Map;
  */
 @Component
 public class DataSource {
-    volatile PageData pageData = PageData.EMPTY;
-    volatile PageData pageDataPublished = PageData.EMPTY;
+    private volatile Data allData = Data.EMPTY;
+    private volatile Data publishedData = Data.EMPTY;
 
-    public TreeJson getTreeJson() {
-        return pageData.treeJson;
+    public Data getAllData() {
+        return allData;
     }
 
-    public Page getPage(String path) {
-        return pageData.pageMap.get(path);
+    void setAllData(Data allData) {
+        this.allData = allData;
     }
 
-    public TreeJson getTreeJsonPublished() {
-        return pageDataPublished.treeJson;
+    public Data getPublishedData() {
+        return publishedData;
     }
 
-    public Page getPagePublished(String path) {
-        return pageDataPublished.pageMap.get(path);
-    }
-}
-
-class PageData {
-    static final PageData EMPTY = new PageData(TreeJson.EMPTY, Collections.emptyMap());
-
-    TreeJson treeJson;
-    // path -> Page
-    Map<String, Page> pageMap;
-
-    PageData(TreeJson treeJson, Map<String, Page> pageMap) {
-        this.treeJson = treeJson;
-        this.pageMap = pageMap;
-    }
-}
-
-class TreeNode {
-    String name;
-    String path;
-    List<TreeNode> children;
-    @JsonIgnore
-    TreeNode parent;
-    @JsonIgnore
-    private boolean dir;
-    @JsonIgnore
-    Page page;
-
-    TreeNode(String name, String path, boolean dir) {
-        this.name = name;
-        this.path = path;
-        this.dir = dir;
+    void setPublishedData(Data publishedData) {
+        this.publishedData = publishedData;
     }
 
-    void addChild(TreeNode child) {
-        if (children == null) {
-            children = new ArrayList<>();
+    @Override
+    public String toString() {
+        return String.format("allData: %s, publishedData: %s",
+                allData, publishedData);
+    }
+
+    public static class Data {
+        static final Data EMPTY = new Data(TreeJson.EMPTY, Collections.emptyMap(), Collections.emptyMap());
+
+        @NotNull
+        private TreeJson treeJson;
+        // path -> Page
+        @NotNull
+        private Map<String, Page> pageMap;
+        // path -> Media
+        @NotNull
+        private Map<String, Media> mediaMap;
+
+        Data(@NotNull TreeJson treeJson,
+             @NotNull Map<String, Page> pageMap,
+             @NotNull Map<String, Media> mediaMap) {
+            this.treeJson = treeJson;
+            this.pageMap = pageMap;
+            this.mediaMap = mediaMap;
         }
-        child.parent = this;
-        children.add(child);
-    }
 
-    boolean isDir() {
-        return dir;
-    }
+        public TreeJson getTreeJson() {
+            return treeJson;
+        }
 
-    // getters 用于 Jackson JSON 序列化
-    public String getName() {
-        return name;
-    }
+        public Map<String, Page> getPageMap() {
+            return pageMap;
+        }
 
-    public String getPath() {
-        return path;
-    }
+        public Map<String, Media> getMediaMap() {
+            return mediaMap;
+        }
 
-    public List<TreeNode> getChildren() {
-        return children;
+        @Override
+        public String toString() {
+            return String.format("treeJson length %s, pageMap size %s, mediaMap size %s",
+                    treeJson.getJson().length(), pageMap.size(), mediaMap.size());
+        }
     }
-
 }
+

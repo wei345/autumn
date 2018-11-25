@@ -7,9 +7,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
+import xyz.liuw.autumn.data.Media;
 import xyz.liuw.autumn.data.Page;
 import xyz.liuw.autumn.data.TemplateWatcher;
 import xyz.liuw.autumn.data.TreeJson;
+import xyz.liuw.autumn.service.ContentService;
 import xyz.liuw.autumn.service.DataService;
 import xyz.liuw.autumn.service.MarkdownParser;
 import xyz.liuw.autumn.service.SecurityService;
@@ -34,6 +36,8 @@ public class MainController {
     private MarkdownParser markdownParser;
     @Autowired
     private ResourceHttpRequestHandler resourceHttpRequestHandler;
+    @Autowired
+    private ContentService contentService;
 
     @RequestMapping(value = "/tree.json", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
@@ -53,6 +57,12 @@ public class MainController {
                         Map<String, Object> model) throws ServletException, IOException {
 
         String path = request.getRequestURI();
+
+        Media media = dataService.getMedia(path);
+        if (media != null) {
+            contentService.output(media, webRequest, request, response);
+            return null;
+        }
 
         if (path.endsWith(".js") ||
                 path.endsWith(".css") ||
@@ -82,8 +92,10 @@ public class MainController {
         if (page.getBodyHtml() == null) {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (page) {
-                String html = markdownParser.render(page.getBody());
-                page.setBodyHtml(html);
+                if (page.getBodyHtml() == null) {
+                    String html = markdownParser.render(page.getBody());
+                    page.setBodyHtml(html);
+                }
             }
         }
 

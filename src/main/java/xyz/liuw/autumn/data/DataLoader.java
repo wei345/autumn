@@ -76,9 +76,13 @@ public class DataLoader {
         Validate.isTrue(!rootDir.isHidden(), "rootDir is hidden");
         Validate.isTrue(rootDir.isDirectory(), "rootDir is not a directory");
 
-        Map<String, Page> oldPageMap = dataSource.pageData.pageMap;
-        int size = ((oldPageMap == null || oldPageMap.size() == 0) ? 1500 : oldPageMap.size());
-        Map<String, Page> pageMap = Maps.newHashMapWithExpectedSize(size);
+        Map<String, Page> oldPageMap = dataSource.getAllData().getPageMap();
+        Map<String, Page> pageMap = Maps.newHashMapWithExpectedSize(
+                oldPageMap.size() == 0 ? 1500 : oldPageMap.size());
+
+        Map<String, Media> oldMediaMap = dataSource.getAllData().getMediaMap();
+        Map<String, Media> mediaMap = Maps.newHashMapWithExpectedSize(
+                oldMediaMap.size() == 0 ? 100 : oldMediaMap.size());
 
         TreeNode root = new TreeNode("", "/", true);
         Stack<File> dirStack = new Stack<>();
@@ -104,38 +108,47 @@ public class DataLoader {
                     continue;
                 }
 
-                if (file.isFile() && file.getName().endsWith(".md")) {
-                    String name = filename(file);
-                    String path = parent.path + name;
+                if (file.isFile()) {
+                    String filename = file.getName();
+                    if (filename.endsWith(".md")) {
+                        String name = filename(file);
+                        String path = parent.path + name;
 
-                    // parse page
-                    if ("/index".equals(path) || "/sidebar".equals(path)) {
-                        // skip dokuwiki page
-                        continue;
-                    }
-                    Page page;
-                    if (oldPageMap != null &&
-                            (page = oldPageMap.get(path)) != null &&
-                            page.getLastModified() == file.lastModified()) {
-                    } else {
-                        page = PageParser.parse(file);
-                    }
-                    pageMap.put(path, page);
+                        // parse page
+                        if ("/index".equals(path) || "/sidebar".equals(path)) {
+                            // skip dokuwiki page
+                            continue;
+                        }
+                        Page page = oldPageMap.get(path);
+                        if (page == null || page.getLastModified() != file.lastModified()) {
+                            page = PageParser.parse(file);
+                        }
+                        pageMap.put(path, page);
 
-                    // add node
-                    TreeNode node = new TreeNode(name, path, false);
-                    node.page = page;
-                    parent.addChild(node);
+                        // add node
+                        TreeNode node = new TreeNode(name, path, false);
+                        node.page = page;
+                        parent.addChild(node);
+                    }
+
+                    if (filename.endsWith(".png") || filename.endsWith(".jpg") || filename.endsWith(".ico")) {
+                        String path = parent.path + file.getName();
+
+                        Media media = oldMediaMap.get(path);
+                        if (media == null || media.getLastModified() != file.lastModified()) {
+                            media = new Media(file);
+                        }
+                        mediaMap.put(path, media);
+                    }
                 }
             }
         }
-
-        sortAndRemoveEmptyNode(root);
-
         pageMap.put("/", homepage);
+        sortAndRemoveEmptyNode(root);
         String json = jsonMapper.toJson(root);
-        dataSource.pageData = new PageData(new TreeJson(json), pageMap);
-        setPageDataPublished(root);
+        dataSource.setAllData(new DataSource.Data(new TreeJson(json), pageMap, mediaMap));
+        setPageDataPublished(root, mediaMap);
+        logger.info("dataSource: {}", dataSource);
     }
 
     private String filename(File f) {
@@ -189,7 +202,7 @@ public class DataLoader {
         }
     }
 
-    private void setPageDataPublished(TreeNode root) {
+    private void setPageDataPublished(TreeNode root, Map<String, Media> mediaMap) {
         Map<String, Page> pageMap = new HashMap<>();
         Stack<TreeNode> allDirNodes = new Stack<>();
 
@@ -215,12 +228,10 @@ public class DataLoader {
             }
             node.children = publishedList;
         }
-
-        removeEmptyDirNode(allDirNodes);
-
         pageMap.put("/", homepage);
+        removeEmptyDirNode(allDirNodes);
         String json = jsonMapper.toJson(root);
-        dataSource.pageDataPublished = new PageData(new TreeJson(json), pageMap);
+        dataSource.setPublishedData(new DataSource.Data(new TreeJson(json), pageMap, mediaMap));
     }
 
     private Page newHomepage() {
@@ -232,7 +243,7 @@ public class DataLoader {
         page.setPublished(true);
         page.setBody(body);
         page.setSource(body);
-        page.setTitle("");
+        page.setTitle("Home");
         page.setBodyHtml(body);
         page.setLastModified(now.getTime());
         return page;

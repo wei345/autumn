@@ -16,8 +16,8 @@ public class Page {
     private boolean published; // default false
     private String title;
     private String body;
-    private String source;
     private volatile String bodyHtml;
+    private String source; // file content
     private long lastModified; // file last modified
 
     public Date getCreated() {
