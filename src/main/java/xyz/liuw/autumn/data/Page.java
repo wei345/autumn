@@ -26,10 +26,12 @@ public class Page {
     public static class ViewCache {
         private byte[] content;
         private String etag;
+        private long templateLastModified;
 
-        public ViewCache(byte[] content, String etag) {
+        public ViewCache(byte[] content, String etag, long templateLastModified) {
             this.content = content;
             this.etag = etag;
+            this.templateLastModified = templateLastModified;
         }
 
         public byte[] getContent() {
@@ -38,6 +40,10 @@ public class Page {
 
         public String getEtag() {
             return etag;
+        }
+
+        public long getTemplateLastModified() {
+            return templateLastModified;
         }
     }
 

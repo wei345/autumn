@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.function.Supplier;
 import java.util.zip.GZIPOutputStream;
 
 @Component
@@ -60,12 +61,13 @@ public class MediaService {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (media) {
                 if (media.getMd5() == null) {
-                    logger.info("Reading small file {}", file.getAbsolutePath());
                     if (file.length() <= cacheFileMaxLength) {
+                        logger.info("Caching small file content and calculate md5 {}", file.getAbsolutePath());
                         media.setContent(FileUtil.toByteArray(file));
                         media.setMd5(DigestUtils.md5DigestAsHex(media.getContent()));
                     } else {
                         // md5
+                        logger.info("Calculating big file md5 {}", file.getAbsolutePath());
                         InputStream in = new FileInputStream(file);
                         media.setMd5(DigestUtils.md5DigestAsHex(in));
                         IOUtil.closeQuietly(in);
@@ -76,30 +78,30 @@ public class MediaService {
         }
 
         if (media.getContent() != null) {
-            output(new ByteArrayInputStream(media.getContent()),
+            output(() -> new ByteArrayInputStream(media.getContent()),
                     media.getContent().length,
                     media.getMd5(),
                     media.getFile().getName(),
                     media.getMimeType(),
                     webRequest, request, response);
         } else {
-            logger.info("Reading big file {}", file.getAbsolutePath());
-            InputStream in = null;
-            try {
-                in = new FileInputStream(file);
-                output(in,
-                        (int) file.length(),
-                        media.getMd5(),
-                        file.getName(),
-                        media.getMimeType(),
-                        webRequest, request, response);
-            } finally {
-                IOUtil.closeQuietly(in);
-            }
+            output(() -> {
+                        try {
+                            logger.info("Reading big file for response output {}", file.getAbsolutePath());
+                            return new FileInputStream(file);
+                        } catch (FileNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    (int) file.length(),
+                    media.getMd5(),
+                    file.getName(),
+                    media.getMimeType(),
+                    webRequest, request, response);
         }
     }
 
-    public void output(InputStream in, int length, String etag, String filename, String mimeType, WebRequest webRequest,
+    public void output(Supplier<InputStream> inSupplier, int length, String etag, String filename, String mimeType, WebRequest webRequest,
                        HttpServletRequest request, HttpServletResponse response) throws IOException {
         etag = padEtagIfNecessary(etag);
         if (webRequest.checkNotModified(etag)) {
@@ -127,7 +129,13 @@ public class MediaService {
         response.setContentLength(length);
         output = response.getOutputStream();
 
-        IOUtil.copy(in, output);
+        InputStream in = null;
+        try {
+            in = inSupplier.get();
+            IOUtil.copy(in, output);
+        } finally {
+            IOUtil.closeQuietly(in);
+        }
         output.flush();
     }
 
@@ -140,7 +148,6 @@ public class MediaService {
         // 中文文件名支持
         String encodedfileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedfileName + "\"");
-
     }
 
     private String padEtagIfNecessary(String etag) {

@@ -12,7 +12,6 @@
 <body>
 
 <div class="container">
-
     <div class="row">
         <div id="sidebar" class="column column-25">
         <div class="tree"></div>

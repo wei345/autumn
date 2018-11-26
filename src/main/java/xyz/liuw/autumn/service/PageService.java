@@ -6,6 +6,7 @@ import freemarker.template.TemplateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
@@ -35,16 +36,21 @@ public class PageService {
     private Configuration freeMarkerConfiguration;
     @Autowired
     private FreeMarkerProperties freeMarkerProperties;
+    @Autowired
+    private TemplateWatcher templateWatcher;
+    @Value("${autumn.etag.version}")
+    private int etagVersion;
 
     private ThreadLocal<StringWriter> stringWriterThreadLocal = ThreadLocal.withInitial(() -> new StringWriter(10240));
 
-
     public byte[] output(@NotNull Page page, Map<String, Object> model, String view, WebRequest webRequest) throws IOException, TemplateException {
         Page.ViewCache viewCache = dataService.getViewCache(page);
-        if (viewCache == null) {
+        long viewLastModified = templateWatcher.getTemplateLastModified(view);
+        if (viewCache == null || viewCache.getTemplateLastModified() < viewLastModified) {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (page) {
-                if (dataService.getViewCache(page) == null) {
+                viewCache = dataService.getViewCache(page);
+                if (viewCache == null || viewCache.getTemplateLastModified() < viewLastModified) {
                     logger.info("Building cache path={}", page.getPath());
                     if (page.getBodyHtml() == null) {
                         String html = markdownParser.render(page.getBody());
@@ -60,8 +66,7 @@ public class PageService {
                     byte[] content = out.toString().getBytes(StandardCharsets.UTF_8);
                     out.getBuffer().setLength(0);
                     String md5 = DigestUtils.md5DigestAsHex(content);
-                    String etag = "\"" + md5 + "\"";
-                    dataService.setViewCache(page, new Page.ViewCache(content, etag));
+                    dataService.setViewCache(page, new Page.ViewCache(content, getEtag(md5), viewLastModified));
                 }
             }
             viewCache = dataService.getViewCache(page);
@@ -72,6 +77,10 @@ public class PageService {
         }
 
         return viewCache.getContent();
+    }
+
+    private String getEtag(String md5) {
+        return "\"" + etagVersion + "|" + md5 + "\"";
     }
 
 }

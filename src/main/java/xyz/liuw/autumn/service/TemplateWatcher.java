@@ -1,4 +1,4 @@
-package xyz.liuw.autumn.data;
+package xyz.liuw.autumn.service;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -37,31 +37,12 @@ public class TemplateWatcher {
                 }
             });
 
+    private volatile long fakeLastModified; // default 0
+
     @PostConstruct
     public void init() {
         setTemplateDir();
     }
-
-    public long getTemplateLastModified(String name) {
-        try {
-            return cache.get(name);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private long readTemplateLastModified(String name) {
-        logger.debug("reading template '{}' last modified", name);
-        String path = templateDir + name + freeMarkerProperties.getSuffix();
-        URL url = getClass().getResource(path);
-        File file = new File(url.getPath());
-        if (!file.exists()) {
-            throw new RuntimeException("template not found" + url.getPath());
-        }
-        return file.lastModified();
-    }
-
-
 
     private void setTemplateDir() {
         String templateLoaderPath = freeMarkerProperties.getTemplateLoaderPath()[0];
@@ -73,6 +54,41 @@ public class TemplateWatcher {
             this.templateDir += "/";
         }
         logger.info("templateDir: {}", templateLoaderPath);
+    }
+
+    /**
+     * 返回模版最后修改时间。如果读取文件失败，则返回当前时间，随后的请求都返回这个时间不再访问文件。
+     * 只有在开发时，模版文件才可能经常变化。返回固定的 "当前时间" 对线上没有影响。
+     *
+     * @param name 模版名，如 "main"
+     * @return 模版最后修改时间
+     */
+    public long getTemplateLastModified(String name) {
+        if (fakeLastModified > 0) {
+            return fakeLastModified;
+        }
+        try {
+            return cache.get(name);
+        } catch (ExecutionException e) {
+            logger.info("Failed to read template last modified, using fakeLastModified");
+            synchronized (this) {
+                if (fakeLastModified == 0) {
+                    fakeLastModified = System.currentTimeMillis();
+                }
+            }
+            return fakeLastModified;
+        }
+    }
+
+    private long readTemplateLastModified(String name) {
+        logger.debug("Reading template last modified '{}'", name);
+        String path = templateDir + name + freeMarkerProperties.getSuffix();
+        URL url = getClass().getResource(path);
+        File file = new File(url.getPath());
+        if (!file.exists()) {
+            throw new RuntimeException("Template file not found " + url.getPath());
+        }
+        return file.lastModified();
     }
 
 

@@ -247,6 +247,7 @@ public class DataLoader {
         page.setTitle("Home");
         page.setBodyHtml(body);
         page.setLastModified(now.getTime());
+        page.setPath("/");
         return page;
     }
 }
