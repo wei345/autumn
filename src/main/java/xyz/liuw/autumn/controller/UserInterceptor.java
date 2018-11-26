@@ -17,7 +17,7 @@ public class UserInterceptor implements HandlerInterceptor {
     // This method is called before the controller
     @Override
     public boolean preHandle(HttpServletRequest request,
-                             HttpServletResponse response, Object handler) throws Exception {
+                             HttpServletResponse response, Object handler) {
         securityService.setCurrentUser(request, response);
         return true;
     }
