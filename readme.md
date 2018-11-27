@@ -1,30 +1,6 @@
-## 数据
+# Autumn
 
-主要是 notes、templates。
-登录用户和访客看到的内容是不一样的。
-修改 java 代码也可能导致输出内容变化，例如修改 markdown 解析器配置。所以临时增加了 HelloController#CACHE_EXPIRE。
-
-输出给浏览器的内容
-
-* 页面内容。第一次访问时生成，md 或 template lastModified 变化或应用重启时清除缓存。
-* css。应用启动时生成，文件 lastModified 变化时重新生成。
-* js，tree 数据。应用启动时生成，文件 lastModified 变化时重新生成。
-
-动态页面内容 cache key
-userId:path
-  md lastModified
-  template lastModified
-  md5
-  content
-
-静态内容 cache key
-path
-  file1 lastModified
-  file2 lastModified
-  md5
-  content
-
-有时 Command + R，浏览器不发送请求，Command + Shift + R 会发送请求。
+将本地 Markdown 文件目录映射为网页，自己可以看到全部内容，未登录用户只能看到指定内容，还有方便的搜索功能。
 
 ## 功能
 
@@ -60,12 +36,62 @@ path
 * 处理请求发生异常时，显示 templates/error 里和状态码对应的错误页面，用户不会看到 Tomcat 错误页面。
 
 TODO 搜索
-  页面快速搜索页面名
-  搜索文件内容
-  支持 AND
+  页面快速搜索页面名，category, tags
+  单词完全匹配。例如 word1 word2，匹配既包含 word1 又包含 word2 的页面
+  句子完全匹配。例如 "word1 word2"，匹配包含 word1 word2 的页面
+  组合搜索。例如 word1 OR word2，匹配包含 word1 或 word2 的页面
+  特定 tag 或 category。例如 tag:tag1 word1，匹配包含 tag1 和 word1 的页面
+  排除特定字词。例如 -word1，匹配不包含 word1 的页面
   搜索结果页面名匹配的排在前面，然后按匹配次数排序
+  hits 高亮，不好做，交给 JS
+  缓存结果
+
+TODO 服务端生成 TOC。虽然 JS 也可以生成 TOC，不过我们有缓存，服务端生成不会增加多少开销，TOC 也不会占多大流量，好处是即使客户端禁用 JS，TOC 也是可用的。
 
 TODO 合并 css
 
 TODO 合并 js
+
+## 设计
+
+### 数据
+
+主要是 notes、templates。
+登录用户和访客看到的内容是不一样的。
+修改 java 代码也可能导致输出内容变化，例如修改 markdown 解析器配置。所以临时增加了 HelloController#CACHE_EXPIRE。
+
+输出给浏览器的内容
+
+* 页面内容。第一次访问时生成，md 或 template lastModified 变化或应用重启时清除缓存。
+* css。应用启动时生成，文件 lastModified 变化时重新生成。
+* js，tree 数据。应用启动时生成，文件 lastModified 变化时重新生成。
+
+动态页面内容 cache key
+userId:path
+  md lastModified
+  template lastModified
+  md5
+  content
+
+静态内容 cache key
+path
+  file1 lastModified
+  file2 lastModified
+  md5
+  content
+
+有时 Command + R，浏览器不发送请求，Command + Shift + R 会发送请求。
+
+### 搜索
+
+* input parser
+  * 不分词，用户自己会加空格
+* 组合逻辑
+* 查找匹配
+  * 暂时不支持通配符。我已经想到了怎么实现，以后可能支持
+* 缓存中间结果和最终结果
+* 排序
+* 展示结果
+
+
 
