@@ -1,5 +1,8 @@
 package xyz.liuw.autumn.search;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/27.
@@ -7,11 +10,18 @@ package xyz.liuw.autumn.search;
 // tag:abc
 class TagMatcher extends AbstractMatcher {
 
-    public TagMatcher(String expression, String expressionValue) {
-        super(expression, expressionValue);
+    private TagMatcher(String expression, String searchStr) {
+        super(expression, searchStr);
     }
 
-    static class Parser extends AbstractPrefixTokenParser {
+    @Override
+    public Set<SearchingPage> search(Set<SearchingPage> source) {
+        return source.stream()
+                .filter(searchingPage -> searchingPage.getPage().getTags().contains(getSearchStr()))
+                .collect(Collectors.toSet());
+    }
+
+    static class Parser extends AbstractPrefixMatcherParser {
 
         @Override
         protected String getPrefix() {
@@ -19,8 +29,8 @@ class TagMatcher extends AbstractMatcher {
         }
 
         @Override
-        protected Token createToken(String exp, String expValue) {
-            return new TagMatcher(exp, expValue);
+        protected Token createMatcher(String expression, String searchStr) {
+            return new TagMatcher(expression, searchStr);
         }
     }
 }

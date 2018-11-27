@@ -8,7 +8,7 @@ import org.apache.commons.lang3.Validate;
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
-public abstract class AbstractPrefixTokenParser extends AbstractTokenParser {
+public abstract class AbstractPrefixMatcherParser extends AbstractTokenParser {
 
     @Override
     public boolean accept(String input, int start) {
@@ -25,12 +25,12 @@ public abstract class AbstractPrefixTokenParser extends AbstractTokenParser {
         for (int i = start + prefix.length(); i < input.length(); i++) {
             char c = input.charAt(i);
             if (c <= ' ') {
-                createToken(prefix, input, start, i);
+                createMatcher(prefix, input, start, i);
                 return true;
             }
 
             if (i == input.length() - 1) {
-                createToken(prefix, input, start, i + 1);
+                createMatcher(prefix, input, start, i + 1);
                 return true;
             }
         }
@@ -39,14 +39,14 @@ public abstract class AbstractPrefixTokenParser extends AbstractTokenParser {
         return false;
     }
 
-    private void createToken(String prefix, String input, int start, int end) {
-        String exp = input.substring(start, end);
-        String val = input.substring(start + prefix.length(), end);
-        token = createToken(exp, val);
+    private void createMatcher(String prefix, String input, int start, int end) {
+        String exp = input.substring(start, end).toLowerCase();
+        String val = input.substring(start + prefix.length(), end).toLowerCase();
+        token = createMatcher(exp, val);
         nextStart = end;
     }
 
     protected abstract String getPrefix();
 
-    protected abstract Token createToken(String exp, String expValue);
+    protected abstract Token createMatcher(String expression, String searchStr);
 }

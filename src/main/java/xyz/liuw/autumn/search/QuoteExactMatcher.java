@@ -1,13 +1,23 @@
 package xyz.liuw.autumn.search;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
 class QuoteExactMatcher extends AbstractMatcher {
 
-    private QuoteExactMatcher(String expression, String expressionValue) {
-        super(expression, expressionValue);
+    private QuoteExactMatcher(String expression, String searchStr) {
+        super(expression, searchStr);
+    }
+
+    @Override
+    public Set<SearchingPage> search(Set<SearchingPage> source) {
+        return source.stream()
+                .filter(searchingPage -> ExactMatcher.find(searchingPage, getExpression(), getSearchStr()).getHitCount() > 0)
+                .collect(Collectors.toSet());
     }
 
     static class Parser extends AbstractTokenParser {
@@ -41,8 +51,9 @@ class QuoteExactMatcher extends AbstractMatcher {
 
                 if (c == '"') {
                     if (i == input.length() - 1 || input.charAt(i + 1) <= ' ') {
-                        String expression = input.substring(start, i + 1);
-                        token = new QuoteExactMatcher(expression, valueBuff.toString());
+                        String expression = input.substring(start, i + 1).toLowerCase();
+                        String searchStr = valueBuff.toString().toLowerCase();
+                        token = new QuoteExactMatcher(expression, searchStr);
                         nextStart = i + 1;
                         return true;
                     } else {

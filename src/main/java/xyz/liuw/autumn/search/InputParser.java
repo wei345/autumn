@@ -12,6 +12,11 @@ import java.util.List;
  */
 class InputParser {
 
+    /**
+     * 解析 input 返回 Token 列表。
+     * @param input 搜索字符串
+     * @return Token 列表。确保第一个和最后一个不会是 Operator，因为它们在第一个或最后一个是没有意义的。
+     */
     List<Token> parse(String input) {
         if (StringUtils.isBlank(input)) {
             return Collections.emptyList();

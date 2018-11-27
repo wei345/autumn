@@ -1,9 +1,5 @@
 package xyz.liuw.autumn.search;
 
-import xyz.liuw.autumn.data.Page;
-
-import java.util.Set;
-
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/27.
@@ -14,5 +10,5 @@ interface Operator extends Token {
      */
     int getPriority();
 
-    Set<Page> operate(Matcher m1, Matcher m2);
+    Matcher operate(Matcher m1, Matcher m2);
 }

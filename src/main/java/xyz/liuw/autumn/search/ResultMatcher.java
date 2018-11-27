@@ -1,6 +1,6 @@
 package xyz.liuw.autumn.search;
 
-import xyz.liuw.autumn.data.Page;
+import com.google.common.collect.Sets;
 
 import java.util.Set;
 
@@ -10,15 +10,38 @@ import java.util.Set;
  */
 // Operator 结果
 class ResultMatcher implements Matcher {
-    private Set<Page> result;
+    private Set<SearchingPage> result;
+
+    ResultMatcher(Set<SearchingPage> result) {
+        this.result = result;
+    }
 
     @Override
-    public Set<Page> search() {
+    public void setSourceData(Set<SearchingPage> sourceData) {
+    }
+
+    @Override
+    public Set<SearchingPage> getSourceData() {
+        return null;
+    }
+
+    @Override
+    public Set<SearchingPage> search() {
         return result;
     }
 
     @Override
-    public Set<Page> search(Set<Page> source) {
-        return result;
+    public Set<SearchingPage> search(Set<SearchingPage> source) {
+        return Sets.intersection(result, source);
+    }
+
+    @Override
+    public String getExpression() {
+        return null;
+    }
+
+    @Override
+    public String getSearchStr() {
+        return null;
     }
 }

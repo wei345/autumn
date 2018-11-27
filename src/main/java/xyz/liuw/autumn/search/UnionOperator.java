@@ -23,13 +23,13 @@ class UnionOperator extends AbstractOperator {
     }
 
     @Override
-    public Set<Page> operate(Matcher m1, Matcher m2) {
-        Set<Page> a = m1.search();
-        Set<Page> b = m2.search();
-        Set<Page> c = Sets.newHashSetWithExpectedSize(a.size() + b.size());
+    public Matcher operate(Matcher m1, Matcher m2) {
+        Set<SearchingPage> a = m1.search();
+        Set<SearchingPage> b = m2.search();
+        Set<SearchingPage> c = Sets.newHashSetWithExpectedSize(a.size() + b.size());
         c.addAll(a);
         c.addAll(b);
-        return c;
+        return new ResultMatcher(c);
     }
 
     // "a OR b"

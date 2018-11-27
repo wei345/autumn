@@ -1,7 +1,11 @@
 package xyz.liuw.autumn.data;
 
+import xyz.liuw.autumn.search.PageHit;
+
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author liuwei
@@ -22,6 +26,7 @@ public class Page {
     private volatile ViewCache userViewCache; // 已登录用户页面缓存
     private volatile ViewCache guestViewCache; // 未登录用户页面缓存
     private String path;
+    private volatile ConcurrentHashMap<String, PageHit> searchHitCache;
 
     public static class ViewCache {
         private byte[] content;
@@ -149,5 +154,13 @@ public class Page {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public ConcurrentHashMap<String, PageHit> getSearchHitCache() {
+        return searchHitCache;
+    }
+
+    public void setSearchHitCache(ConcurrentHashMap<String, PageHit> searchHitCache) {
+        this.searchHitCache = searchHitCache;
     }
 }

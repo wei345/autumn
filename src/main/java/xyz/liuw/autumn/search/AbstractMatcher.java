@@ -1,17 +1,30 @@
 package xyz.liuw.autumn.search;
 
+import java.util.Set;
+
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
 public abstract class AbstractMatcher implements Matcher {
 
-    protected String expression;
-    protected String expressionValue;
+    private String expression;
+    private String searchStr;
+    private Set<SearchingPage> sourceData;
 
-    public AbstractMatcher(String expression, String expressionValue) {
+    AbstractMatcher(String expression, String searchStr) {
         this.expression = expression;
-        this.expressionValue = expressionValue;
+        this.searchStr = searchStr;
+    }
+
+    @Override
+    public Set<SearchingPage> getSourceData() {
+        return sourceData;
+    }
+
+    @Override
+    public void setSourceData(Set<SearchingPage> sourceData) {
+        this.sourceData = sourceData;
     }
 
     @Override
@@ -20,7 +33,12 @@ public abstract class AbstractMatcher implements Matcher {
     }
 
     @Override
+    public String getSearchStr() {
+        return searchStr;
+    }
+
+    @Override
     public String toString() {
-        return getClass().getSimpleName() + ":" + getExpression() + ":" + expressionValue;
+        return getClass().getSimpleName() + ":" + getExpression() + ":" + searchStr;
     }
 }
