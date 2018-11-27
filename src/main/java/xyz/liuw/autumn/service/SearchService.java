@@ -5,10 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import xyz.liuw.autumn.data.DataSource;
+import xyz.liuw.autumn.data.Page;
+import xyz.liuw.autumn.search.SearchResult;
 import xyz.liuw.autumn.search.Searcher;
 import xyz.liuw.autumn.search.SearchingPage;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -31,13 +33,13 @@ public class SearchService {
     private Searcher searcher;
 
     @Autowired
-    private DataSource dataSource;
+    private DataService dataService;
 
-    public Set<SearchingPage> search(String input) {
-        long start = System.currentTimeMillis();
-        Set<SearchingPage> s = searcher.search(input, dataSource.getAllData().getPageMap().values());
-        logger.info("Search '{}' {} result in {} ms", input, s.size(), System.currentTimeMillis() - start);
-        return s;
+    public SearchResult search(String input) {
+        Map<String, Page> pageMap = dataService.getPageMap();
+        SearchResult sr = searcher.search(input, pageMap.values());
+        logger.info("Search '{}' {} result in {} ms", input, sr.getPages().size(), sr.getTimeCost());
+        return sr;
     }
 
 }

@@ -9,6 +9,8 @@ import xyz.liuw.autumn.data.Media;
 import xyz.liuw.autumn.data.Page;
 import xyz.liuw.autumn.data.TreeJson;
 
+import java.util.Map;
+
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/23.
@@ -48,6 +50,14 @@ public class DataService {
             page.setUserViewCache(viewCache);
         } else {
             page.setGuestViewCache(viewCache);
+        }
+    }
+
+    public Map<String, Page> getPageMap() {
+        if (SecurityService.isLogged()) {
+            return dataSource.getAllData().getPageMap();
+        } else {
+            return dataSource.getPublishedData().getPageMap();
         }
     }
 

@@ -1,13 +1,10 @@
 package xyz.liuw.autumn.service;
 
-import freemarker.template.Configuration;
-import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.freemarker.FreeMarkerProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
@@ -15,7 +12,6 @@ import xyz.liuw.autumn.data.Page;
 
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -30,20 +26,20 @@ public class PageService {
 
     @Autowired
     private DataService dataService;
+
     @Autowired
     private MarkdownParser markdownParser;
-    @Autowired
-    private Configuration freeMarkerConfiguration;
-    @Autowired
-    private FreeMarkerProperties freeMarkerProperties;
+
     @Autowired
     private TemplateWatcher templateWatcher;
+
     @Value("${autumn.etag.version}")
     private int etagVersion;
 
-    private ThreadLocal<StringWriter> stringWriterThreadLocal = ThreadLocal.withInitial(() -> new StringWriter(10240));
+    @Autowired
+    private TemplateService templateService;
 
-    public byte[] output(@NotNull Page page, Map<String, Object> model, String view, WebRequest webRequest) throws IOException, TemplateException {
+    public byte[] output(@NotNull Page page, Map<String, Object> model, String view, WebRequest webRequest) {
         Page.ViewCache viewCache = dataService.getViewCache(page);
         long viewLastModified = templateWatcher.getTemplateLastModified(view);
         if (viewCache == null || viewCache.getTemplateLastModified() < viewLastModified) {
@@ -59,12 +55,7 @@ public class PageService {
 
                     model.put("title", page.getTitle());
                     model.put("body", page.getBodyHtml());
-                    Template template = freeMarkerConfiguration.getTemplate(view + freeMarkerProperties.getSuffix());
-                    StringWriter out = stringWriterThreadLocal.get();
-                    template.process(model, out);
-
-                    byte[] content = out.toString().getBytes(StandardCharsets.UTF_8);
-                    out.getBuffer().setLength(0);
+                    byte[] content = templateService.merge(model, view).getBytes(StandardCharsets.UTF_8);
                     String md5 = DigestUtils.md5DigestAsHex(content);
                     dataService.setViewCache(page, new Page.ViewCache(content, getEtag(md5), viewLastModified));
                 }

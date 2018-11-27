@@ -1,5 +1,6 @@
 package xyz.liuw.autumn.controller;
 
+import com.vip.vjtools.vjkit.text.EscapeUtil;
 import freemarker.template.TemplateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -51,9 +52,9 @@ public class MainController {
     public Object index(WebRequest webRequest,
                         HttpServletRequest request,
                         HttpServletResponse response,
-                        Map<String, Object> model) throws ServletException, IOException, TemplateException {
+                        Map<String, Object> model) throws ServletException, IOException {
 
-        String path = request.getRequestURI();
+        String path = EscapeUtil.urlDecode(request.getRequestURI());
 
         Media media = dataService.getMedia(path);
         if (media != null) {

@@ -26,10 +26,13 @@ class ExactMatcher extends AbstractMatcher {
     }
 
     static PageHit find(SearchingPage searchingPage, String matcherExpression, String searchStr) {
-        PageHit pageHit = searchingPage.getHitMap().get(matcherExpression);
+        // 本次查询缓存
+        PageHit pageHit = searchingPage.getPageHit(matcherExpression);
+
         if (pageHit == null) {
             Page page = searchingPage.getPage();
 
+            // Page 级缓存
             ConcurrentHashMap<String, PageHit> cache = page.getSearchHitCache();
             if (cache == null) {
                 //noinspection SynchronizationOnLocalVariableOrMethodParameter
@@ -47,9 +50,9 @@ class ExactMatcher extends AbstractMatcher {
                 List<Hit> t = find(page.getTitle(), searchStr);
                 List<Hit> b = find(page.getBody(), searchStr);
                 pageHit = new PageHit(p, t, b);
-                searchingPage.getHitMap().put(matcherExpression, pageHit);
                 cache.put(matcherExpression, pageHit);
             }
+            searchingPage.putPageHit(matcherExpression, pageHit);
         }
         return pageHit;
     }

@@ -35,16 +35,19 @@
 
 * 处理请求发生异常时，显示 templates/error 里和状态码对应的错误页面，用户不会看到 Tomcat 错误页面。
 
-TODO 搜索
-  页面快速搜索页面名，category, tags
-  单词完全匹配。例如 word1 word2，匹配既包含 word1 又包含 word2 的页面
-  句子完全匹配。例如 "word1 word2"，匹配包含 word1 word2 的页面
-  组合搜索。例如 word1 OR word2，匹配包含 word1 或 word2 的页面
-  特定 tag 或 category。例如 tag:tag1 word1，匹配包含 tag1 和 word1 的页面
-  排除特定字词。例如 -word1，匹配不包含 word1 的页面
-  搜索结果页面名匹配的排在前面，然后按匹配次数排序
-  hits 高亮，不好做，交给 JS
-  缓存结果
+搜索
+
+  * TODO 页面快速搜索页面名，category, tags
+  * 单词完全匹配。例如 word1 word2，匹配既包含 word1 又包含 word2 的页面
+  * 句子完全匹配。例如 "word1 word2"，匹配包含 word1 word2 的页面
+  * TODO 句子完全匹配支持通配符
+  * 组合搜索。例如 word1 OR word2，匹配包含 word1 或 word2 的页面
+  * 特定 tag 或 category。例如 tag:tag1 word1，匹配包含 tag1 和 word1 的页面
+  * 排除特定字词。例如 -word1，匹配不包含 word1 的页面
+  * TODO 排序。搜索结果页面名匹配的排在前面，然后按匹配次数排序
+  * TODO hits 高亮，不好做，交给 JS
+  * 缓存 Page 级结果
+  * TODO 限制每个 IP 搜索频率
 
 TODO 服务端生成 TOC。虽然 JS 也可以生成 TOC，不过我们有缓存，服务端生成不会增加多少开销，TOC 也不会占多大流量，好处是即使客户端禁用 JS，TOC 也是可用的。
 
@@ -88,10 +91,9 @@ path
   * 不分词，用户自己会加空格
 * 组合逻辑
 * 查找匹配
-  * 暂时不支持通配符。我已经想到了怎么实现，以后可能支持
 * 缓存中间结果和最终结果
 * 排序
 * 展示结果
 
-
+Media 没多少，不搜。
 

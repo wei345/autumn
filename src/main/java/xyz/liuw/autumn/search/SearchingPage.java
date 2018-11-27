@@ -13,7 +13,10 @@ public class SearchingPage {
 
     private Page page;
 
+    // MatcherExpression -> PageHit
     private Map<String, PageHit> hitMap;
+
+    private int hitCount;
 
     public SearchingPage(Page page) {
         this.page = page;
@@ -24,12 +27,30 @@ public class SearchingPage {
         return page;
     }
 
-    public Map<String, PageHit> getHitMap() {
-        return hitMap;
+
+    public PageHit getPageHit(String expression) {
+        return hitMap.get(expression);
+    }
+
+    public void putPageHit(String expression, PageHit pageHit) {
+        hitMap.put(expression, pageHit);
+        updateHitCount();
+    }
+
+    private void updateHitCount() {
+        int hitCount = 0;
+        for (Map.Entry<String, PageHit> entry : hitMap.entrySet()) {
+            hitCount += entry.getValue().getHitCount();
+        }
+        this.hitCount = hitCount;
+    }
+
+    public int getHitCount() {
+        return hitCount;
     }
 
     @Override
     public String toString() {
-        return page.getPath() + ":" + getHitMap();
+        return page.getPath() + ":" + hitMap;
     }
 }
