@@ -21,6 +21,6 @@ public abstract class AbstractMatcher implements Matcher {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + ":" + getExpression();
+        return getClass().getSimpleName() + ":" + getExpression() + ":" + expressionValue;
     }
 }

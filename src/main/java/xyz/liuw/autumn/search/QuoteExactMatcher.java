@@ -54,49 +54,5 @@ class QuoteExactMatcher extends AbstractMatcher {
             }
             return false;
         }
-
-        /*Parser(String input, int start) {
-            super(input, start);
-        }
-
-        @Override
-        public TokenParserAcceptReturn accept(char c, int i) {
-            if (i == start) {
-                Validate.isTrue(c == '"');
-                if (i == input.length() - 1) {
-                    return ABORT; // i = start - 1
-                }
-                return CONTINUE;
-            }
-
-            if (escape) {
-                // 只转义双引号，其余保存原样
-                if (c == '"') {
-                    valueBuff.append(c);
-                } else {
-                    valueBuff.append('\\').append(c);
-                }
-                escape = false;
-                return CONTINUE;
-            }
-
-            if (c == '\\') {
-                escape = true;
-                return CONTINUE;
-            }
-
-            if (c == '"') {
-                String expression = input.substring(start, i + 1);
-                matcher = new QuoteExactMatcher(expression, valueBuff.toString());
-                return FINISH_CLOSE; // start = i + 1;
-            }
-
-            if (i == input.length() - 1) {
-                return ABORT; // i = start - 1
-            }
-
-            valueBuff.append(c);
-            return CONTINUE;
-        }*/
     }
 }
