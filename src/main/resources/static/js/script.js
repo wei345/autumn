@@ -27,7 +27,7 @@
         });
 
         function unfoldPath(root) {
-            var path = location.pathname;
+            var path = decodeURIComponent(location.pathname);
             var dirs = [root];
             var current;
             while (dirs.length > 0) {
@@ -35,7 +35,7 @@
                 for (var i = 0; i < dir.children.length; i++) {
                     var node = dir.children[i];
                     node.parent = dir;
-                    if (node.path == path) {
+                    if (node.path === path) {
                         node.current = true;
                         current = node;
                         break;
@@ -47,10 +47,9 @@
             }
 
             if (current) {
-                var parent = current.parent;
-                while (parent) {
+                var parent = current;
+                while (parent = parent.parent) {
                     parent.unfolded = true;
-                    parent = parent.parent;
                 }
             }
         }
@@ -144,11 +143,11 @@
         var r = new XMLHttpRequest();
         r.open(method, url, true);
         r.onreadystatechange = function () {
-            if (r.readyState != 4) return;
-            if (r.status == 200) {
-                if (typeof(success == 'function')) success(r.responseText);
+            if (r.readyState !== 4) return;
+            if (r.status === 200) {
+                if (typeof(success === 'function')) success(r.responseText);
             } else {
-                if (typeof(error == 'function')) error(r.responseText);
+                if (typeof(error === 'function')) error(r.responseText);
             }
         };
         r.send("");
