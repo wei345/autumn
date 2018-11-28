@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * @author liuwei
@@ -73,9 +72,7 @@ class ExactMatcher extends AbstractMatcher {
 
     @Override
     public Set<SearchingPage> search(Set<SearchingPage> source) {
-        return source.stream()
-                .filter(searchingPage -> find(searchingPage, getExpression(), getSearchStr()).getHitCount() > 0)
-                .collect(Collectors.toSet());
+        return search(source, searchingPage -> find(searchingPage, getExpression(), getSearchStr()).getHitCount() > 0);
     }
 
     static class Parser extends AbstractPrefixMatcherParser {

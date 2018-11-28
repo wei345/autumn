@@ -1,7 +1,5 @@
 package xyz.liuw.autumn.search;
 
-import com.google.common.collect.Sets;
-
 import java.util.Set;
 
 /**
@@ -25,7 +23,8 @@ class UnionOperator extends AbstractOperator {
     public Matcher operate(Matcher m1, Matcher m2) {
         Set<SearchingPage> a = m1.search();
         Set<SearchingPage> b = m2.search();
-        Set<SearchingPage> c = Sets.newHashSetWithExpectedSize(a.size() + b.size());
+
+        Set<SearchingPage> c = Sorting.SET_SUPPLIER.get();
         c.addAll(a);
         c.addAll(b);
         return new ResultMatcher(c);

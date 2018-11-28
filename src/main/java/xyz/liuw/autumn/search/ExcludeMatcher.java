@@ -1,7 +1,6 @@
 package xyz.liuw.autumn.search;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author liuwei
@@ -16,9 +15,7 @@ class ExcludeMatcher extends AbstractMatcher {
 
     @Override
     public Set<SearchingPage> search(Set<SearchingPage> source) {
-        return source.stream()
-                .filter(searchingPage -> ExactMatcher.find(searchingPage, getExpression(), getSearchStr()).getHitCount() == 0)
-                .collect(Collectors.toSet());
+        return search(source, searchingPage -> ExactMatcher.find(searchingPage, getExpression(), getSearchStr()).getHitCount() == 0);
     }
 
     static class Parser extends AbstractPrefixMatcherParser {

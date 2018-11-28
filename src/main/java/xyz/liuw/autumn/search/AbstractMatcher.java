@@ -1,6 +1,8 @@
 package xyz.liuw.autumn.search;
 
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author liuwei
@@ -15,6 +17,12 @@ abstract class AbstractMatcher implements Matcher {
     AbstractMatcher(String expression, String searchStr) {
         this.expression = expression;
         this.searchStr = searchStr;
+    }
+
+    Set<SearchingPage> search(Set<SearchingPage> source, Predicate<SearchingPage> predicate) {
+        return source.stream()
+                .filter(predicate)
+                .collect(Collectors.toCollection(Sorting.SET_SUPPLIER));
     }
 
     @Override

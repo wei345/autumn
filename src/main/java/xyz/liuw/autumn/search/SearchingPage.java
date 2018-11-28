@@ -17,6 +17,8 @@ public class SearchingPage {
     private Map<String, PageHit> hitMap;
 
     private int hitCount;
+    private int pathHitCount;
+    private int titleHitCount;
 
     public SearchingPage(Page page) {
         this.page = page;
@@ -38,16 +40,31 @@ public class SearchingPage {
     }
 
     private void updateHitCount() {
+        int pathHitCount = 0;
+        int titleHitCount = 0;
         int hitCount = 0;
         for (Map.Entry<String, PageHit> entry : hitMap.entrySet()) {
-            hitCount += entry.getValue().getHitCount();
+            PageHit pageHit = entry.getValue();
+            pathHitCount += pageHit.getPathHitList().size();
+            titleHitCount += pageHit.getTitleHitList().size();
+            hitCount += pageHit.getHitCount();
         }
+        this.pathHitCount = pathHitCount;
+        this.titleHitCount = titleHitCount;
         this.hitCount = hitCount;
     }
 
     @SuppressWarnings("WeakerAccess")
     public int getHitCount() {
         return hitCount;
+    }
+
+    public int getPathHitCount() {
+        return pathHitCount;
+    }
+
+    public int getTitleHitCount() {
+        return titleHitCount;
     }
 
     @Override

@@ -3,7 +3,10 @@ package xyz.liuw.autumn.search;
 import org.springframework.stereotype.Component;
 import xyz.liuw.autumn.data.Page;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 /**
@@ -18,7 +21,7 @@ public class Searcher {
     public SearchResult search(String input, Collection<Page> all) {
         long start = System.currentTimeMillis();
         Set<SearchingPage> pages = search0(input, all);
-        List<SearchingPage> list = sortByHitCount(pages);
+        List<SearchingPage> list = Sorting.sort(pages);
         long cost = System.currentTimeMillis() - start;
         return new SearchResult(list, cost, all.size());
     }
@@ -66,14 +69,8 @@ public class Searcher {
         return result.search();
     }
 
-    private List<SearchingPage> sortByHitCount(Set<SearchingPage> set) {
-        List<SearchingPage> list = new ArrayList<>(set);
-        list.sort((o1, o2) -> Integer.compare(o2.getHitCount(), o1.getHitCount()));
-        return list;
-    }
-
     private Set<SearchingPage> toSearchingPageSet(Collection<Page> all) {
-        return all.stream().map(SearchingPage::new).collect(Collectors.toSet());
+        return all.stream().map(SearchingPage::new).collect(Collectors.toCollection(Sorting.SET_SUPPLIER));
     }
 
 }

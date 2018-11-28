@@ -1,7 +1,6 @@
 package xyz.liuw.autumn.search;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author liuwei
@@ -16,9 +15,7 @@ class TagMatcher extends AbstractMatcher {
 
     @Override
     public Set<SearchingPage> search(Set<SearchingPage> source) {
-        return source.stream()
-                .filter(searchingPage -> searchingPage.getPage().getTags().contains(getSearchStr()))
-                .collect(Collectors.toSet());
+        return search(source, searchingPage -> searchingPage.getPage().getTags().contains(getSearchStr()));
     }
 
     static class Parser extends AbstractPrefixMatcherParser {
