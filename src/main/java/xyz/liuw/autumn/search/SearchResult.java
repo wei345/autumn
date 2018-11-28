@@ -12,7 +12,7 @@ public class SearchResult {
     private long timeCost;
     private int total; // 数据源 Page 数
 
-    public SearchResult(List<SearchingPage> pages, long timeCost, int total) {
+    SearchResult(List<SearchingPage> pages, long timeCost, int total) {
         this.pages = pages;
         this.timeCost = timeCost;
         this.total = total;

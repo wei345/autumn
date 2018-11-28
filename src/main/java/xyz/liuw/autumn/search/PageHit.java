@@ -36,6 +36,7 @@ public class PageHit {
         return bodyHitList;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public int getHitCount() {
         return hitCount;
     }

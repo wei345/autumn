@@ -8,7 +8,7 @@ import org.apache.commons.lang3.Validate;
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
-public abstract class AbstractPrefixMatcherParser extends AbstractTokenParser {
+abstract class AbstractPrefixMatcherParser extends AbstractTokenParser {
 
     @Override
     public boolean accept(String input, int start) {

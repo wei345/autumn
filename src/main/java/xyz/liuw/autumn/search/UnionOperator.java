@@ -1,7 +1,6 @@
 package xyz.liuw.autumn.search;
 
 import com.google.common.collect.Sets;
-import xyz.liuw.autumn.data.Page;
 
 import java.util.Set;
 
@@ -13,7 +12,7 @@ import java.util.Set;
  */
 class UnionOperator extends AbstractOperator {
 
-    public UnionOperator(String expression) {
+    private UnionOperator(String expression) {
         super(expression);
     }
 

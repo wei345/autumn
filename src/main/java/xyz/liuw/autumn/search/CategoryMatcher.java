@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 // category:abc
 class CategoryMatcher extends AbstractMatcher {
 
-    public CategoryMatcher(String expression, String searchStr) {
+    private CategoryMatcher(String expression, String searchStr) {
         super(expression, searchStr);
     }
 

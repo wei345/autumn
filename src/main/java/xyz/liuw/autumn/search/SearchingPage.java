@@ -28,11 +28,11 @@ public class SearchingPage {
     }
 
 
-    public PageHit getPageHit(String expression) {
+    PageHit getPageHit(String expression) {
         return hitMap.get(expression);
     }
 
-    public void putPageHit(String expression, PageHit pageHit) {
+    void putPageHit(String expression, PageHit pageHit) {
         hitMap.put(expression, pageHit);
         updateHitCount();
     }
@@ -45,6 +45,7 @@ public class SearchingPage {
         this.hitCount = hitCount;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public int getHitCount() {
         return hitCount;
     }

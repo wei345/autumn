@@ -3,7 +3,6 @@ package xyz.liuw.autumn.data;
 import xyz.liuw.autumn.search.PageHit;
 
 import java.util.Date;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 

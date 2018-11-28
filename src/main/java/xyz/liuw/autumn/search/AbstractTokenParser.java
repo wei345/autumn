@@ -3,7 +3,7 @@ package xyz.liuw.autumn.search;
 abstract class AbstractTokenParser implements TokenParser {
 
     protected Token token;
-    protected int nextStart;
+    int nextStart;
 
     public abstract boolean accept(String input, int start);
 

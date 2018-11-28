@@ -4,7 +4,7 @@ class Hit {
     private int start;
     private int end;
 
-    public Hit(int start, int end) {
+    Hit(int start, int end) {
         this.start = start;
         this.end = end;
     }

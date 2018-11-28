@@ -8,7 +8,7 @@ package xyz.liuw.autumn.search;
  */
 class IntersectionOperator extends AbstractOperator {
 
-    public IntersectionOperator(String expression) {
+    private IntersectionOperator(String expression) {
         super(expression);
     }
 

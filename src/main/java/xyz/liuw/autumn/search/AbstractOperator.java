@@ -4,11 +4,11 @@ package xyz.liuw.autumn.search;
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
-public abstract class AbstractOperator implements Operator {
+abstract class AbstractOperator implements Operator {
 
     protected String expression;
 
-    public AbstractOperator(String expression) {
+    AbstractOperator(String expression) {
         this.expression = expression;
     }
 

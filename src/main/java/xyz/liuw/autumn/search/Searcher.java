@@ -23,13 +23,13 @@ public class Searcher {
         return new SearchResult(list, cost, all.size());
     }
 
-    public Set<SearchingPage> search0(String input, Collection<Page> all) {
+    private Set<SearchingPage> search0(String input, Collection<Page> all) {
         Set<SearchingPage> data = toSearchingPageSet(all);
 
         List<Token> tokenList = inputParser.parse(input);
+
         Stack<Matcher> operands = new Stack<>();
         Stack<Operator> operators = new Stack<>();
-
         for (Token token : tokenList) {
             if (token instanceof Matcher) {
                 ((Matcher) token).setSourceData(data);

@@ -57,6 +57,7 @@ class ExactMatcher extends AbstractMatcher {
         return pageHit;
     }
 
+    @SuppressWarnings("WeakerAccess")
     static List<Hit> find(@Nullable String source, @Nullable String search) {
         if (source == null || search == null) {
             return Collections.emptyList();

@@ -8,10 +8,8 @@ import org.springframework.stereotype.Component;
 import xyz.liuw.autumn.data.Page;
 import xyz.liuw.autumn.search.SearchResult;
 import xyz.liuw.autumn.search.Searcher;
-import xyz.liuw.autumn.search.SearchingPage;
 
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author liuwei

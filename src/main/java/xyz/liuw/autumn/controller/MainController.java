@@ -1,7 +1,6 @@
 package xyz.liuw.autumn.controller;
 
 import com.vip.vjtools.vjkit.text.EscapeUtil;
-import freemarker.template.TemplateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

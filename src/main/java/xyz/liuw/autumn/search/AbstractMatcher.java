@@ -6,7 +6,7 @@ import java.util.Set;
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
-public abstract class AbstractMatcher implements Matcher {
+abstract class AbstractMatcher implements Matcher {
 
     private String expression;
     private String searchStr;
