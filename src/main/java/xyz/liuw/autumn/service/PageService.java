@@ -11,7 +11,10 @@ import xyz.liuw.autumn.data.Page;
 
 import javax.validation.constraints.NotNull;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
+
+import static org.springframework.web.util.HtmlUtils.htmlEscape;
 
 /**
  * @author liuwei
@@ -37,6 +40,9 @@ public class PageService {
     @Autowired
     private TemplateService templateService;
 
+    @Autowired
+    private SearchService searchService;
+
     public byte[] output(@NotNull Page page, Map<String, Object> model, String view, WebRequest webRequest) {
         Page.ViewCache viewCache = dataService.getViewCache(page);
         long viewLastModified = templateWatcher.getTemplateLastModified(view);
@@ -46,13 +52,8 @@ public class PageService {
                 viewCache = dataService.getViewCache(page);
                 if (viewCache == null || viewCache.getTemplateLastModified() < viewLastModified) {
                     logger.info("Building cache path={}", page.getPath());
-                    if (page.getBodyHtml() == null) {
-                        String html = markdownParser.render(page.getBody());
-                        page.setBodyHtml(html);
-                    }
-
-                    model.put("title", page.getTitle());
-                    model.put("body", page.getBodyHtml());
+                    model.put("title", htmlEscape(page.getTitle()));
+                    model.put("body", getPageBodyHtml(page));
                     byte[] content = templateService.merge(model, view).getBytes(StandardCharsets.UTF_8);
                     String md5 = DigestUtils.md5DigestAsHex(content);
                     dataService.setViewCache(page, new Page.ViewCache(content, getEtag(md5), viewLastModified));
@@ -66,6 +67,29 @@ public class PageService {
         }
 
         return viewCache.getContent();
+    }
+
+    public String highlightOutput(@NotNull Page page, List<String> searchStrList, Map<String, Object> model, String view) {
+        String title = htmlEscape(page.getTitle());
+        title = searchService.highlightSearchStr(title, searchStrList);
+        String bodyHtml = getPageBodyHtml(page);
+        bodyHtml = searchService.highlightSearchStr(bodyHtml, searchStrList);
+        model.put("title", title);
+        model.put("body", bodyHtml);
+        return templateService.merge(model, view);
+    }
+
+    private String getPageBodyHtml(Page page) {
+        if (page.getBodyHtml() == null) {
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+            synchronized (page) {
+                if (page.getBodyHtml() == null) {
+                    String html = markdownParser.render(page.getBody());
+                    page.setBodyHtml(html);
+                }
+            }
+        }
+        return page.getBodyHtml();
     }
 
     private String getEtag(String md5) {

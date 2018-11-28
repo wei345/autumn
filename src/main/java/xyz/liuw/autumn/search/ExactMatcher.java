@@ -65,7 +65,7 @@ class ExactMatcher extends AbstractMatcher {
         int i = 0, start;
         while ((start = StringUtils.indexOfIgnoreCase(source, search, i)) >= 0) {
             i = start + search.length();
-            hits.add(new Hit(start, i));
+            hits.add(new Hit(start, i, search));
         }
         return hits;
     }

@@ -18,12 +18,19 @@ public class Searcher {
 
     private InputParser inputParser = new InputParser();
 
+    private Highlighter highlighter = new Highlighter();
+
     public SearchResult search(String input, Collection<Page> all) {
         long start = System.currentTimeMillis();
-        Set<SearchingPage> pages = search0(input, all);
-        List<SearchingPage> list = Sorting.sort(pages);
+
+        Set<SearchingPage> result0 = search0(input, all);
+
+        List<SearchingPage> result1 = Sorting.sort(result0);
+
+        highlighter.highlightHits(result1);
+
         long cost = System.currentTimeMillis() - start;
-        return new SearchResult(list, cost, all.size());
+        return new SearchResult(result1, cost, all.size());
     }
 
     private Set<SearchingPage> search0(String input, Collection<Page> all) {

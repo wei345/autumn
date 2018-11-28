@@ -21,6 +21,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 
 @Controller
@@ -48,7 +49,8 @@ public class MainController {
 
     @RequestMapping("/**")
     @ResponseBody
-    public Object index(WebRequest webRequest,
+    public Object index(String[] h, // h=a&h=b..
+                        WebRequest webRequest,
                         HttpServletRequest request,
                         HttpServletResponse response,
                         Map<String, Object> model) throws ServletException, IOException {
@@ -78,7 +80,12 @@ public class MainController {
             response.sendError(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND.getReasonPhrase());
             return null;
         }
-        return pageService.output(page, model, "main", webRequest);
+
+        if (h != null && h.length > 0) {
+            return pageService.highlightOutput(page, Arrays.asList(h), model, "main");
+        } else {
+            return pageService.output(page, model, "main", webRequest);
+        }
     }
 
 }

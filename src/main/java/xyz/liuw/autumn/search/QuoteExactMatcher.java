@@ -1,5 +1,7 @@
 package xyz.liuw.autumn.search;
 
+import com.vip.vjtools.vjkit.text.StringBuilderHolder;
+
 import java.util.Set;
 
 /**
@@ -7,6 +9,8 @@ import java.util.Set;
  * Created by liuwei on 2018/11/27.
  */
 class QuoteExactMatcher extends AbstractMatcher {
+
+    private static StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(64);
 
     private QuoteExactMatcher(String expression, String searchStr) {
         super(expression, searchStr);
@@ -24,7 +28,7 @@ class QuoteExactMatcher extends AbstractMatcher {
                 return false;
             }
 
-            StringBuilder valueBuff = new StringBuilder(input.length() - start);
+            StringBuilder stringBuilder = stringBuilderHolder.get();
             boolean escape = false;
 
             for (int i = start + 1; i < input.length(); i++) {
@@ -33,9 +37,9 @@ class QuoteExactMatcher extends AbstractMatcher {
                 if (escape) {
                     // 只转义双引号，其余保存原样
                     if (c == '"') {
-                        valueBuff.append(c);
+                        stringBuilder.append(c);
                     } else {
-                        valueBuff.append('\\').append(c);
+                        stringBuilder.append('\\').append(c);
                     }
                     escape = false;
                     continue;
@@ -49,7 +53,7 @@ class QuoteExactMatcher extends AbstractMatcher {
                 if (c == '"') {
                     if (i == input.length() - 1 || input.charAt(i + 1) <= ' ') {
                         String expression = input.substring(start, i + 1).toLowerCase();
-                        String searchStr = valueBuff.toString().toLowerCase();
+                        String searchStr = stringBuilder.toString().toLowerCase();
                         token = new QuoteExactMatcher(expression, searchStr);
                         nextStart = i + 1;
                         return true;
@@ -58,7 +62,7 @@ class QuoteExactMatcher extends AbstractMatcher {
                     }
                 }
 
-                valueBuff.append(c);
+                stringBuilder.append(c);
             }
             return false;
         }

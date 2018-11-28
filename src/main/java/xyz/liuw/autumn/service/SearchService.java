@@ -6,9 +6,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import xyz.liuw.autumn.data.Page;
+import xyz.liuw.autumn.search.Highlighter;
 import xyz.liuw.autumn.search.SearchResult;
 import xyz.liuw.autumn.search.Searcher;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,11 +35,17 @@ public class SearchService {
     @Autowired
     private DataService dataService;
 
+    private Highlighter highlighter = new Highlighter();
+
     public SearchResult search(String input) {
         Map<String, Page> pageMap = dataService.getPageMap();
         SearchResult sr = searcher.search(input, pageMap.values());
         logger.info("Search '{}' {} result in {} ms", input, sr.getPages().size(), sr.getTimeCost());
         return sr;
+    }
+
+    public String highlightSearchStr(String html, List<String> searchStrList) {
+        return highlighter.highlightSearchStr(html, searchStrList);
     }
 
 }

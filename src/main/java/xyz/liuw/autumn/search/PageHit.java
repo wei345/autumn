@@ -13,7 +13,6 @@ public class PageHit {
     private List<Hit> titleHitList;
     private List<Hit> bodyHitList;
     private int hitCount;
-    private String preview;
 
     PageHit(@NotNull List<Hit> pathHitList,
             @NotNull List<Hit> titleHitList,
@@ -39,14 +38,6 @@ public class PageHit {
     @SuppressWarnings("WeakerAccess")
     public int getHitCount() {
         return hitCount;
-    }
-
-    public String getPreview() {
-        return preview;
-    }
-
-    public void setPreview(String preview) {
-        this.preview = preview;
     }
 
     @Override

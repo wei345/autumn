@@ -3,10 +3,12 @@ package xyz.liuw.autumn.search;
 class Hit {
     private int start;
     private int end;
+    private String str;
 
-    Hit(int start, int end) {
+    Hit(int start, int end, String str) {
         this.start = start;
         this.end = end;
+        this.str = str;
     }
 
     public int getStart() {
@@ -15,5 +17,9 @@ class Hit {
 
     public int getEnd() {
         return end;
+    }
+
+    public String getStr() {
+        return str;
     }
 }

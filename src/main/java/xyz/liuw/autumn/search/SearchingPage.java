@@ -3,6 +3,7 @@ package xyz.liuw.autumn.search;
 import com.google.common.collect.Maps;
 import xyz.liuw.autumn.data.Page;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -19,6 +20,14 @@ public class SearchingPage {
     private int hitCount;
     private int pathHitCount;
     private int titleHitCount;
+    private int bodyHitCount;
+
+    private String pathPreview;
+    private String titlePreview;
+    private String bodyPreview;
+
+    // h=a&h=b
+    private String highlightString;
 
     public SearchingPage(Page page) {
         this.page = page;
@@ -42,16 +51,17 @@ public class SearchingPage {
     private void updateHitCount() {
         int pathHitCount = 0;
         int titleHitCount = 0;
-        int hitCount = 0;
+        int bodyHitCount = 0;
         for (Map.Entry<String, PageHit> entry : hitMap.entrySet()) {
             PageHit pageHit = entry.getValue();
             pathHitCount += pageHit.getPathHitList().size();
             titleHitCount += pageHit.getTitleHitList().size();
-            hitCount += pageHit.getHitCount();
+            bodyHitCount += pageHit.getBodyHitList().size();
         }
         this.pathHitCount = pathHitCount;
         this.titleHitCount = titleHitCount;
-        this.hitCount = hitCount;
+        this.bodyHitCount = bodyHitCount;
+        this.hitCount = pathHitCount + titleHitCount + bodyHitCount;
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -65,6 +75,46 @@ public class SearchingPage {
 
     public int getTitleHitCount() {
         return titleHitCount;
+    }
+
+    public int getBodyHitCount() {
+        return bodyHitCount;
+    }
+
+    public Map<String, PageHit> getUnmodifiableHitMap() {
+        return Collections.unmodifiableMap(hitMap);
+    }
+
+    public String getPathPreview() {
+        return pathPreview;
+    }
+
+    public void setPathPreview(String pathPreview) {
+        this.pathPreview = pathPreview;
+    }
+
+    public String getTitlePreview() {
+        return titlePreview;
+    }
+
+    public void setTitlePreview(String titlePreview) {
+        this.titlePreview = titlePreview;
+    }
+
+    public String getBodyPreview() {
+        return bodyPreview;
+    }
+
+    public void setBodyPreview(String bodyPreview) {
+        this.bodyPreview = bodyPreview;
+    }
+
+    public String getHighlightString() {
+        return highlightString;
+    }
+
+    public void setHighlightString(String highlightString) {
+        this.highlightString = highlightString;
     }
 
     @Override

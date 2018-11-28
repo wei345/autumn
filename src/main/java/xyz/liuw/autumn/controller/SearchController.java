@@ -21,9 +21,13 @@ public class SearchController {
     private SearchService searchService;
     @Autowired
     private TemplateService templateService;
+    private int maxSearchStrLength = 120;
 
     @RequestMapping(value = "/search", method = RequestMethod.GET)
     public Object search(String s, Map<String, Object> model) {
+        if (s.length() > maxSearchStrLength) {
+            s = s.substring(0, maxSearchStrLength);
+        }
         SearchResult sr = searchService.search(s);
         model.put("sr", sr);
         model.put("s", s);
