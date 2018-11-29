@@ -85,8 +85,8 @@ public class PageParser {
                     page.setCategory(value);
                 } else if (line.startsWith(HEADER_TAGS)) {
                     String value = line.substring(HEADER_TAGS.length()).trim();
-                    Set<String> set = new HashSet<>(Arrays.asList(value.split("\\s+")));
-                    page.setTags(set);
+                    Set<String> tags = new HashSet<>(Arrays.asList(value.split("\\s+")));
+                    page.setTags(tags);
                 } else if (line.startsWith(HEADER_PUBLISHED)) {
                     String value = line.substring(HEADER_PUBLISHED.length()).trim();
                     page.setPublished(Boolean.valueOf(value));

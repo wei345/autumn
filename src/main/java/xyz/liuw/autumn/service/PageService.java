@@ -79,6 +79,27 @@ public class PageService {
         return templateService.merge(model, view);
     }
 
+    public String outputSource(@NotNull Page page, WebRequest webRequest) {
+        // check ETag
+        String md5 = page.getSourceMd5();
+        if (md5 == null) {
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+            synchronized (page) {
+                if (page.getSourceMd5() == null) {
+                    page.setSourceMd5(
+                            DigestUtils.md5DigestAsHex(page.getSource().getBytes(StandardCharsets.UTF_8)));
+                }
+            }
+            md5 = page.getSourceMd5();
+        }
+        String etag = getEtag(md5);
+        if (webRequest.checkNotModified(etag)) {
+            return null;
+        }
+
+        return page.getSource();
+    }
+
     private String getPageBodyHtml(Page page) {
         if (page.getBodyHtml() == null) {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter

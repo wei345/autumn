@@ -15,7 +15,10 @@ class TagMatcher extends AbstractMatcher {
 
     @Override
     public Set<SearchingPage> search(Set<SearchingPage> source) {
-        return search(source, searchingPage -> searchingPage.getPage().getTags().contains(getSearchStr()));
+        return search(source, searchingPage -> {
+            Set<String> tags = searchingPage.getPage().getTags();
+            return tags != null && tags.contains(getSearchStr());
+        });
     }
 
     static class Parser extends AbstractPrefixMatcherParser {

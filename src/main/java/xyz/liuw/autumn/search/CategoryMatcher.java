@@ -15,7 +15,7 @@ class CategoryMatcher extends AbstractMatcher {
 
     @Override
     public Set<SearchingPage> search(Set<SearchingPage> source) {
-        return search(source, searchingPage -> searchingPage.getPage().getCategory().equals(getSearchStr()));
+        return search(source, searchingPage -> getSearchStr().equals(searchingPage.getPage().getCategory()));
     }
 
     static class Parser extends AbstractPrefixMatcherParser {

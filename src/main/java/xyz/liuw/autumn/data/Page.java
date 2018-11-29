@@ -26,6 +26,7 @@ public class Page {
     private volatile ViewCache guestViewCache; // 未登录用户页面缓存
     private String path;
     private volatile ConcurrentHashMap<String, PageHit> searchHitCache;
+    private volatile String sourceMd5;
 
     public static class ViewCache {
         private byte[] content;
@@ -161,5 +162,13 @@ public class Page {
 
     public void setSearchHitCache(ConcurrentHashMap<String, PageHit> searchHitCache) {
         this.searchHitCache = searchHitCache;
+    }
+
+    public String getSourceMd5() {
+        return sourceMd5;
+    }
+
+    public void setSourceMd5(String sourceMd5) {
+        this.sourceMd5 = sourceMd5;
     }
 }

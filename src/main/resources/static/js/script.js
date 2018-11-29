@@ -1,20 +1,24 @@
 "use strict";
 (function () {
     window.addEventListener('load', function () {
+        bindShortcut();
         buildTree();
+    });
 
+    function bindShortcut() {
         // 按 '/' 搜索框获得焦点，按 'ESC' 搜索框失去焦点
         var searchInput = document.getElementById('search-input');
         document.addEventListener('keydown', function (event) {
             if (event.key === '/' && document.activeElement !== searchInput) {
                 searchInput.focus();
+                searchInput.select();
                 event.preventDefault();
             }
             if (event.key === 'Escape' && document.activeElement === searchInput) {
                 searchInput.blur();
             }
         });
-    });
+    }
 
     function buildTree() {
         var url = '/tree.json';
