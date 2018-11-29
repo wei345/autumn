@@ -43,8 +43,9 @@ public class DataLoader {
     }
 
     private void timingReload() {
+        String threadName = getClass().getSimpleName() + ".timingReload";
         new Thread(() -> {
-            logger.info("Started loadPageData thread");
+            logger.info("Started '{}' thread", threadName);
             while (reloadIntervalSeconds > 0) {
                 try {
                     long t = reloadIntervalSeconds * 1000 * MathUtil.pow(2, reloadContinuousFailures);
@@ -60,18 +61,21 @@ public class DataLoader {
                     }
                 }
             }
-        }, "loadPageData").start();
+        }, threadName).start();
     }
 
+    @SuppressWarnings("WeakerAccess")
     void load() {
         Validate.notBlank(dataDir, "config 'autumn.data-dir' is empty");
         logger.info("Loading {}", dataDir);
         long start = System.currentTimeMillis();
+
         load(new File(dataDir));
+
         logger.info("Loaded in {} ms", System.currentTimeMillis() - start);
     }
 
-    void load(File rootDir) {
+    private void load(File rootDir) {
         Validate.notNull(rootDir, "rootDir is null");
         Validate.isTrue(!rootDir.isHidden(), "rootDir is hidden");
         Validate.isTrue(rootDir.isDirectory(), "rootDir is not a directory");
@@ -79,10 +83,12 @@ public class DataLoader {
         Map<String, Page> oldPageMap = dataSource.getAllData().getPageMap();
         Map<String, Page> pageMap = Maps.newHashMapWithExpectedSize(
                 oldPageMap.size() == 0 ? 1500 : oldPageMap.size());
+        boolean pageAddedOrModified = false;
 
         Map<String, Media> oldMediaMap = dataSource.getAllData().getMediaMap();
         Map<String, Media> mediaMap = Maps.newHashMapWithExpectedSize(
                 oldMediaMap.size() == 0 ? 100 : oldMediaMap.size());
+        boolean mediaAddedOrModified = false;
 
         TreeNode root = new TreeNode("", "/", true);
         Stack<File> dirStack = new Stack<>();
@@ -121,6 +127,7 @@ public class DataLoader {
                         }
                         Page page = oldPageMap.get(path);
                         if (page == null || page.getLastModified() != file.lastModified()) {
+                            pageAddedOrModified = true;
                             page = PageParser.parse(file);
                             page.setPath(path);
                         }
@@ -134,9 +141,9 @@ public class DataLoader {
 
                     if (filename.endsWith(".png") || filename.endsWith(".jpg") || filename.endsWith(".ico")) {
                         String path = parent.path + file.getName();
-
                         Media media = oldMediaMap.get(path);
                         if (media == null || media.getLastModified() != file.lastModified()) {
+                            mediaAddedOrModified = true;
                             media = new Media(file);
                         }
                         mediaMap.put(path, media);
@@ -145,10 +152,20 @@ public class DataLoader {
             }
         }
         pageMap.put("/", homepage);
+
+        boolean pageChanged = pageAddedOrModified || pageMap.size() != oldPageMap.size();
+        boolean mediaChanged = mediaAddedOrModified || mediaMap.size() != oldMediaMap.size();
+        if (!pageChanged && !mediaChanged) {
+            logger.info("dataSource no change");
+            return;
+        }
+
         sortAndRemoveEmptyNode(root);
         String json = jsonMapper.toJson(root);
-        dataSource.setAllData(new DataSource.Data(new TreeJson(json), pageMap, mediaMap));
-        setPageDataPublished(root, mediaMap);
+        TreeJson treeJson = new TreeJson(json);
+        DataSource.Data data = new DataSource.Data(treeJson, pageMap, mediaMap);
+        dataSource.setAllData(data);
+        setPublishedData(root, mediaMap);
         logger.info("dataSource: {}", dataSource);
     }
 
@@ -203,7 +220,7 @@ public class DataLoader {
         }
     }
 
-    private void setPageDataPublished(TreeNode root, Map<String, Media> mediaMap) {
+    private void setPublishedData(TreeNode root, Map<String, Media> mediaMap) {
         Map<String, Page> pageMap = new HashMap<>();
         Stack<TreeNode> allDirNodes = new Stack<>();
 

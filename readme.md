@@ -87,6 +87,9 @@ path
 
 有时 Command + R，浏览器不发送请求，Command + Shift + R 会发送请求。
 
+TODO cache 所有 category 和 tags
+TODO 触发 reload 数据的接口，生产环境不需要定时频繁 reload
+
 ### 权限
 
 目前通过页面里的属性 published 指定，只分私有和公开。
