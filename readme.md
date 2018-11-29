@@ -9,6 +9,7 @@
 * 主页面，左侧有树形菜单，目录节点在前面，按照字母顺序排序，已选中当前页面。右侧是页面内容。
 * 页面里的图片正常显示。例如 /git/git
 * 访问不存在的页面，显示 404 模版页面，响应状态码 404。
+* TODO！ TOC。服务端生成，虽然 JS 也可以生成 TOC，不过我们有缓存，服务端生成不会增加多少开销，TOC 也不会占多大流量，好处是即使客户端禁用 JS，TOC 也是可用的。
 
 登录
 
@@ -48,14 +49,9 @@
   * 排序。路径或标题匹配的在前面，然后按匹配次数排序
   * 高亮 hits
   * 缓存 Page 级结果
-  * TODO ！ 限制每个 IP 搜索频率
-  * TODO 搜索结果分页
-
-TODO！ 服务端生成 TOC。虽然 JS 也可以生成 TOC，不过我们有缓存，服务端生成不会增加多少开销，TOC 也不会占多大流量，好处是即使客户端禁用 JS，TOC 也是可用的。
-
-TODO 合并 css
-
-TODO 合并 js
+  * TODO 搜索结果缓存
+  * 限制每个 IP 搜索频率
+  * TODO 搜索结果分页？
 
 ## 设计
 
@@ -122,11 +118,42 @@ Media 没多少，不搜。
   转义问题可以解决，搜索前将 searchStr 进行 html 转义。
 用于高亮
 
+### 缓存
+
+还有优化空间。
+
+显示一个页面的内容
+
+page markdown > html > apply template > browser
+
+搜索
+
+page markdown > hits > sort > highlight > highlightString > apply template > browser
+
+点击搜索结果
+
+page markdown > html > highlightString hits > highlight > apply template > browser
+
+### Redis
+
+TODO 限流使用 script
+
+### 减少请求数
+
+* TODO 合并 css
+* TODO 合并 js
+
 ### Production Ready
 
 TODO 添加 ctx。nginx 映射到子路径时，不需要调整 Autumn 输出的 url 和跳转路径。
 
+### View
+
+* Controller 设置 model 时确保 HTML 安全，FreeMarker 不用转义，只是原样输出。
+
 ### UI
 
-* 左上角 Logo
-* 右上角 Logout
+* TODO 左上角 Logo
+* TODO 右上角 Logout
+
+TODO page 页面字体太大？

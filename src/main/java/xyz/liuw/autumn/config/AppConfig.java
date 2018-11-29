@@ -21,8 +21,7 @@ public class AppConfig {
 
     @Bean
     public RedisSerializer<Object> springSessionDefaultRedisSerializer() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        ObjectMapper mapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
         return new GenericJackson2JsonRedisSerializer(mapper);
     }
 }

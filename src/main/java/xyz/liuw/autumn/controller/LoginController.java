@@ -2,11 +2,15 @@ package xyz.liuw.autumn.controller;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +23,13 @@ import xyz.liuw.autumn.util.WebUtil;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static org.springframework.web.util.HtmlUtils.htmlEscape;
 
 /**
  * @author liuwei
@@ -85,7 +95,7 @@ public class LoginController {
         // 登录失败
         loginToken.fail(clientIp);
         model.addAttribute("message", "用户名或密码错误");
-        model.addAttribute("username", username);
+        model.addAttribute("username", htmlEscape(username));
         response.setStatus(401);
         return "login";
     }
@@ -105,6 +115,16 @@ public class LoginController {
         @SuppressWarnings("unchecked")
         private ValueOperations<String, String> valueOperations = stringRedisTemplate.opsForValue();
 
+        private String redisIncrScript =
+                "local key = KEYS[1] " +
+                        "local current = tonumber(redis.call('incr', key)) " +
+                        "if current == 1 then " +
+                        "   redis.call('expire', key, '"+ failuresRememberSeconds +"') " +
+                        "end " +
+                        "return current ";
+
+        private RedisScript<Long> redisScript = new DefaultRedisScript<>(redisIncrScript, Long.class);
+
         @Override
         public boolean acquire(String clientIp) {
             String key = PREFIX + clientIp;
@@ -118,10 +138,7 @@ public class LoginController {
         @Override
         public void fail(String clientIp) {
             String key = PREFIX + clientIp;
-            Long value = valueOperations.increment(key);
-            if (value != null && (value == 1 || value == maxFailures)) {
-                stringRedisTemplate.expire(key, failuresRememberSeconds, TimeUnit.SECONDS);
-            }
+            stringRedisTemplate.execute(redisScript, Collections.singletonList(key));
         }
     }
 
