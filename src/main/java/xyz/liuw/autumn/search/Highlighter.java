@@ -39,8 +39,12 @@ public class Highlighter {
     }
 
     private void highlightHits(SearchingPage searchingPage) {
-
+        Page page = searchingPage.getPage();
         if (CollectionUtils.isEmpty(searchingPage.getUnmodifiableHitMap())) {
+            searchingPage.setPathPreview(escapeHtml(page.getPath()));
+            searchingPage.setTitlePreview(escapeHtml(page.getTitle()));
+            searchingPage.setBodyPreview(escapeHtml(
+                    StringUtils.substring(page.getBody(), 0, maxPreviewLength)));
             return;
         }
 
@@ -54,7 +58,6 @@ public class Highlighter {
             bodyHits.addAll(pageHit.getBodyHitList());
         }
 
-        Page page = searchingPage.getPage();
         searchingPage.setPathPreview(
                 highlight(page.getPath(), pathHits, true));
         searchingPage.setTitlePreview(
@@ -62,14 +65,14 @@ public class Highlighter {
         searchingPage.setBodyPreview(
                 highlight(page.getBody(), new ArrayList<>(bodyHits), maxPreviewLength));
 
-        Set<String> searchStrs = Sets.union(getSearchStrs(titleHits), getSearchStrs(bodyHits));
-        String string = toHighlightString(searchStrs);
-        searchingPage.setHighlightString(string);
+        Set<String> searchStrSet = Sets.union(getSearchStrs(titleHits), getSearchStrs(bodyHits));
+        String highlightString = toHighlightString(searchStrSet);
+        searchingPage.setHighlightString(highlightString);
     }
 
     private String highlight(String source, Collection<Hit> hits, boolean escape) {
         if (CollectionUtils.isEmpty(hits) || StringUtils.isBlank(source)) {
-            return source;
+            return escape ? escapeHtml(source) : source;
         }
 
         StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
@@ -107,7 +110,7 @@ public class Highlighter {
 
     private String highlight(String source, List<Hit> hits, int maxLength) {
         if (CollectionUtils.isEmpty(hits) || StringUtils.isBlank(source)) {
-            return source;
+            return escapeHtml(StringUtils.substring(source, 0, maxLength));
         }
 
         StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
