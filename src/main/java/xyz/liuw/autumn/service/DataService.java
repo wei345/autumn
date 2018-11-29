@@ -62,9 +62,9 @@ public class DataService {
     /**
      * 在显示 page 前一定要检查权限
      */
-    public SecurityBox<Page> getPageSecurityBox(String path) {
+    public SecurityBox getPageSecurityBox(String path) {
         Page page = dataSource.getAllData().getPageMap().get(path);
-        return page == null ? null : new SecurityBox<>(page);
+        return page == null ? null : new SecurityBox(page);
     }
 
     /**
@@ -74,20 +74,20 @@ public class DataService {
      * <p>
      * 用这个类包装数据，调用者可以知道有没有数据，确保会经过权限检查，也不会带来并发安全问题。
      */
-    public static class SecurityBox<T> {
-        private T data;
+    public static class SecurityBox {
+        private Page page;
 
-        SecurityBox(@NotNull T data) {
-            Validate.notNull(data);
-            this.data = data;
+        SecurityBox(@NotNull Page page) {
+            Validate.notNull(page);
+            this.page = page;
         }
 
         /**
          * @return data, null 如果当前未登录或权限不足
          */
-        public T get() {
-            if (isLogged()) {
-                return data;
+        public Page get() {
+            if (page.isPublished() || isLogged()) {
+                return page;
             }
             return null;
         }

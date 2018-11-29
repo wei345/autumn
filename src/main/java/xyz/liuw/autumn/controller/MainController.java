@@ -57,7 +57,7 @@ public class MainController {
         String path = EscapeUtil.urlDecode(request.getRequestURI());
 
         // Page
-        DataService.SecurityBox<Page> pageBox = dataService.getPageSecurityBox(path);
+        DataService.SecurityBox pageBox = dataService.getPageSecurityBox(path);
         if (pageBox != null) {
             return handlePage(pageBox, path, false, h, webRequest, response, model);
         }
@@ -83,7 +83,7 @@ public class MainController {
         return null;
     }
 
-    private Object handlePage(DataService.SecurityBox<Page> pageBox,
+    private Object handlePage(DataService.SecurityBox pageBox,
                               String path,
                               boolean source,
                               String[] h,

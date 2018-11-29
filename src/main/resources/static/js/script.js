@@ -8,6 +8,9 @@
     function bindShortcut() {
         // 按 '/' 搜索框获得焦点，按 'ESC' 搜索框失去焦点
         var searchInput = document.getElementById('search-input');
+        if (!searchInput) {
+            return; // 可能在登录页
+        }
         document.addEventListener('keydown', function (event) {
             if (event.key === '/' && document.activeElement !== searchInput) {
                 searchInput.focus();
@@ -21,11 +24,13 @@
     }
 
     function buildTree() {
-        var url = '/tree.json';
-        ajax('GET', url, function (text) {
+        var tree = document.getElementsByClassName('tree')[0];
+        if (!tree) {
+            return; // 可能在登录页
+        }
+        ajax('GET', '/tree.json', function (text) {
             var data = JSON.parse(text);
             unfoldPath(data);
-            var tree = document.getElementsByClassName('tree')[0];
             tree.innerHTML = buildTreeHtml(data);
             bindToggle(tree);
         });
