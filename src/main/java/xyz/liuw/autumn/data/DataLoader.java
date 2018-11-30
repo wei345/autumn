@@ -262,7 +262,7 @@ public class DataLoader {
         page.setBody(body);
         page.setSource(body);
         page.setTitle("Home");
-        page.setBodyHtml(body);
+        page.setHtml(body);
         page.setLastModified(now.getTime());
         page.setPath("/");
         return page;

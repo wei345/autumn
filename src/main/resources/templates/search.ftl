@@ -1,15 +1,15 @@
 <#include "inc/head.ftl">
 <#include "inc/header.ftl">
     <div class="row">
-        <div id="sidebar" class="column column-25">
+        <div class="sidebar">
             <div class="tree"></div>
         </div>
-        <div class="sr column">
+        <div class="sr">
             <#if (sr)??>
                 <div class="stats">${sr.pages?size!} results (${sr.timeCost!} ms)</div>
                 <div class="pages">
                     <#list sr.pages as sp>
-                        <div class="page">
+                        <div class="search_page">
                             <div>
                                 <a href="${sp.page.path!}<#if sp.highlightString??>?</#if>${sp.highlightString!}">
                                     <span class="title">${sp.titlePreview!"No Title"}</span><br/>

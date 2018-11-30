@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html class="autumn">
 <head>
     <link rel="stylesheet" href="/css/normalize.css"/>
     <link rel="stylesheet" href="/css/milligram.css"/>

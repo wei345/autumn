@@ -1,11 +1,11 @@
 <#include "inc/head.ftl">
 <#include "inc/header.ftl">
     <div class="row">
-        <div id="sidebar" class="column column-25">
+        <div class="sidebar">
             <div class="tree"></div>
         </div>
-        <div class="content column column-75">
-            <h1>${title!}</h1>${body!}
+        <div class="page">
+        ${pageHtml!}
         </div>
     </div>
 <#include "inc/foot.ftl">

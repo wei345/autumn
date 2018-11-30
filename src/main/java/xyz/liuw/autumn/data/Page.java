@@ -19,7 +19,7 @@ public class Page {
     private boolean published; // default false
     private String title;
     private String body;
-    private volatile String bodyHtml;
+    private volatile String html;
     private String source; // file content
     private long lastModified; // file last modified
     private volatile ViewCache userViewCache; // 已登录用户页面缓存
@@ -116,12 +116,12 @@ public class Page {
         this.source = source;
     }
 
-    public String getBodyHtml() {
-        return bodyHtml;
+    public String getHtml() {
+        return html;
     }
 
-    public void setBodyHtml(String bodyHtml) {
-        this.bodyHtml = bodyHtml;
+    public void setHtml(String html) {
+        this.html = html;
     }
 
     public long getLastModified() {

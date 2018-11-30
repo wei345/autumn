@@ -9,7 +9,9 @@
 * 主页面，左侧有树形菜单，目录节点在前面，按照字母顺序排序，已选中当前页面。右侧是页面内容。
 * 页面里的图片正常显示。例如 /git/git
 * 访问不存在的页面，显示 404 模版页面，响应状态码 404。
-* TODO！ TOC。服务端生成，虽然 JS 也可以生成 TOC，不过我们有缓存，服务端生成不会增加多少开销，TOC 也不会占多大流量，好处是即使客户端禁用 JS，TOC 也是可用的。
+* TOC。服务端生成，虽然 JS 也可以生成 TOC，不过我们有缓存，服务端生成不会增加多少开销，TOC 也不会占多大流量，好处是即使客户端禁用 JS，TOC 也是可用的。
+* TODO ! 首页显示最近修改列表
+* 在路径后面加 .md 可以查看 Markdown 原文
 
 登录
 
@@ -55,6 +57,8 @@
 
 ## 设计
 
+TODO 删除已不用的依赖：jsoup 和 commonmark
+
 ### 数据
 
 主要是 notes、templates。
@@ -86,6 +90,17 @@ path
 TODO cache 所有 category 和 tags
 TODO 触发 reload 数据的接口，生产环境不需要定时频繁 reload
 
+### Markdown 解析器
+
+* [commonmark-java](https://github.com/atlassian/commonmark-java) 速度较快，大约是 flexmark-java 的 1.5 倍。
+* [flexmark-java](https://github.com/vsch/flexmark-java) is a fork of commonmark-java project。插件丰富，速度也够快。
+
+其他解析器速度太慢。
+
+一开始选了 commonmark-java，但是生成 TOC 有点麻烦。
+
+commonmark-java 只是 core 速度比较好，commonmark-java 扩展可能不怎么样，例如 commonmark-ext-heading-anchor 性能上欠考虑。
+
 ### 权限
 
 目前通过页面里的属性 published 指定，只分私有和公开。
@@ -113,10 +128,14 @@ Media 没多少，不搜。
 搜 markdown，代码块外的内容直接加标签。代码块内的不能直接加标签，因为标签会被原样输出，可以插入自定义标记，markdown 转为 html 后再替换自定义标记为高亮标签，因为没有高亮代码块，所以替换应该不会破坏 html 标签。
 用于预览
 
-搜 html? html 代码块没有高亮，标签不多。
+搜 html? html 代码块没有高亮，标签不多。增加 TOC 后，`id` `href` 里会出现高亮词，图片路径也可能含高亮词
   如果代码块内容是 xml，里面可能有很多转义。代码块之外也可能有一些转义。
   转义问题可以解决，搜索前将 searchStr 进行 html 转义。
 用于高亮
+
+`<em>` 加到了 `<h2>` id 里。
+
+用 Jsoup 高亮 HTML 里的 searchStr 成本较高。高亮 38k 长文里的几个位置用时 16 ms，使用我的 indexOfIgnoreCase 用时 6 ms。
 
 ### 缓存
 
@@ -157,3 +176,5 @@ TODO 添加 ctx。nginx 映射到子路径时，不需要调整 Autumn 输出的
 * TODO 右上角 Logout
 
 TODO page 页面字体太大？
+
+display:flex，否则两个 div 一上一下。

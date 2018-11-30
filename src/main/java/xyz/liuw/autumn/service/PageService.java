@@ -25,6 +25,8 @@ public class PageService {
 
     private static Logger logger = LoggerFactory.getLogger(PageService.class);
 
+    private static final String PAGE_HTML = "pageHtml";
+
     @Autowired
     private DataService dataService;
 
@@ -52,8 +54,7 @@ public class PageService {
                 viewCache = dataService.getViewCache(page);
                 if (viewCache == null || viewCache.getTemplateLastModified() < viewLastModified) {
                     logger.info("Building cache path={}", page.getPath());
-                    model.put("title", htmlEscape(page.getTitle()));
-                    model.put("body", getPageBodyHtml(page));
+                    model.put(PAGE_HTML, getPageHtml(page));
                     byte[] content = templateService.merge(model, view).getBytes(StandardCharsets.UTF_8);
                     String md5 = DigestUtils.md5DigestAsHex(content);
                     dataService.setViewCache(page, new Page.ViewCache(content, getEtag(md5), viewLastModified));
@@ -71,11 +72,10 @@ public class PageService {
 
     public String highlightOutput(@NotNull Page page, List<String> searchStrList, Map<String, Object> model, String view) {
         String title = htmlEscape(page.getTitle());
-        title = searchService.highlightSearchStr(title, searchStrList);
-        String bodyHtml = getPageBodyHtml(page);
-        bodyHtml = searchService.highlightSearchStr(bodyHtml, searchStrList);
-        model.put("title", title);
-        model.put("body", bodyHtml);
+//        title = searchService.highlightSearchStr(title, searchStrList);
+        String html = getPageHtml(page);
+        html = searchService.highlightSearchStr(html, searchStrList);
+        model.put(PAGE_HTML, html);
         return templateService.merge(model, view);
     }
 
@@ -100,17 +100,17 @@ public class PageService {
         return page.getSource();
     }
 
-    private String getPageBodyHtml(Page page) {
-        if (page.getBodyHtml() == null) {
+    private String getPageHtml(Page page) {
+        if (page.getHtml() == null) {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (page) {
-                if (page.getBodyHtml() == null) {
-                    String html = markdownParser.render(page.getBody());
-                    page.setBodyHtml(html);
+                if (page.getHtml() == null) {
+                    String html = markdownParser.render(page.getTitle(), page.getBody());
+                    page.setHtml(html);
                 }
             }
         }
-        return page.getBodyHtml();
+        return page.getHtml();
     }
 
     private String getEtag(String md5) {

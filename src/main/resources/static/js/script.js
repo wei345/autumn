@@ -1,9 +1,49 @@
 "use strict";
 (function () {
     window.addEventListener('load', function () {
+        bindSidebarToggle();
+        bindTocToggle();
         bindShortcut();
         buildTree();
     });
+
+    function bindSidebarToggle() {
+        var toggle = document.getElementsByClassName('sidebar-toggle')[0];
+        var body = document.getElementsByClassName('sidebar')[0];
+        if (!toggle || !body) {
+            return;
+        }
+        toggle.addEventListener('click', function (event) {
+            if (body.style.display === 'none') {
+                body.style.display = '';
+            } else {
+                body.style.display = 'none';
+            }
+            event.preventDefault();
+            event.stopPropagation();
+        });
+    }
+
+    function bindTocToggle() {
+        // var toc = document.getElementsByClassName('toc')[0];
+        // var toggle = toc.getElementsByTagName('h1')[0];
+        // var body = toggle.nextElementSibling;
+        var toggle = document.getElementsByClassName('toc-toggle')[0];
+        var body = document.getElementsByClassName('toc')[0];
+        if (!toggle || !body) {
+            if (toggle) {
+                toggle.style.display = 'none';
+            }
+            return;
+        }
+        toggle.addEventListener('click', function () {
+            if (body.style.display === 'none') {
+                body.style.display = '';
+            } else {
+                body.style.display = 'none';
+            }
+        });
+    }
 
     function bindShortcut() {
         // 按 '/' 搜索框获得焦点，按 'ESC' 搜索框失去焦点
@@ -29,9 +69,9 @@
             return; // 可能在登录页
         }
         ajax('GET', '/tree.json', function (text) {
-            var data = JSON.parse(text);
-            unfoldPath(data);
-            tree.innerHTML = buildTreeHtml(data);
+            var root = JSON.parse(text);
+            unfoldPath(root);
+            tree.innerHTML = buildTreeHtml([root]);
             bindToggle(tree);
         });
 
@@ -66,48 +106,49 @@
         var foldedString = '+';
         var unfoldedString = '−';
 
-        function buildTreeHtml(node) {
-            // begin node
-            var html = '<div class="node';
-            if (node.children) {
-                html += ' fold';
-                html += (node.unfolded ? ' unfolded' : ' folded');
-            } else {
-                html += ' leaf';
+        function buildTreeHtml(children) {
+            if (!children || children.length === 0) {
+                return '';
             }
-            html += '">';
-
-            // begin header
-            html += '<div class="header' + (node.current ? ' selected' : '') + '">';
-
-            // icon
-            html += '<span class="icon">';
-            if (node.children) {
-                html += (node.unfolded ? unfoldedString : foldedString);
-            } else {
-                html += '•';
-            }
-            html += '</span>';
-
-            // title
-            html += (node.children ? '<span>' : ('<a href="' + node.path + '">'));
-            html += node.name;
-            html += (node.children ? '</span>' : '</a>');
-
-            // end header
-            html += '</div>';
-
-            // children
-            if (node.children) {
-                html += '<div class="children">';
-                for (var i = 0; i < node.children.length; i++) {
-                    html += buildTreeHtml(node.children[i]);
+            var html = '<ul>';
+            for (var i = 0; i < children.length; i++) {
+                var node = children[i];
+                // begin node
+                html += '<li class="node';
+                if (node.children) {
+                    html += ' fold';
+                    html += (node.unfolded ? ' unfolded' : ' folded');
+                } else {
+                    html += ' leaf';
                 }
-                html += '</div>';
-            }
+                html += '">';
 
-            // end node
-            html += '</div>';
+                // begin header
+                html += '<div class="header' + (node.current ? ' selected' : '') + '">';
+
+                // icon
+                html += '<span class="icon">';
+                if (node.children) {
+                    html += (node.unfolded ? unfoldedString : foldedString);
+                } else {
+                    html += '•';
+                }
+                html += '</span>';
+
+                // title
+                html += (node.children ? '<span>' : ('<a href="' + node.path + '">'));
+                html += node.name;
+                html += (node.children ? '</span>' : '</a>');
+
+                // end header
+                html += '</div>';
+
+                html += buildTreeHtml(node.children);
+
+                // end node
+                html += '</li>';
+            }
+            html += '</ul>';
             return html;
         }
 

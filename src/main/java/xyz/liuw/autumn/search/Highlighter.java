@@ -3,6 +3,11 @@ package xyz.liuw.autumn.search;
 import com.google.common.collect.Sets;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.TextNode;
+import org.jsoup.select.Elements;
 import org.springframework.util.CollectionUtils;
 import xyz.liuw.autumn.data.Page;
 
@@ -33,6 +38,8 @@ public class Highlighter {
         return 0;
     };
     private int maxPreviewLength = 120;
+
+
 
     void highlightHits(Collection<SearchingPage> searchingPages) {
         searchingPages.forEach(this::highlightHits);
@@ -167,15 +174,54 @@ public class Highlighter {
         return sb.toString();
     }
 
+    // apply highlight string
+    public String highlightSearchStr(String html, List<String> searchStrList) {
+        Set<Hit> hits = Sets.newTreeSet(HIT_COMPARATOR);
+        searchStrList.forEach(s -> hits.addAll(ExactMatcher.htmlFind(html, escapeHtml(s))));
+        return highlight(html, hits, false);
+    }
+
     private String htmlEscape(String str, int start, int end) {
         return escapeHtml(str.substring(start, end));
     }
 
-    // apply highlight string
-    public String highlightSearchStr(String html, List<String> searchStrList) {
-        Set<Hit> hits = Sets.newTreeSet(HIT_COMPARATOR);
-        searchStrList.forEach(s -> hits.addAll(ExactMatcher.find(html, escapeHtml(s))));
-        return highlight(html, hits, false);
-    }
+    /*public String highlightSearchStr(String html, List<String> searchStrList) {
+        Document document = Jsoup.parse(html);
+        Elements allElements = document.getAllElements();
+        for (Element element : allElements) {
+            for (TextNode textNode : element.textNodes()) {
+                highlight(textNode, searchStrList);
+            }
+        }
+        return document.html();
+    }*/
 
+    private void highlight(TextNode textNode, List<String> searchStrList) {
+        String text = textNode.text();
+        if (StringUtils.isBlank(text)) {
+            return;
+        }
+
+        Set<Hit> hits = Sets.newTreeSet(HIT_COMPARATOR);
+        searchStrList.forEach(s -> hits.addAll(ExactMatcher.find(text, s)));
+
+        int start = 0;
+        for (Hit hit : hits) {
+            textNode.before(new TextNode(text.substring(start, hit.getStart())));
+            Element em = new Element("em");
+            em.appendChild(new TextNode(text.substring(hit.getStart(), hit.getEnd())));
+            textNode.before(em);
+            start = hit.getEnd();
+        }
+
+        if (start == 0) {
+            return;
+        }
+
+        if (start < text.length()) {
+            textNode.before(new TextNode(text.substring(start)));
+        }
+
+        textNode.remove();
+    }
 }

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import xyz.liuw.autumn.data.Page;
+import xyz.liuw.autumn.util.HtmlUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,6 +65,19 @@ class ExactMatcher extends AbstractMatcher {
         List<Hit> hits = new ArrayList<>();
         int i = 0, start;
         while ((start = StringUtils.indexOfIgnoreCase(source, search, i)) >= 0) {
+            i = start + search.length();
+            hits.add(new Hit(start, i, search));
+        }
+        return hits;
+    }
+
+    static List<Hit> htmlFind(@Nullable String source, @Nullable String search) {
+        if (source == null || search == null) {
+            return Collections.emptyList();
+        }
+        List<Hit> hits = new ArrayList<>();
+        int i = 0, start;
+        while ((start = HtmlUtil.indexOfIgnoreCase(source, search, i)) >= 0) {
             i = start + search.length();
             hits.add(new Hit(start, i, search));
         }
