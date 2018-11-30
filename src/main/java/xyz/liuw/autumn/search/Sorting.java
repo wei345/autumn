@@ -1,6 +1,7 @@
 package xyz.liuw.autumn.search;
 
 import com.google.common.collect.Sets;
+import xyz.liuw.autumn.data.DataLoader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +13,6 @@ import java.util.function.Supplier;
  * Created by liuwei on 2018/11/28.
  */
 class Sorting {
-    private static final String ARCHIVE_PATH_PREFIX = "/archive/";
 
     static Supplier<Set<SearchingPage>> SET_SUPPLIER = Sets::newHashSet;
 
@@ -24,8 +24,8 @@ class Sorting {
             int v;
 
             // 非归档目录
-            v = Integer.compare(o1.getPage().getPath().startsWith(Sorting.ARCHIVE_PATH_PREFIX) ? 1 : 0,
-                    o2.getPage().getPath().startsWith(Sorting.ARCHIVE_PATH_PREFIX) ? 1 : 0);
+            v = Integer.compare(o1.getPage().getPath().startsWith(DataLoader.ARCHIVE_PATH_PREFIX) ? 1 : 0,
+                    o2.getPage().getPath().startsWith(DataLoader.ARCHIVE_PATH_PREFIX) ? 1 : 0);
             if (v != 0) {
                 return v;
             }

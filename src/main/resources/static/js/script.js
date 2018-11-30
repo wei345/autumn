@@ -29,7 +29,7 @@
         // var body = toggle.nextElementSibling;
         var toggle = document.getElementsByClassName('toc-toggle')[0];
         var body = document.getElementsByClassName('toc')[0];
-        if (!toggle || !body) {
+        if (!toggle || !body || body.getElementsByTagName('li').length < 3) {
             if (toggle) {
                 toggle.style.display = 'none';
             }

@@ -3,11 +3,15 @@ package xyz.liuw.autumn.data;
 import com.google.common.collect.Maps;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import com.vip.vjtools.vjkit.number.MathUtil;
+import com.vip.vjtools.vjkit.text.StringBuilderHolder;
+import com.vip.vjtools.vjkit.time.ClockUtil;
+import com.vip.vjtools.vjkit.time.DateUtil;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -22,6 +26,7 @@ import java.util.*;
 @Component
 public class DataLoader {
 
+    public static final String ARCHIVE_PATH_PREFIX = "/archive/";
     private static Logger logger = LoggerFactory.getLogger(DataLoader.class);
 
     @Autowired
@@ -33,11 +38,68 @@ public class DataLoader {
     @Value("${autumn.data.reload-interval-seconds:10}")
     private long reloadIntervalSeconds;
     private int reloadContinuousFailures; // default 0
-    private Page homepage;
+    private Page welcome;
+
+    static List<Page> recentlyModified(Collection<Page> set) {
+        List<Page> list = new ArrayList<>(set);
+        list.sort((o1, o2) -> {
+            // 一定要分出先后，也就是不能返回 0，否则每次搜索结果顺序可能不完全一样
+            int v;
+
+            // 非归档目录
+            v = Integer.compare(o1.getPath().startsWith(ARCHIVE_PATH_PREFIX) ? 1 : 0,
+                    o2.getPath().startsWith(ARCHIVE_PATH_PREFIX) ? 1 : 0);
+            if (v != 0) {
+                return v;
+            }
+
+            // 最近修改日期
+            v = Long.compare(o2.getModified().getTime(), o1.getModified().getTime());
+            if (v != 0) {
+                return v;
+            }
+
+            // 字典顺序
+            return o1.getPath().compareTo(o2.getPath());
+        });
+        return list;
+    }
+
+    /**
+     * 打印用户友好的，与当前时间相比的时间差，如刚刚，5分钟前，今天XXX，昨天XXX
+     * <p>
+     * copy from AndroidUtilCode
+     */
+    public static String formatFriendlyTimeSpanByNow(long timeStampMillis) {
+        long now = ClockUtil.currentTimeMillis();
+        long span = now - timeStampMillis;
+        if (span < 0) {
+            // 'c' 日期和时间，被格式化为 "%ta %tb %td %tT %tZ %tY"，例如 "Sun Jul 20 16:17:00 EDT 1969"。
+            return String.format("%tc", timeStampMillis);
+        }
+        if (span < DateUtil.MILLIS_PER_SECOND) {
+            return "刚刚";
+        } else if (span < DateUtil.MILLIS_PER_MINUTE) {
+            return String.format("%d 秒前", span / DateUtil.MILLIS_PER_SECOND);
+        } else if (span < DateUtil.MILLIS_PER_HOUR) {
+            return String.format("%d 分钟前", span / DateUtil.MILLIS_PER_MINUTE);
+        }
+        // 获取当天00:00
+        long wee = DateUtil.beginOfDate(new Date(now)).getTime();
+        if (timeStampMillis >= wee) {
+            // 'R' 24 小时制的时间，被格式化为 "%tH:%tM"
+            return String.format("今天 %tR", timeStampMillis);
+        } else if (timeStampMillis >= wee - DateUtil.MILLIS_PER_DAY) {
+            return String.format("昨天 %tR", timeStampMillis);
+        } else {
+            // 'F' ISO 8601 格式的完整日期，被格式化为 "%tY-%tm-%td"。
+            return String.format("%tF", timeStampMillis);
+        }
+    }
 
     @PostConstruct
     void start() {
-        homepage = newHomepage();
+        welcome = newHomepage(null);
         load();
         timingReload();
     }
@@ -151,7 +213,7 @@ public class DataLoader {
                 }
             }
         }
-        pageMap.put("/", homepage);
+        pageMap.put("/", welcome);
 
         boolean pageChanged = pageAddedOrModified || pageMap.size() != oldPageMap.size();
         boolean mediaChanged = mediaAddedOrModified || mediaMap.size() != oldMediaMap.size();
@@ -160,6 +222,7 @@ public class DataLoader {
             return;
         }
 
+        pageMap.put("/", newHomepage(pageMap));
         sortAndRemoveEmptyNode(root);
         String json = jsonMapper.toJson(root);
         TreeJson treeJson = new TreeJson(json);
@@ -246,23 +309,45 @@ public class DataLoader {
             }
             node.children = publishedList;
         }
-        pageMap.put("/", homepage);
+        pageMap.put("/", newHomepage(pageMap));
         removeEmptyDirNode(allDirNodes);
         String json = jsonMapper.toJson(root);
         dataSource.setPublishedData(new DataSource.Data(new TreeJson(json), pageMap, mediaMap));
     }
 
-    private Page newHomepage() {
+    private Page newHomepage(@Nullable Map<String, Page> pageMap) {
+
+        String title = "Home";
         String body = "Welcome";
-        Date now = new Date();
+        if (!CollectionUtils.isEmpty(pageMap)) {
+            List<Page> recently = recentlyModified(pageMap.values());
+            StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
+            for (int i = 0; i < 20 && i < recently.size(); i++) {
+                Page page = recently.get(i);
+                stringBuilder
+                        .append("* ")
+                        .append("[")
+                        .append(page.getTitle())
+                        .append("](")
+                        .append(page.getPath())
+                        .append(") <i>")
+                        .append(formatFriendlyTimeSpanByNow(page.getModified().getTime()))
+                        .append("</i>\n");
+            }
+            if (stringBuilder.length() > 0) {
+                title = "Recently Modified";
+                body = stringBuilder.toString();
+            }
+        }
+
+        Date now = new Date(0); // 不要让 Home 出现在最近修改列表里
         Page page = new Page();
         page.setCreated(now);
         page.setModified(now);
         page.setPublished(true);
         page.setBody(body);
         page.setSource(body);
-        page.setTitle("Home");
-        page.setHtml(body);
+        page.setTitle(title);
         page.setLastModified(now.getTime());
         page.setPath("/");
         return page;
