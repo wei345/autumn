@@ -36,6 +36,8 @@ public class MainController {
     private MediaService mediaService;
     @Autowired
     private PageService pageService;
+    @Autowired
+    private SecurityService securityService;
 
     @RequestMapping(value = "/tree.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public String treeJson(WebRequest webRequest) {
@@ -55,6 +57,7 @@ public class MainController {
                         Map<String, Object> model) throws ServletException, IOException {
 
         String path = EscapeUtil.urlDecode(request.getRequestURI());
+        securityService.setFreeMarkerLoggedKey(model);
 
         // Page
         DataService.SecurityBox pageBox = dataService.getPageSecurityBox(path);

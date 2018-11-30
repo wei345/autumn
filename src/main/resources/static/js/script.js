@@ -13,15 +13,14 @@
         if (!toggle || !body) {
             return;
         }
-        toggle.addEventListener('click', function (event) {
-            if (body.style.display === 'none') {
-                body.style.display = '';
-            } else {
-                body.style.display = 'none';
-            }
-            event.preventDefault();
-            event.stopPropagation();
-        });
+        var lsKey;
+        if (location.pathname === '/search') {
+            // 搜索页显示 Sidebar 更好看
+            lsKey = 'autumn.search.sidebar.display';
+        } else {
+            lsKey = 'autumn.sidebar.display';
+        }
+        bindToggle(toggle, body, lsKey);
     }
 
     function bindTocToggle() {
@@ -36,11 +35,24 @@
             }
             return;
         }
+        var lsKey = 'autumn.toc.display';
+        bindToggle(toggle, body, lsKey);
+
+    }
+
+    function bindToggle(toggle, body, lsKey) {
+        if (localStorage.getItem(lsKey) === 'none') {
+            body.style.display = 'none';
+        } else {
+            body.style.display = 'block';
+        }
         toggle.addEventListener('click', function () {
             if (body.style.display === 'none') {
-                body.style.display = '';
+                body.style.display = 'block';
+                localStorage.setItem(lsKey, 'block');
             } else {
                 body.style.display = 'none';
+                localStorage.setItem(lsKey, 'none');
             }
         });
     }

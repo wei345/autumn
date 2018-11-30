@@ -10,6 +10,11 @@
                 <input id="search-input" type="text" name="s" value="${s!}" autocomplete="off"/>
             </form>
         </div>
+        <div class="right">
+            <#if logged == true>
+                <a class="logout" href="/logout">Logout</a>
+            </#if>
+        </div>
     </div>
     <div class="toolbar">
         <span class="sidebar-toggle no-selection">Sidebar</span>

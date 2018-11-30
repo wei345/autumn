@@ -172,9 +172,7 @@ TODO 添加 ctx。nginx 映射到子路径时，不需要调整 Autumn 输出的
 
 ### UI
 
-* TODO 左上角 Logo
-* TODO 右上角 Logout
-
-TODO page 页面字体太大？
+* 左上角 Logo
+* 右上角 Logout
 
 display:flex，否则两个 div 一上一下。

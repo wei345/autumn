@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import xyz.liuw.autumn.search.SearchResult;
 import xyz.liuw.autumn.service.RateLimitService;
 import xyz.liuw.autumn.service.SearchService;
+import xyz.liuw.autumn.service.SecurityService;
 import xyz.liuw.autumn.service.TemplateService;
 import xyz.liuw.autumn.util.WebUtil;
 
@@ -33,9 +34,12 @@ public class SearchController {
     private int maxSearchStrLength = 120;
     @Autowired
     private RateLimitService rateLimitService;
+    @Autowired
+    private SecurityService securityService;
 
     @RequestMapping(value = "/search", method = RequestMethod.GET)
     public Object search(String s, Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        securityService.setFreeMarkerLoggedKey(model);
         if (StringUtils.isBlank(s)) {
             response.sendRedirect("/");
             return null;

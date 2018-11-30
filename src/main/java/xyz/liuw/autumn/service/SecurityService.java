@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +33,7 @@ public class SecurityService {
     private static final String REMEMBER_ME_COOKIE_NAME = "ME";
     private static final String SEPARATOR = "|";
     private static final String SESSION_USER_KEY = "user";
+    private static final String LOGGED_MODEL_KEY = "logged";
     private static final User NULL_USER = new User();
     private static Logger logger = LoggerFactory.getLogger(SecurityService.class);
     private static ThreadLocal<User> userThreadLocal = new ThreadLocal<>();
@@ -176,5 +178,9 @@ public class SecurityService {
     private void removeSessionUser(HttpSession session) {
         sessionUserCache.invalidate(session.getId());
         session.removeAttribute(SESSION_USER_KEY);
+    }
+
+    public void setFreeMarkerLoggedKey(Map<String, Object> model){
+        model.put(LOGGED_MODEL_KEY, isLogged());
     }
 }

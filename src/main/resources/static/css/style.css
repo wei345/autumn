@@ -52,6 +52,15 @@ ul ul {
     width: 25%;
 }
 
+.header .right {
+    float: right;
+    width: 25%;
+}
+
+.header .right .logout {
+    float: right;
+}
+
 .header .search-box {
     width: 50%;
 }
@@ -185,6 +194,7 @@ ul ul {
     padding-left: .8em;
     /*border-left: 1px solid #ccc;*/
     background-color: #fff;
+    display: none;
 }
 
 .page .toc ul {
