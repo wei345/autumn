@@ -1,6 +1,5 @@
 <#include "inc/head.ftl">
-    <div class="row">
-        <div class="column column-33 column-offset-33">
+        <div class="login_box">
             <p>${message!}</p>
             <form method="POST" action="">
                 <label for="username">Username</label>
@@ -10,5 +9,4 @@
                 <input class="button-primary" type="submit" value="Login">
             </form>
         </div>
-    </div>
 <#include "inc/foot.ftl">

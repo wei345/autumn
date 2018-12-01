@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<html class="autumn">
+<html>
 <head>
     <link rel="stylesheet" href="/css/normalize.css"/>
-    <link rel="stylesheet" href="/css/milligram.css"/>
     <link rel="stylesheet" href="/css/style.css"/>
     <script type="text/javascript" src="/js/script.js"></script>
 </head>

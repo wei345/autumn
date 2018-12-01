@@ -1,8 +1,8 @@
 <#include "inc/head.ftl">
 <#include "inc/header.ftl">
-    <div class="row">
+    <div class="main">
         <div class="sidebar">
-            <div class="tree"></div>
+            <div class="tree_box"></div>
         </div>
         <div class="page">
         ${pageHtml!}

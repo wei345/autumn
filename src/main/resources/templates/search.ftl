@@ -1,25 +1,25 @@
 <#include "inc/head.ftl">
 <#include "inc/header.ftl">
-    <div class="row">
+    <div class="main">
         <div class="sidebar">
-            <div class="tree"></div>
+            <div class="tree_box"></div>
         </div>
         <div class="sr">
             <#if (sr)??>
-                <div class="stats">${sr.pages?size!} results (${sr.timeCost!} ms)</div>
+                <div class="sr_stats">${sr.pages?size!} results (${sr.timeCost!} ms)</div>
                 <div class="pages">
                     <#list sr.pages as sp>
-                        <div class="search_page">
+                        <div class="sr_page">
                             <div>
                                 <a href="${sp.page.path!}<#if sp.highlightString??>?</#if>${sp.highlightString!}">
-                                    <span class="title">${sp.titlePreview!"No Title"}</span><br/>
-                                    <span class="path">${sp.pathPreview!}</span>
+                                    <span class="sr_page_title">${sp.titlePreview!"No Title"}</span><br/>
+                                    <span class="sr_page_path">${sp.pathPreview!}</span>
                                 </a>
                             </div>
-                            <div class="bodyPreview">${sp.bodyPreview!}</div>
-                            <div class="info">
-                                <span class="hit">${sp.hitCount!} Hits, </span>
-                                <span class="date">${sp.page.modified?string["yyyy-MM-dd"]!}</span>
+                            <div class="sr_page_body">${sp.bodyPreview!}</div>
+                            <div class="sr_page_info">
+                                <span class="sr_page_hit">${sp.hitCount!} Hits, </span>
+                                <span class="sr_page_date">${sp.page.modified?string["yyyy-MM-dd"]!}</span>
                             </div>
                         </div>
                     </#list>

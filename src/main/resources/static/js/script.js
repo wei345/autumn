@@ -4,28 +4,34 @@
         bindSidebarToggle();
         bindTocToggle();
         bindShortcut();
+        anchorLink();
         buildTree();
     });
 
     function bindSidebarToggle() {
-        var toggle = document.getElementsByClassName('sidebar-toggle')[0];
-        var body = document.getElementsByClassName('sidebar')[0];
-        if (!toggle || !body) {
+        var toggle = document.getElementsByClassName('header__toolbar__sidebar_toggle')[0];
+        var target = document.getElementsByClassName('sidebar')[0];
+        if (!toggle || !target) {
             return;
         }
         var lsKey;
-        switch (location.pathname) {
+        switch (pathname()) {
             case '/':
                 lsKey = 'autumn.home.sidebar.display';
                 break;
-            case 'search':
+            case '/search':
                 lsKey = 'autumn.search.sidebar.display';
                 break;
             default:
                 lsKey = 'autumn.sidebar.display';
                 break;
         }
-        bindToggle(toggle, body, lsKey);
+        var main = document.getElementsByClassName('main')[0];
+        main.classList.toggle('hide_sidebar', localStorage.getItem(lsKey) === '0');
+        toggle.addEventListener('click', function () {
+            var val = main.classList.toggle('hide_sidebar') ? '0' : '1';
+            localStorage.setItem(lsKey, val);
+        });
     }
 
     function bindTocToggle() {
@@ -36,21 +42,20 @@
         }
         var toggle = toc.getElementsByTagName('h3')[0];
         var body = toggle.nextElementSibling;
-        /*var toggle = document.getElementsByClassName('toc-toggle')[0];
-        var body = document.getElementsByClassName('toc')[0];*/
         if (!toggle || !body || body.getElementsByTagName('li').length < 3) {
             if (toggle) {
                 toggle.style.display = 'none';
             }
             return;
         }
+        toggle.classList.add('no_selection');
         var lsKey = 'autumn.toc.display';
         bindToggle(toggle, body, lsKey);
 
     }
 
     function bindToggle(toggle, body, lsKey) {
-        if (localStorage.getItem(lsKey) === 'none') {
+        if (localStorage.getItem(lsKey) === '0') {
             body.style.display = 'none';
         } else {
             body.style.display = 'block';
@@ -58,17 +63,17 @@
         toggle.addEventListener('click', function () {
             if (body.style.display === 'none') {
                 body.style.display = 'block';
-                localStorage.setItem(lsKey, 'block');
+                localStorage.setItem(lsKey, '1');
             } else {
                 body.style.display = 'none';
-                localStorage.setItem(lsKey, 'none');
+                localStorage.setItem(lsKey, '0');
             }
         });
     }
 
     function bindShortcut() {
         // 按 '/' 搜索框获得焦点，按 'ESC' 搜索框失去焦点
-        var searchInput = document.getElementById('search-input');
+        var searchInput = document.getElementsByClassName('header__1__search_input')[0];
         if (!searchInput) {
             return; // 可能在登录页
         }
@@ -85,19 +90,19 @@
     }
 
     function buildTree() {
-        var tree = document.getElementsByClassName('tree')[0];
-        if (!tree) {
+        var treeBox = document.getElementsByClassName('tree_box')[0];
+        if (!treeBox) {
             return; // 可能在登录页
         }
         ajax('GET', '/tree.json', function (text) {
             var root = JSON.parse(text);
-            unfoldPath(root);
-            tree.innerHTML = buildTreeHtml([root]);
-            bindToggle(tree);
+            unfoldCurrentPath(root);
+            treeBox.innerHTML = buildTreeHtml([root]);
+            bindToggle(treeBox);
         });
 
-        function unfoldPath(root) {
-            var path = decodeURIComponent(location.pathname);
+        function unfoldCurrentPath(root) {
+            var path = decodeURIComponent(pathname());
             var dirs = [root];
             var current;
             while (dirs.length > 0) {
@@ -135,20 +140,20 @@
             for (var i = 0; i < children.length; i++) {
                 var node = children[i];
                 // begin node
-                html += '<li class="node';
+                html += '<li class="tree_node';
                 if (node.children) {
-                    html += ' fold';
-                    html += (node.unfolded ? ' unfolded' : ' folded');
+                    html += ' tree_node_dir';
+                    html += (node.unfolded ? ' tree_node_unfolded' : ' tree_node_folded');
                 } else {
-                    html += ' leaf';
+                    html += ' tree_node_leaf';
                 }
                 html += '">';
 
                 // begin header
-                html += '<div class="header' + (node.current ? ' selected' : '') + '">';
+                html += '<div class="tree_node_header' + (node.current ? ' tree_node_header_selected' : '') + '">';
 
                 // icon
-                html += '<span class="icon">';
+                html += '<span class="tree_node_header_icon no_selection">';
                 if (node.children) {
                     html += (node.unfolded ? unfoldedString : foldedString);
                 } else {
@@ -174,40 +179,74 @@
         }
 
         function bindToggle(tree) {
-            var els = tree.getElementsByClassName('fold');
+            var els = tree.getElementsByClassName('tree_node_dir');
             for (var i = 0; i < els.length; i++) {
-                els[i].getElementsByClassName('header')[0].addEventListener('click', toggle);
+                els[i].getElementsByClassName('tree_node_header')[0].addEventListener('click', toggle);
             }
         }
 
         function toggle(event) {
             var target = event.target;
-            var node = parentWithClass(target, 'node');
-            var icon = node.getElementsByClassName('icon')[0];
-            if (hasClass(node, 'folded')) {
+            var node = parentWithClass(target, 'tree_node');
+            var icon = node.getElementsByClassName('tree_node_header_icon')[0];
+            if (node.classList.contains('tree_node_folded')) {
                 icon.innerHTML = unfoldedString;
-                replaceClass(node, 'folded', 'unfolded');
+                replaceClass(node, 'tree_node_folded', 'tree_node_unfolded');
             } else {
                 icon.innerHTML = foldedString;
-                replaceClass(node, 'unfolded', 'folded');
+                replaceClass(node, 'tree_node_unfolded', 'tree_node_folded');
             }
         }
     }
 
-    function hasClass(dom, cls) {
-        return new RegExp('\\b' + cls + '\\b').test(dom.className);
-    }
-
+    // Safari 不支持 classList.replace
     function replaceClass(dom, cls, replacement) {
         dom.className = dom.className.replace(new RegExp('\\b' + cls + '\\b', 'g'), replacement);
     }
 
     function parentWithClass(dom, cls) {
         var node = dom.parentNode;
-        while (node && !hasClass(node, cls)) {
+        while (node && !node.classList.contains(cls)) {
             node = node.parentNode;
         }
         return node;
+    }
+
+    function anchorLink() {
+        var page = document.getElementsByClassName('page')[0];
+        if (!page) {
+            return;
+        }
+        var levels = {
+            'h1': true,
+            'h2': true,
+            'h3': true,
+            'h4': true,
+            'h5': true,
+            'h6': true,
+            'h7': true
+        };
+        for (var i = 0; i < page.children.length; i++) {
+            var node = page.children[i];
+            var tagName = node.tagName.toLowerCase();
+            if (levels[tagName]) {
+                var a = document.createElement('a');
+                if (tagName === 'h1') {
+                    a.href = (pathname());
+                } else {
+                    a.href = ('#' + node.id);
+                }
+                node.insertBefore(a, node.firstChild);
+            }
+        }
+    }
+
+    function pathname() {
+        if (location.pathname) {
+            return location.pathname;
+        }
+        var pathname = /^(\w+?):\/+?[^\/]+(\/[^?]*)/.exec(location.href)[2];
+        return pathname ? pathname : pathname;
     }
 
     function ajax(method, url, success, error) {
