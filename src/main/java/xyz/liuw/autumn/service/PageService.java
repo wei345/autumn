@@ -105,7 +105,7 @@ public class PageService {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (page) {
                 if (page.getHtml() == null) {
-                    String html = markdownParser.render(page.getTitle(), page.getBody());
+                    String html = markdownParser.render(page.getPath(), page.getTitle(), page.getBody());
                     page.setHtml(html);
                 }
             }

@@ -18,6 +18,6 @@
     </div>
     <div class="toolbar">
         <span class="sidebar-toggle no-selection">Sidebar</span>
-        <span class="toc-toggle no-selection">Table of Contents</span>
+        <#--<span class="toc-toggle no-selection">Table of Contents</span>-->
     </div>
 </div>

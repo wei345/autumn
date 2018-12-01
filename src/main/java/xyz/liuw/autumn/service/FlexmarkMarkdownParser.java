@@ -9,6 +9,7 @@ import com.vladsch.flexmark.ext.toc.TocExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.options.MutableDataSet;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -32,22 +33,44 @@ public class FlexmarkMarkdownParser implements MarkdownParser {
                         AutolinkExtension.create(),
                         TocExtension.create()))
                 .set(TocExtension.LEVELS, 127)
-//                .set(TocExtension.TITLE, "Table of Contents")
-                .set(TocExtension.LIST_CLASS, "toc");
+                // @formatter:off
+                // 顶层元素 div.toc
+                .set(TocExtension.DIV_CLASS, "toc")
+                // <h3>title</h3>
+                .set(TocExtension.TITLE_LEVEL, 3)
+                .set(TocExtension.TITLE, "Table of Contents");
+                // 或者顶层元素 ul.toc
+                // .set(TocExtension.LIST_CLASS, "toc");
+                // @formatter:on
 
         parser = Parser.builder(options).build();
         renderer = HtmlRenderer.builder(options).build();
     }
 
     @Override
+    public String render(String path, String title, String body) {
+        StringBuilder stringBuilder = stringBuilderHolder.get();
+        // TOC
+        stringBuilder.append("[TOC]\n");
+        // 标题
+        stringBuilder.append("# ");
+        if (StringUtils.isNotBlank(path)) {
+            stringBuilder.append("[")
+                    .append(title)
+                    .append("](")
+                    .append(path)
+                    .append(")");
+        } else {
+            stringBuilder.append(title);
+        }
+        // body
+        stringBuilder.append("\n").append(body);
+        return render(stringBuilder.toString());
+    }
+
+    @Override
     public String render(String title, String body) {
-        return render(stringBuilderHolder.get()
-                .append("[TOC]\n")
-                .append("# ")
-                .append(title)
-                .append("\n")
-                .append(body)
-                .toString());
+        return render(null, title, body);
     }
 
     @Override

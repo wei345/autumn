@@ -37,6 +37,7 @@
 异常
 
 * 处理请求发生异常时，显示 templates/error 里和状态码对应的错误页面，用户不会看到 Tomcat 错误页面。
+* TODO 开发时 Sprig boot reload 时访问页面会看到 tomcat 500
 
 搜索
 
@@ -51,7 +52,6 @@
   * 排序。路径或标题匹配的在前面，然后按匹配次数排序
   * 高亮 hits
   * 缓存 Page 级结果
-  * TODO 搜索结果缓存
   * 限制每个 IP 搜索频率
   * TODO 搜索结果分页？
 
@@ -117,7 +117,8 @@ commonmark-java 只是 core 速度比较好，commonmark-java 扩展可能不怎
 * 缓存中间结果和最终结果
 * 排序
 * 展示结果
-* 优化：记录搜索词-点击的页面-次数
+* TODO 搜索结果缓存
+* TODO 优化：记录搜索词-点击的页面-次数
 
 Media 没多少，不搜。
 
@@ -155,7 +156,7 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 
 ### Redis
 
-TODO 限流使用 script
+* 限流使用 script
 
 ### 减少请求数
 
@@ -174,6 +175,5 @@ TODO 添加 ctx。nginx 映射到子路径时，不需要调整 Autumn 输出的
 
 * 左上角 Logo
 * 右上角 Logout
-* TODO Footer
 
 display:flex，否则两个 div 一上一下。

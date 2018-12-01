@@ -43,6 +43,11 @@ public class CommonmarkMarkdownParser implements MarkdownParser {
     }
 
     @Override
+    public String render(String path, String title, String body) {
+        return render(title, body);
+    }
+
+    @Override
     public String render(String title, String body) {
         return render(stringBuilderHolder.get()
                 .append("# ")

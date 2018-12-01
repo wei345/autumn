@@ -1,6 +1,5 @@
 body {
     min-font-size: 14px;
-    font-size: 1.4em;
     color: #333;
     font-family: Helvetica, Arial, Freesans, Clean, Sans-serif, serif;
 }
@@ -32,13 +31,9 @@ ul ul {
     margin: 0 0 0 1.5rem;
 }
 
-/*.container {
-    margin: 0 auto;
-    max-width: 1200px;
-    padding: 0;
-    position: relative;
-    width: 100%;
-}*/
+.container {
+    padding-bottom: 1rem;
+}
 
 .autumn .row {
     margin-left: 0;
@@ -88,7 +83,7 @@ ul ul {
 /* Tree */
 .tree ul {
     list-style: none;
-    font-size: 16px;
+    font-size: unset;
     /*padding-left: 1em;*/
     margin-top: 0;
     margin-bottom: 0;
@@ -128,16 +123,6 @@ ul ul {
     background: bisque;
 }
 
-/* Page */
-.page {
-    overflow: auto;
-}
-
-.page h1, .page h2 {
-    /*border-bottom: 1px solid #ccc;*/
-    padding-bottom: .15em;
-}
-
 /* Search Result */
 .sr {
     max-width: 600px;
@@ -158,13 +143,13 @@ ul ul {
 }
 
 .sr .search_page .path {
-    font-size: 14px;
+    /*font-size: 14px;*/
     color: #006621;
 }
 
 .sr .search_page .info {
     display: inline-block;
-    font-size: 14px;
+    /*font-size: 14px;*/
     color: #808080;
 }
 
@@ -175,6 +160,17 @@ ul ul {
 
 .sr .search_page .bodyPreview em {
     color: #6a6a6a;
+}
+
+/* Page */
+.page {
+    width: 100%;
+    overflow: auto;
+}
+
+.page h1, .page h2 {
+    /*border-bottom: 1px solid #ccc;*/
+    padding-bottom: .15em;
 }
 
 .page em {
@@ -190,10 +186,13 @@ ul ul {
 
 .page .toc {
     float: right;
-    width: 16em;
+    max-width: 16em;
     padding-left: .8em;
     /*border-left: 1px solid #ccc;*/
     background-color: #fff;
+}
+
+.page div.toc > ul, .page ul.toc {
     display: none;
 }
 
@@ -207,7 +206,7 @@ ul ul {
     margin-bottom: 0;
 }
 
-.page .toc h1 {
+.page .toc h3 {
     padding-bottom: 0;
     margin-bottom: .5em;
     border-bottom: 0;

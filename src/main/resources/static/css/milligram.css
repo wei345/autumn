@@ -471,7 +471,7 @@ ul {
     padding-left: 0;
 }
 
-dl dl,
+/*dl dl,
 dl ol,
 dl ul,
 ol dl,
@@ -482,7 +482,7 @@ ul ol,
 ul ul {
     font-size: 90%;
     margin: 1.5rem 0 1.5rem 3.0rem;
-}
+}*/
 
 ol {
     list-style: decimal inside;
@@ -492,13 +492,13 @@ ul {
     list-style: circle inside;
 }
 
-.button,
+/*.button,
 button,
 dd,
 dt,
 li {
     margin-bottom: 1.0rem;
-}
+}*/
 
 fieldset,
 input,
