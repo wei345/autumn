@@ -1,3 +1,4 @@
+<#assign title = "Login">
 <#include "inc/head.ftl">
         <div class="login_box">
             <p>${message!}</p>

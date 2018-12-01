@@ -1,3 +1,4 @@
+<#assign title = "Search">
 <#include "inc/head.ftl">
 <#include "inc/header.ftl">
     <div class="main">

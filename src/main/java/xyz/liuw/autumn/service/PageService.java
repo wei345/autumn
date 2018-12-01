@@ -26,6 +26,7 @@ public class PageService {
     private static Logger logger = LoggerFactory.getLogger(PageService.class);
 
     private static final String PAGE_HTML = "pageHtml";
+    private static final String TITLE = "title";
 
     @Autowired
     private DataService dataService;
@@ -54,6 +55,7 @@ public class PageService {
                 viewCache = dataService.getViewCache(page);
                 if (viewCache == null || viewCache.getTemplateLastModified() < viewLastModified) {
                     logger.info("Building cache path={}", page.getPath());
+                    model.put(TITLE, htmlEscape(page.getTitle()));
                     model.put(PAGE_HTML, getPageHtml(page));
                     byte[] content = templateService.merge(model, view).getBytes(StandardCharsets.UTF_8);
                     String md5 = DigestUtils.md5DigestAsHex(content);
@@ -75,6 +77,7 @@ public class PageService {
 //        title = searchService.highlightSearchStr(title, searchStrList);
         String html = getPageHtml(page);
         html = searchService.highlightSearchStr(html, searchStrList);
+        model.put(TITLE, htmlEscape(page.getTitle()));
         model.put(PAGE_HTML, html);
         return templateService.merge(model, view);
     }
