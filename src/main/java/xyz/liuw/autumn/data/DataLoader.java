@@ -99,7 +99,7 @@ public class DataLoader {
 
     @PostConstruct
     void start() {
-        welcome = newHomepage(null);
+        welcome = newHomepage(null, true);
         load();
         timingReload();
     }
@@ -222,7 +222,7 @@ public class DataLoader {
             return;
         }
 
-        pageMap.put("/", newHomepage(pageMap));
+        pageMap.put("/", newHomepage(pageMap, false));
         sortAndRemoveEmptyNode(root);
         String json = jsonMapper.toJson(root);
         TreeJson treeJson = new TreeJson(json);
@@ -309,13 +309,13 @@ public class DataLoader {
             }
             node.children = publishedList;
         }
-        pageMap.put("/", newHomepage(pageMap));
+        pageMap.put("/", newHomepage(pageMap, true));
         removeEmptyDirNode(allDirNodes);
         String json = jsonMapper.toJson(root);
         dataSource.setPublishedData(new DataSource.Data(new TreeJson(json), pageMap, mediaMap));
     }
 
-    private Page newHomepage(@Nullable Map<String, Page> pageMap) {
+    private Page newHomepage(@Nullable Map<String, Page> pageMap, boolean published) {
 
         String title = "Home";
         String body = "Welcome";
@@ -344,7 +344,7 @@ public class DataLoader {
         Page page = new Page();
         page.setCreated(now);
         page.setModified(now);
-        page.setPublished(true);
+        page.setPublished(published);
         page.setBody(body);
         page.setSource(body);
         page.setTitle(title);

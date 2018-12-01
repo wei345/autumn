@@ -1,16 +1,15 @@
 package xyz.liuw.autumn.service;
 
-import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import xyz.liuw.autumn.data.DataSource;
 import xyz.liuw.autumn.data.Media;
 import xyz.liuw.autumn.data.Page;
 import xyz.liuw.autumn.data.TreeJson;
 
-import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 import static xyz.liuw.autumn.service.SecurityService.isLogged;
@@ -63,8 +62,22 @@ public class DataService {
      * 在显示 page 前一定要检查权限
      */
     public SecurityBox getPageSecurityBox(String path) {
-        Page page = dataSource.getAllData().getPageMap().get(path);
-        return page == null ? null : new SecurityBox(page);
+        Page page;
+        if (isLogged()) {
+            page = dataSource.getAllData().getPageMap().get(path);
+            return page == null ? null : new SecurityBox(page);
+        } else { // 未登录
+            page = dataSource.getPublishedData().getPageMap().get(path);
+            if (page != null) {
+                return new SecurityBox(page);
+            }
+            // 没权限
+            if (dataSource.getAllData().getPageMap().containsKey(path)) {
+                return new SecurityBox(null);
+            }
+            // 没数据
+            return null;
+        }
     }
 
     /**
@@ -77,8 +90,7 @@ public class DataService {
     public static class SecurityBox {
         private Page page;
 
-        SecurityBox(@NotNull Page page) {
-            Validate.notNull(page);
+        SecurityBox(@Nullable Page page) {
             this.page = page;
         }
 
@@ -86,10 +98,7 @@ public class DataService {
          * @return data, null 如果当前未登录或权限不足
          */
         public Page get() {
-            if (page.isPublished() || isLogged()) {
-                return page;
-            }
-            return null;
+            return page;
         }
     }
 }
