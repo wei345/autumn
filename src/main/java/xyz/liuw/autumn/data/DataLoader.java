@@ -16,8 +16,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
+import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.util.*;
+
+import static org.springframework.web.util.HtmlUtils.htmlEscape;
 
 /**
  * @author liuwei
@@ -40,7 +43,7 @@ public class DataLoader {
     private int reloadContinuousFailures; // default 0
     private Page welcome;
 
-    static List<Page> recentlyModified(Collection<Page> set) {
+    static List<Page> recentlyModified(@NotNull Collection<Page> set) {
         List<Page> list = new ArrayList<>(set);
         list.sort((o1, o2) -> {
             // 一定要分出先后，也就是不能返回 0，否则每次搜索结果顺序可能不完全一样
@@ -321,20 +324,22 @@ public class DataLoader {
         String body = "Welcome";
         if (!CollectionUtils.isEmpty(pageMap)) {
             List<Page> recently = recentlyModified(pageMap.values());
-            StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
-            for (int i = 0; i < 20 && i < recently.size(); i++) {
-                Page page = recently.get(i);
-                stringBuilder
-                        .append("* ")
-                        .append("[")
-                        .append(page.getTitle())
-                        .append("](")
-                        .append(page.getPath())
-                        .append(") <i>")
-                        .append(formatFriendlyTimeSpanByNow(page.getModified().getTime()))
-                        .append("</i>\n");
-            }
-            if (stringBuilder.length() > 0) {
+            if (!CollectionUtils.isEmpty(recently)) {
+                StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
+                stringBuilder.append("<ul class='recently_modified'>");
+                for (int i = 0; i < 20 && i < recently.size(); i++) {
+                    Page page = recently.get(i);
+
+                    stringBuilder.append("<li><a href='")
+                            .append(page.getPath())
+                            .append("'>")
+                            .append(htmlEscape(page.getTitle()))
+                            .append(" <i>")
+                            .append(formatFriendlyTimeSpanByNow(page.getModified().getTime()))
+                            .append("</i></a></li>")
+                            .append("\n");
+                }
+                stringBuilder.append("</ul>");
                 title = "Recently Modified";
                 body = stringBuilder.toString();
             }

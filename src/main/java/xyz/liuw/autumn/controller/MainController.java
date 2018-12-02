@@ -27,7 +27,7 @@ import java.util.Map;
 public class MainController {
 
     private static final String MD_PATH_SUFFIX = ".md";
-
+    private static final String VIEW_PAGE = "page";
     @Autowired
     private DataService dataService;
     @Autowired
@@ -105,9 +105,9 @@ public class MainController {
                     ss = new String[10];
                     System.arraycopy(h, 0, ss, 0, ss.length);
                 }
-                return pageService.highlightOutput(page, Arrays.asList(ss), model, "main");
+                return pageService.highlightOutput(page, Arrays.asList(ss), model, VIEW_PAGE);
             } else {
-                return pageService.output(page, model, "main", webRequest);
+                return pageService.output(page, model, VIEW_PAGE, webRequest);
             }
         }
         // 无权限

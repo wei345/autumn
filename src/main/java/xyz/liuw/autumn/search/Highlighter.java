@@ -22,7 +22,7 @@ import static com.vip.vjtools.vjkit.text.EscapeUtil.urlEncode;
  */
 public class Highlighter {
 
-    private static final String HL_TAG_OPEN = "<em>";
+    private static final String HL_TAG_OPEN = "<em class=\"search_str\">";
     private static final String HL_TAG_CLOSE = "</em>";
     // 获得不重叠的 hit list
     private static Comparator<Hit> HIT_COMPARATOR = (o1, o2) -> {

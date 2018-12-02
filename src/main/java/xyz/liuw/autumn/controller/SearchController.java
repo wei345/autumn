@@ -56,6 +56,6 @@ public class SearchController {
             model.put("message", "稍后再试");
         }
         model.put("s", htmlEscape(s));
-        return templateService.merge(model, "search");
+        return templateService.merge(model, "search_result");
     }
 }

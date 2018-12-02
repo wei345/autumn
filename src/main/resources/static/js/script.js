@@ -27,9 +27,9 @@
                 break;
         }
         var main = document.getElementsByClassName('main')[0];
-        main.classList.toggle('hide_sidebar', localStorage.getItem(lsKey) === '0');
+        main.classList.toggle('show_sidebar', localStorage.getItem(lsKey) !== '0');
         toggle.addEventListener('click', function () {
-            var val = main.classList.toggle('hide_sidebar') ? '0' : '1';
+            var val = main.classList.toggle('show_sidebar') ? '1' : '0';
             localStorage.setItem(lsKey, val);
         });
     }
@@ -73,7 +73,7 @@
 
     function bindShortcut() {
         // 按 '/' 搜索框获得焦点，按 'ESC' 搜索框失去焦点
-        var searchInput = document.getElementsByClassName('header__1__search_input')[0];
+        var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
         if (!searchInput) {
             return; // 可能在登录页
         }
@@ -223,8 +223,7 @@
             'h3': true,
             'h4': true,
             'h5': true,
-            'h6': true,
-            'h7': true
+            'h6': true
         };
         for (var i = 0; i < page.children.length; i++) {
             var node = page.children[i];
@@ -236,6 +235,7 @@
                 } else {
                     a.href = ('#' + node.id);
                 }
+                node.classList.add('heading');
                 node.insertBefore(a, node.firstChild);
             }
         }
