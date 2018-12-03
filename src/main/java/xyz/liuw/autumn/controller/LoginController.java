@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -23,10 +24,7 @@ import xyz.liuw.autumn.util.WebUtil;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.springframework.web.util.HtmlUtils.htmlEscape;
@@ -48,6 +46,8 @@ public class LoginController {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
     private LoginToken loginToken;
+    @Autowired
+    private WebUtil webUtil;
 
     @PostConstruct
     private void init() {
@@ -61,7 +61,8 @@ public class LoginController {
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
-    public String login() {
+    public String login(Map<String, Object> model) {
+        webUtil.setCtx(model);
         return "login";
     }
 
@@ -71,14 +72,15 @@ public class LoginController {
     // 或用 token，初始 maxFailures 个 token，进入时获取 token，登录成功归还 token。（当前采用）
     // 或者用 synchronized，最简单的方式，粒度有点粗。
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public String loginSubmit(String username, String password, String ret, Model model,
+    public String loginSubmit(String username, String password, String ret, Map<String, Object> model,
                               HttpServletRequest request, HttpServletResponse response) {
+        webUtil.setCtx(model);
 
         // 检查客户端 IP 失败次数，如果达到阀值则一段时间内禁止登录
         String clientIp = WebUtil.getClientIpAddress(request);
         if (!loginToken.acquire(clientIp)) {
-            model.addAttribute("message", "稍后再试");
-            model.addAttribute("username", username);
+            model.put("message", "稍后再试");
+            model.put("username", username);
             response.setStatus(401);
             return "login";
         }
@@ -94,8 +96,8 @@ public class LoginController {
 
         // 登录失败
         loginToken.fail(clientIp);
-        model.addAttribute("message", "用户名或密码错误");
-        model.addAttribute("username", htmlEscape(username));
+        model.put("message", "用户名或密码错误");
+        model.put("username", htmlEscape(username));
         response.setStatus(401);
         return "login";
     }

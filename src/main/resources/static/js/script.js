@@ -94,7 +94,7 @@
         if (!treeBox) {
             return; // 可能在登录页
         }
-        ajax('GET', '/tree.json', function (text) {
+        ajax('GET', autumn.ctx + '/tree.json', function (text) {
             var root = JSON.parse(text);
             unfoldCurrentPath(root);
             treeBox.innerHTML = buildTreeHtml([root]);
@@ -102,7 +102,7 @@
         });
 
         function unfoldCurrentPath(root) {
-            var path = decodeURIComponent(pathname());
+            var path = pathname().substr(autumn.ctx.length);
             var dirs = [root];
             var current;
             while (dirs.length > 0) {
@@ -162,7 +162,7 @@
                 html += '</span>';
 
                 // title
-                html += (node.children ? '<span>' : ('<a href="' + node.path + '">'));
+                html += (node.children ? '<span>' : ('<a href="' + (autumn.ctx + node.path) + '">'));
                 html += node.name;
                 html += (node.children ? '</span>' : '</a>');
 
@@ -225,28 +225,33 @@
             'h5': true,
             'h6': true
         };
-        for (var i = 0; i < page.children.length; i++) {
+        for (var i = 0, firstHeading = true; i < page.children.length; i++) {
             var node = page.children[i];
             var tagName = node.tagName.toLowerCase();
             if (levels[tagName]) {
                 var a = document.createElement('a');
-                if (tagName === 'h1') {
-                    a.href = (pathname());
+                if (firstHeading && i < 2 && tagName === 'h1') {
+                    a.href = pathname();
                 } else {
                     a.href = ('#' + node.id);
                 }
+                a.classList.add('heading__anchor');
                 node.classList.add('heading');
                 node.insertBefore(a, node.firstChild);
+                firstHeading = false;
             }
         }
     }
 
     function pathname() {
-        if (location.pathname) {
-            return location.pathname;
+        var pathname = location.pathname;
+        if (!pathname) {
+            pathname = /^(\w+?):\/+?[^\/]+(\/[^?]*)/.exec(location.href)[2];
         }
-        var pathname = /^(\w+?):\/+?[^\/]+(\/[^?]*)/.exec(location.href)[2];
-        return pathname ? pathname : pathname;
+        if (!pathname) {
+            return '/';
+        }
+        return decodeURIComponent(pathname);
     }
 
     function ajax(method, url, success, error) {

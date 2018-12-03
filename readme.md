@@ -57,8 +57,6 @@
 
 ## 设计
 
-TODO 删除已不用的依赖：jsoup 和 commonmark
-
 ### 数据
 
 主要是 notes、templates。
@@ -165,7 +163,8 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 
 ### Production Ready
 
-TODO 添加 ctx。nginx 映射到子路径时，不需要调整 Autumn 输出的 url 和跳转路径。
+* 添加 ctx。nginx 映射到子路径时，不需要调整 Autumn 输出的 url 和跳转路径。
+* TODO 删除已不用的依赖：jsoup 和 commonmark
 
 ### View
 
@@ -173,7 +172,4 @@ TODO 添加 ctx。nginx 映射到子路径时，不需要调整 Autumn 输出的
 
 ### UI
 
-* 左上角 Logo
-* 右上角 Logout
-
-display:flex，否则两个 div 一上一下。
+* TODO 提示不支持 IE

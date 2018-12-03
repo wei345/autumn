@@ -15,6 +15,7 @@ import xyz.liuw.autumn.service.DataService;
 import xyz.liuw.autumn.service.MediaService;
 import xyz.liuw.autumn.service.PageService;
 import xyz.liuw.autumn.service.SecurityService;
+import xyz.liuw.autumn.util.WebUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -56,7 +57,7 @@ public class MainController {
                         HttpServletResponse response,
                         Map<String, Object> model) throws ServletException, IOException {
 
-        String path = EscapeUtil.urlDecode(request.getRequestURI());
+        String path = WebUtil.getRelativePath(request);
         securityService.setFreeMarkerLoggedKey(model);
 
         // Page

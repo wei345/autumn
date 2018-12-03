@@ -8,7 +8,7 @@
                 <#list sr.pages as sp>
                     <div class="sr_page">
                         <div>
-                            <a href="${sp.page.path!}<#if sp.highlightString??>?</#if>${sp.highlightString!}">
+                            <a href="${ctx!}${sp.page.path!}<#if sp.highlightString??>?</#if>${sp.highlightString!}">
                                 <span class="sr_page_title">${sp.titlePreview!"No Title"}</span><br/>
                                 <span class="sr_page_path">${sp.pathPreview!}</span>
                             </a>

@@ -334,18 +334,18 @@ input[type='submit'] {
     padding-left: 1em;
 }
 
-.page > .heading > a {
+.page > .heading > a.heading__anchor {
     position: absolute;
     margin-left: -1em;
     visibility: hidden;
     display: block;
 }
 
-.page > .heading > a:before {
+.page > .heading > a.heading__anchor:before {
     content: "\00A7";
 }
 
-.page > .heading:hover > a {
+.page > .heading:hover > a.heading__anchor {
     visibility: visible;
 }
 
@@ -366,6 +366,7 @@ input[type='submit'] {
 
 .toc ul li {
     margin: 0;
+    word-break: break-all;
 }
 
 .sr {

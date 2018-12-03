@@ -3,6 +3,7 @@ package xyz.liuw.autumn.data;
 import com.google.common.collect.Maps;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import com.vip.vjtools.vjkit.number.MathUtil;
+import com.vip.vjtools.vjkit.text.EscapeUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import com.vip.vjtools.vjkit.time.ClockUtil;
 import com.vip.vjtools.vjkit.time.DateUtil;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import xyz.liuw.autumn.util.WebUtil;
 
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
@@ -32,18 +34,24 @@ public class DataLoader {
     public static final String ARCHIVE_PATH_PREFIX = "/archive/";
     private static Logger logger = LoggerFactory.getLogger(DataLoader.class);
 
-    @Autowired
-    private DataSource dataSource;
-    @Autowired
-    private JsonMapper jsonMapper;
+    private final DataSource dataSource;
+    private final JsonMapper jsonMapper;
     @Value("${autumn.data-dir}")
     private String dataDir;
     @Value("${autumn.data.reload-interval-seconds:10}")
     private long reloadIntervalSeconds;
     private int reloadContinuousFailures; // default 0
     private Page welcome;
+    @Autowired
+    private WebUtil webUtil;
 
-    static List<Page> recentlyModified(@NotNull Collection<Page> set) {
+    @Autowired
+    public DataLoader(DataSource dataSource, JsonMapper jsonMapper) {
+        this.dataSource = dataSource;
+        this.jsonMapper = jsonMapper;
+    }
+
+    private static List<Page> recentlyModified(@NotNull Collection<Page> set) {
         List<Page> list = new ArrayList<>(set);
         list.sort((o1, o2) -> {
             // 一定要分出先后，也就是不能返回 0，否则每次搜索结果顺序可能不完全一样
@@ -73,7 +81,7 @@ public class DataLoader {
      * <p>
      * copy from AndroidUtilCode
      */
-    public static String formatFriendlyTimeSpanByNow(long timeStampMillis) {
+    private static String formatFriendlyTimeSpanByNow(long timeStampMillis) {
         long now = ClockUtil.currentTimeMillis();
         long span = now - timeStampMillis;
         if (span < 0) {
@@ -130,7 +138,7 @@ public class DataLoader {
     }
 
     @SuppressWarnings("WeakerAccess")
-    void load() {
+    public synchronized void load() {
         Validate.notBlank(dataDir, "config 'autumn.data-dir' is empty");
         logger.info("Loading {}", dataDir);
         long start = System.currentTimeMillis();
@@ -180,8 +188,8 @@ public class DataLoader {
                 }
 
                 if (file.isFile()) {
-                    String filename = file.getName();
-                    if (filename.endsWith(".md")) {
+                    // Page
+                    if (file.getName().endsWith(".md")) {
                         String name = filename(file);
                         String path = parent.path + name;
 
@@ -203,8 +211,8 @@ public class DataLoader {
                         node.page = page;
                         parent.addChild(node);
                     }
-
-                    if (filename.endsWith(".png") || filename.endsWith(".jpg") || filename.endsWith(".ico")) {
+                    // Media
+                    else {
                         String path = parent.path + file.getName();
                         Media media = oldMediaMap.get(path);
                         if (media == null || media.getLastModified() != file.lastModified()) {
@@ -315,7 +323,18 @@ public class DataLoader {
         pageMap.put("/", newHomepage(pageMap, true));
         removeEmptyDirNode(allDirNodes);
         String json = jsonMapper.toJson(root);
-        dataSource.setPublishedData(new DataSource.Data(new TreeJson(json), pageMap, mediaMap));
+
+        // published media
+        Map<String, Media> publishedMedia = Maps.newHashMapWithExpectedSize(mediaMap.size());
+        for (Map.Entry<String, Media> entry : mediaMap.entrySet()) {
+            String path = entry.getKey();
+            if (path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".ico")) {
+                publishedMedia.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        DataSource.Data data = new DataSource.Data(new TreeJson(json), pageMap, publishedMedia);
+        dataSource.setPublishedData(data);
     }
 
     private Page newHomepage(@Nullable Map<String, Page> pageMap, boolean published) {
@@ -331,6 +350,7 @@ public class DataLoader {
                     Page page = recently.get(i);
 
                     stringBuilder.append("<li><a href='")
+                            .append(webUtil.getContextPath())
                             .append(page.getPath())
                             .append("'>")
                             .append(htmlEscape(page.getTitle()))

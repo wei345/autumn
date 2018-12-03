@@ -136,9 +136,11 @@ public class SecurityService {
     }
 
     private Cookie getCookie(String name, HttpServletRequest request) {
-        for (Cookie cookie : request.getCookies()) {
-            if (cookie.getName().equals(name)) {
-                return cookie;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals(name)) {
+                    return cookie;
+                }
             }
         }
         return null;
@@ -180,7 +182,7 @@ public class SecurityService {
         session.removeAttribute(SESSION_USER_KEY);
     }
 
-    public void setFreeMarkerLoggedKey(Map<String, Object> model){
+    public void setFreeMarkerLoggedKey(Map<String, Object> model) {
         model.put(LOGGED_MODEL_KEY, isLogged());
     }
 }

@@ -2,7 +2,6 @@ package xyz.liuw.autumn.service;
 
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import com.vladsch.flexmark.ast.Node;
-import com.vladsch.flexmark.ext.anchorlink.AnchorLinkExtension;
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;

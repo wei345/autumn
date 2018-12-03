@@ -185,7 +185,8 @@ public class Highlighter {
         return escapeHtml(str.substring(start, end));
     }
 
-    /*public String highlightSearchStr(String html, List<String> searchStrList) {
+    /* highlight using jsoup
+    public String highlightSearchStr(String html, List<String> searchStrList) {
         Document document = Jsoup.parse(html);
         Elements allElements = document.getAllElements();
         for (Element element : allElements) {
@@ -194,7 +195,7 @@ public class Highlighter {
             }
         }
         return document.html();
-    }*/
+    }
 
     private void highlight(TextNode textNode, List<String> searchStrList) {
         String text = textNode.text();
@@ -224,4 +225,5 @@ public class Highlighter {
 
         textNode.remove();
     }
+    */
 }

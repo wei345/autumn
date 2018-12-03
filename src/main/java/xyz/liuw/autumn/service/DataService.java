@@ -5,10 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
-import xyz.liuw.autumn.data.DataSource;
-import xyz.liuw.autumn.data.Media;
-import xyz.liuw.autumn.data.Page;
-import xyz.liuw.autumn.data.TreeJson;
+import xyz.liuw.autumn.data.*;
 
 import java.util.Map;
 
@@ -22,6 +19,9 @@ import static xyz.liuw.autumn.service.SecurityService.isLogged;
 public class DataService {
 
     private static Logger logger = LoggerFactory.getLogger(DataService.class);
+
+    @Autowired
+    private DataLoader dataLoader;
 
     @Autowired
     private DataSource dataSource;
@@ -56,6 +56,10 @@ public class DataService {
         } else {
             return dataSource.getPublishedData().getPageMap();
         }
+    }
+
+    public void reloadData() {
+        dataLoader.load();
     }
 
     /**
