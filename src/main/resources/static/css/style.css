@@ -190,6 +190,7 @@ input[type='submit'] {
 .container {
     min-width: 300px;
     max-width: 1200px;
+    margin: 0 auto;
 }
 
 .row {

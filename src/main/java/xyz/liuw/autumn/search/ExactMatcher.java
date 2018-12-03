@@ -45,7 +45,7 @@ class ExactMatcher extends AbstractMatcher {
             }
             pageHit = cache.get(matcherExpression);
             if (pageHit == null) {
-                logger.info("Searching page {} for {}", page.getPath(), searchStr);
+                logger.debug("Searching page {} for {}", page.getPath(), searchStr);
                 List<Hit> p = find(page.getPath(), searchStr);
                 List<Hit> t = find(page.getTitle(), searchStr);
                 List<Hit> b = find(page.getBody(), searchStr);

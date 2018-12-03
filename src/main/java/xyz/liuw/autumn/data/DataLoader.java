@@ -1,9 +1,9 @@
 package xyz.liuw.autumn.data;
 
+import ch.qos.logback.classic.Level;
 import com.google.common.collect.Maps;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import com.vip.vjtools.vjkit.number.MathUtil;
-import com.vip.vjtools.vjkit.text.EscapeUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import com.vip.vjtools.vjkit.time.ClockUtil;
 import com.vip.vjtools.vjkit.time.DateUtil;
@@ -111,7 +111,22 @@ public class DataLoader {
     @PostConstruct
     void start() {
         welcome = newHomepage(null, true);
+
+        ch.qos.logback.classic.Logger parserLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(PageParser.class);
+        Level oldLevel = parserLogger.getLevel();
+        if (oldLevel == null || oldLevel == Level.INFO) {
+            logger.info("已将 PageParser 日志级别设为 WARN，初始加载完成后会恢复，这是为避免每次启动输出 1000 多条解析日志");
+            logger.info("可设置 logging.level.{}=DEBUG 来阻止这个自动修改日志级别的行为", PageParser.class.getName());
+            parserLogger.setLevel(Level.WARN);
+        }
+
         load();
+
+        if (oldLevel == null || oldLevel == Level.INFO) {
+            parserLogger.setLevel(oldLevel);
+            logger.info("已恢复 PageParser 日志级别 {}", oldLevel);
+        }
+
         timingReload();
     }
 
@@ -156,12 +171,12 @@ public class DataLoader {
         Map<String, Page> oldPageMap = dataSource.getAllData().getPageMap();
         Map<String, Page> pageMap = Maps.newHashMapWithExpectedSize(
                 oldPageMap.size() == 0 ? 1500 : oldPageMap.size());
-        boolean pageAddedOrModified = false;
+        int pageAddedOrModified = 0;
 
         Map<String, Media> oldMediaMap = dataSource.getAllData().getMediaMap();
         Map<String, Media> mediaMap = Maps.newHashMapWithExpectedSize(
                 oldMediaMap.size() == 0 ? 100 : oldMediaMap.size());
-        boolean mediaAddedOrModified = false;
+        int mediaAddedOrModified = 0;
 
         TreeNode root = new TreeNode("", "/", true);
         Stack<File> dirStack = new Stack<>();
@@ -200,7 +215,7 @@ public class DataLoader {
                         }
                         Page page = oldPageMap.get(path);
                         if (page == null || page.getLastModified() != file.lastModified()) {
-                            pageAddedOrModified = true;
+                            pageAddedOrModified++;
                             page = PageParser.parse(file);
                             page.setPath(path);
                         }
@@ -216,7 +231,7 @@ public class DataLoader {
                         String path = parent.path + file.getName();
                         Media media = oldMediaMap.get(path);
                         if (media == null || media.getLastModified() != file.lastModified()) {
-                            mediaAddedOrModified = true;
+                            mediaAddedOrModified++;
                             media = new Media(file);
                         }
                         mediaMap.put(path, media);
@@ -226,12 +241,13 @@ public class DataLoader {
         }
         pageMap.put("/", welcome);
 
-        boolean pageChanged = pageAddedOrModified || pageMap.size() != oldPageMap.size();
-        boolean mediaChanged = mediaAddedOrModified || mediaMap.size() != oldMediaMap.size();
+        boolean pageChanged = pageAddedOrModified > 0 || pageMap.size() != oldPageMap.size();
+        boolean mediaChanged = mediaAddedOrModified > 0 || mediaMap.size() != oldMediaMap.size();
         if (!pageChanged && !mediaChanged) {
             logger.info("dataSource no change");
             return;
         }
+        logger.info("{} Page added or modified, {} Media added or modified", pageAddedOrModified, mediaAddedOrModified);
 
         pageMap.put("/", newHomepage(pageMap, false));
         sortAndRemoveEmptyNode(root);
