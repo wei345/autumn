@@ -69,7 +69,7 @@ public class TemplateWatcher {
         }
         try {
             return cache.get(name);
-        } catch (ExecutionException e) {
+        } catch (Exception e) {
             logger.info("Failed to read template last modified, using fakeLastModified");
             synchronized (this) {
                 if (fakeLastModified == 0) {
