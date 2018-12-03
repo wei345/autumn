@@ -8,7 +8,9 @@ JAR_FILE="${DIR}/target/autumn.jar"
 do_start() {
     cp ../www/conf/autumn/application-production.properties src/main/resources/application-production.properties
     mvn clean package
-    java -jar "${JAR_FILE}" --spring.profiles.active=production
+    nohup java -jar "${JAR_FILE}" --spring.profiles.active=production &>/dev/null &
+    ps -ef | grep "${JAR_FILE}" | grep -v grep
+    tail -f logs/autumn.log
 }
 
 do_stop() {
