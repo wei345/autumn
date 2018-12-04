@@ -17,10 +17,10 @@
         }
         var lsKey;
         switch (pathname()) {
-            case '/':
+            case autumn.ctx + '/':
                 lsKey = 'autumn.home.sidebar.display';
                 break;
-            case '/search':
+            case autumn.ctx + '/search':
                 lsKey = 'autumn.search.sidebar.display';
                 break;
             default:

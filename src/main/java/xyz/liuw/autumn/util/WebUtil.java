@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -35,16 +37,20 @@ public class WebUtil {
         return clientIp;
     }
 
-    public static String getRelativePath(HttpServletRequest request){
+    public static String getRelativePath(HttpServletRequest request) {
         return EscapeUtil.urlDecode(request.getRequestURI())
                 .substring(request.getContextPath().length());
     }
 
-    public void setCtx(Map<String, Object> model){
+    public void setCtx(Map<String, Object> model) {
         model.put("ctx", contextPath);
     }
 
     public String getContextPath() {
         return contextPath;
+    }
+
+    public void sendRedirect(HttpServletResponse response, String path) throws IOException {
+        response.sendRedirect(getContextPath() + path);
     }
 }

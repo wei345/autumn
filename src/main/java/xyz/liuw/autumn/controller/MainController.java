@@ -1,6 +1,5 @@
 package xyz.liuw.autumn.controller;
 
-import com.vip.vjtools.vjkit.text.EscapeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +38,8 @@ public class MainController {
     private PageService pageService;
     @Autowired
     private SecurityService securityService;
+    @Autowired
+    private WebUtil webUtil;
 
     @RequestMapping(value = "/tree.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public String treeJson(WebRequest webRequest) {
@@ -113,7 +114,7 @@ public class MainController {
         }
         // 无权限
         if (!SecurityService.isLogged()) {
-            response.sendRedirect("/login?ret=" + path);
+            webUtil.sendRedirect(response, "/login?ret=" + path);
             return null;
         } else {
             response.sendError(403);

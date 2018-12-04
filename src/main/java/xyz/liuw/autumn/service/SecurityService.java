@@ -134,7 +134,7 @@ public class SecurityService {
             }
         }
         // 如果 cookie 无效或解析失败，删除 cookie
-        deleteCookie(cookie, response);
+        deleteCookie(cookie.getName(), response);
         return null;
     }
 
@@ -149,9 +149,13 @@ public class SecurityService {
         return null;
     }
 
-    private void deleteCookie(Cookie cookie, HttpServletResponse response) {
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+    private void deleteCookie(String name, HttpServletResponse response) {
+        CookieGenerator cg = new CookieGenerator();
+        cg.setCookieName(name);
+        cg.setCookieMaxAge(0);
+        cg.setCookieHttpOnly(true);
+        cg.setCookiePath(webUtil.getContextPath() + "/");
+        cg.addCookie(response, null);
     }
 
     public void setRememberMe(User user, String plainPassword, HttpServletRequest request, HttpServletResponse response) {
@@ -163,9 +167,7 @@ public class SecurityService {
         cg.setCookieName(REMEMBER_ME_COOKIE_NAME);
         cg.setCookieMaxAge(rememberMeSeconds);
         cg.setCookieHttpOnly(true);
-        if (StringUtils.isNotBlank(webUtil.getContextPath())) {
-            cg.setCookiePath(webUtil.getContextPath());
-        }
+        cg.setCookiePath(webUtil.getContextPath() + "/");
         cg.addCookie(response, encrypted);
 
         setSessionUser(user, request.getSession());
@@ -173,14 +175,7 @@ public class SecurityService {
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         removeSessionUser(request.getSession());
-        removeRememberMe(request, response);
-    }
-
-    private void removeRememberMe(HttpServletRequest request, HttpServletResponse response) {
-        Cookie cookie = getCookie(REMEMBER_ME_COOKIE_NAME, request);
-        if (cookie != null) {
-            deleteCookie(cookie, response);
-        }
+        deleteCookie(REMEMBER_ME_COOKIE_NAME, response);
     }
 
     private void removeSessionUser(HttpSession session) {
