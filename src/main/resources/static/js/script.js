@@ -4,8 +4,9 @@
         bindSidebarToggle();
         bindTocToggle();
         bindShortcut();
-        anchorLink();
         buildTree();
+        anchorLink();
+        document.body.classList.add('js');
     });
 
     function bindSidebarToggle() {
@@ -27,7 +28,10 @@
                 break;
         }
         var main = document.getElementsByClassName('main')[0];
-        main.classList.toggle('show_sidebar', localStorage.getItem(lsKey) !== '0');
+        // 默认不显示 Sidebar，除了 '/' 和 '/search'
+        if (lsKey !== 'autumn.sidebar.display') {
+            main.classList.toggle('show_sidebar', localStorage.getItem(lsKey) !== '0');
+        }
         toggle.addEventListener('click', function () {
             var val = main.classList.toggle('show_sidebar') ? '1' : '0';
             localStorage.setItem(lsKey, val);

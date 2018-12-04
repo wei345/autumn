@@ -172,4 +172,24 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 
 ### UI
 
+初始 sidebar 和 toc 不显示，当页面加载完成后由 JS 控制是否显示。
+因为先显示然后又不显示，不如先不显示然后显示看起来好。
+
+如果客户端禁用了 JS，sidebar 和 toc 将不可用。
+
+TODO 检查是否可触发 mouseover 事件，以决定锚链接显示方式。
+
 * TODO 提示不支持 IE
+
+### Java 10
+
+TODO 现在无法在 Java 9 以上运行，报错找不到类 javax/activation/MimetypesFileTypeMap
+
+java --add-modules java.se.ee -jar myapp.jar
+
+--add-modules java.activation
+
+--add-modules ALL-MODULE-PATH
+
+
+

@@ -3,11 +3,7 @@ package xyz.liuw.autumn.search;
 import com.google.common.collect.Sets;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.nodes.TextNode;
-import org.jsoup.select.Elements;
+import org.apache.commons.lang3.Validate;
 import org.springframework.util.CollectionUtils;
 import xyz.liuw.autumn.data.Page;
 
@@ -39,6 +35,8 @@ public class Highlighter {
     };
     private int maxPreviewLength = 120;
 
+    private StringBuilderHolder stringBuilderHolder1 = new StringBuilderHolder(64);
+    private StringBuilderHolder stringBuilderHolder2 = new StringBuilderHolder(64);
 
 
     void highlightHits(Collection<SearchingPage> searchingPages) {
@@ -120,36 +118,83 @@ public class Highlighter {
             return escapeHtml(StringUtils.substring(source, 0, maxLength));
         }
 
-        StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
+        // 尽可能多包含 searchStr 也不一定好，因为可能会命中一段代码，而代码之前的段落文字可能更有意义。
+        //hits = mostAdjacent(hits, maxLength);
 
-        int start = hits.get(0).getStart() - 3;
-        if (start < 0) {
-            start = 0;
-        }
+        StringBuilder sb1 = stringBuilderHolder1.get();
+        int start = hits.get(0).getStart();
+        int begin = start;
+        int textLength = 0;
         for (Hit hit : hits) {
-            int len = stringBuilder.length() +
-                    (hit.getStart() - start) +
-                    HL_TAG_OPEN.length() +
-                    (hit.getEnd() - hit.getStart()) +
-                    HL_TAG_CLOSE.length();
+            int len = textLength + (hit.getStart() - start) + (hit.getEnd() - hit.getStart());
 
-            if (stringBuilder.length() > 0 && len > maxLength) {
+            if (textLength > 0 && len > maxLength) {
                 break;
             }
-            stringBuilder.append(htmlEscape(source, start, hit.getStart()))
+            sb1.append(htmlEscape(source, start, hit.getStart()))
                     .append(HL_TAG_OPEN)
                     .append(htmlEscape(source, hit.getStart(), hit.getEnd()))
                     .append(HL_TAG_CLOSE);
+            textLength += (hit.getStart() - start) + (hit.getEnd() - hit.getStart());
             start = hit.getEnd();
         }
 
-        if (stringBuilder.length() < maxLength) {
-            int end = Math.min(start + (maxLength - stringBuilder.length()), source.length());
-            if (end > start) {
-                stringBuilder.append(htmlEscape(source, start, end));
+        // 均匀往两边扩充，达到 maxLength
+        int left = begin;
+        int right = start;
+        while (textLength < maxLength && (left > 0 || right < source.length())) {
+            if (left > 0) {
+                left--;
+                textLength++;
+            }
+            if (right < source.length()) {
+                right++;
+                textLength++;
             }
         }
-        return stringBuilder.toString();
+        StringBuilder sb2 = stringBuilderHolder2.get();
+        if (left < begin) {
+            sb2.append(htmlEscape(source, left, begin)).append(sb1);
+        }
+        if (start < right) {
+            if (sb2.length() == 0) {
+                sb2.append(sb1);
+            }
+            sb2.append(htmlEscape(source, start, right));
+        }
+        if (sb2.length() == 0) {
+            sb2 = sb1;
+        }
+
+        return sb2.toString();
+    }
+
+    /**
+     * 返回跨度不超过 maxLength，尽可能多的相邻的 Hits。
+     */
+    private List<Hit> mostAdjacent(List<Hit> hits, int maxLength) {
+        Validate.notEmpty(hits);
+        Validate.isTrue(maxLength > 0);
+
+        List<Hit> result = new ArrayList<>(4);
+        List<Hit> tmp = new ArrayList<>(4);
+        for (int i = 0; i < hits.size(); i++) {
+            tmp.clear();
+            for (int j = i; j < hits.size(); j++) {
+                Hit hit = hits.get(j);
+                if (tmp.size() == 0 || (hit.getEnd() - tmp.get(0).getStart()) <= maxLength) {
+                    tmp.add(hit);
+                } else {
+                    break;
+                }
+            }
+            if (tmp.size() > result.size()) {
+                List<Hit> t = result;
+                result = tmp;
+                tmp = t;
+            }
+        }
+        return result;
     }
 
     private Set<String> getSearchStrs(Set<Hit> hits) {

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.CookieGenerator;
 import xyz.liuw.autumn.domain.User;
+import xyz.liuw.autumn.util.WebUtil;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -47,6 +48,8 @@ public class SecurityService {
             .build();
     @Autowired
     private JsonMapper jsonMapper;
+    @Autowired
+    private WebUtil webUtil;
 
     // ThreadLocal User > Cache Session User > Session User > RememberMe
 
@@ -160,6 +163,9 @@ public class SecurityService {
         cg.setCookieName(REMEMBER_ME_COOKIE_NAME);
         cg.setCookieMaxAge(rememberMeSeconds);
         cg.setCookieHttpOnly(true);
+        if (StringUtils.isNotBlank(webUtil.getContextPath())) {
+            cg.setCookiePath(webUtil.getContextPath());
+        }
         cg.addCookie(response, encrypted);
 
         setSessionUser(user, request.getSession());
