@@ -132,7 +132,7 @@ public class DataLoader {
 
     private void timingReload() {
         String threadName = getClass().getSimpleName() + ".timingReload";
-        new Thread(() -> {
+        Thread thread = new Thread(() -> {
             logger.info("Started '{}' thread", threadName);
             while (reloadIntervalSeconds > 0) {
                 try {
@@ -149,7 +149,9 @@ public class DataLoader {
                     }
                 }
             }
-        }, threadName).start();
+        }, threadName);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     @SuppressWarnings("WeakerAccess")

@@ -6,15 +6,23 @@ DIR="$(pwd)"
 JAR_FILE="${DIR}/target/autumn.jar"
 
 do_start() {
-    cp ../www/conf/autumn/application-production.properties src/main/resources/application-production.properties
-    mvn clean package
-    nohup java -jar "${JAR_FILE}" --spring.profiles.active=production &>/dev/null &
+    if [[ ! -d "logs" ]]; then
+        mkdir logs || exit 1
+    fi
+    touch logs/out.log logs/autumn.log || exit 1
+    cp ../www/conf/autumn/application-production.properties src/main/resources/application-production.properties  || exit 1
+    mvn clean package || exit 1
+    nohup java -jar "${JAR_FILE}" --spring.profiles.active=production &>logs/out.log &
     ps -ef | grep "${JAR_FILE}" | grep -v grep
-    tail -f logs/autumn.log
+    tail -f logs/out.log logs/autumn.log
 }
 
 do_stop() {
-    ps -ef | grep "${JAR_FILE}" | grep -v grep | awk '{print $2}' | xargs kill -9
+    local pid="$(ps -ef | grep "${JAR_FILE}" | grep -v grep | awk '{print $2}')"
+    if [[ "${pid}" != "" ]]; then
+        echo "Killing ${pid}"
+        kill -9 "${pid}"
+    fi
 }
 
 case "${ACT}" in
