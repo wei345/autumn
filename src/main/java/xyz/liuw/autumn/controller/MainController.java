@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
+import org.springframework.web.servlet.view.RedirectView;
 import xyz.liuw.autumn.data.Media;
 import xyz.liuw.autumn.data.Page;
 import xyz.liuw.autumn.data.TreeJson;
@@ -114,8 +115,7 @@ public class MainController {
         }
         // 无权限
         if (!SecurityService.isLogged()) {
-            webUtil.sendRedirect(response, "/login?ret=" + path);
-            return null;
+            return new RedirectView("/login?ret=" + path, true, false);
         } else {
             response.sendError(403);
             return null;

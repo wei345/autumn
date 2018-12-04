@@ -5,8 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -50,7 +48,4 @@ public class WebUtil {
         return contextPath;
     }
 
-    public void sendRedirect(HttpServletResponse response, String path) throws IOException {
-        response.sendRedirect(getContextPath() + path);
-    }
 }
