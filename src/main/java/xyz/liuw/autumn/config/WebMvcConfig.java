@@ -1,9 +1,12 @@
 package xyz.liuw.autumn.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.web.ResourceProperties;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver;
 import xyz.liuw.autumn.controller.UserInterceptor;
 
@@ -24,6 +27,21 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(userInterceptor).excludePathPatterns("/error");
+    }
+
+    @Configuration
+    public static class ResourceHttpRequestConfiguration extends WebMvcAutoConfiguration.WebMvcAutoConfigurationAdapter.FaviconConfiguration {
+
+        public ResourceHttpRequestConfiguration(ResourceProperties resourceProperties) {
+            super(resourceProperties);
+        }
+
+        @Override
+        public SimpleUrlHandlerMapping faviconHandlerMapping() {
+            SimpleUrlHandlerMapping mapping = super.faviconHandlerMapping();
+            mapping.getUrlMap().clear();
+            return mapping;
+        }
     }
 
 

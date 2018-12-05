@@ -6,51 +6,36 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
 import xyz.liuw.autumn.data.Media;
 
-import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
-import java.util.zip.GZIPOutputStream;
 
 @Component
 public class MediaService {
 
-    /**
-     * 需要被Gzip压缩的Mime类型.
-     */
-    private static final String[] GZIP_MIME_TYPES = {"text/html", "text/html;charset=UTF-8", "application/xhtml+xml", "text/plain", "text/css",
-            "text/javascript", "application/x-javascript", "application/json"};
-    /**
-     * 需要被Gzip压缩的最小文件大小.
-     */
-    private static final int GZIP_MINI_LENGTH = 512;
     private static Logger logger = LoggerFactory.getLogger(MediaService.class);
-    private MimetypesFileTypeMap mimetypesFileTypeMap;
 
+    @SuppressWarnings("FieldCanBeLocal")
     private int cacheFileMaxLength = 1024 * 100;
 
-    public MediaService() {
-        // 初始化mimeTypes, 默认缺少css的定义,添加之.
-        mimetypesFileTypeMap = new MimetypesFileTypeMap();
-        mimetypesFileTypeMap.addMimeTypes("text/css css");
-        mimetypesFileTypeMap.addMimeTypes("image/png png");
-    }
-
     /**
-     * 检查浏览器客户端是否支持gzip编码.
+     * 设置让浏览器弹出下载对话框的 Header.
+     *
+     * @param fileName 下载后的文件名.
      */
-    private static boolean checkAccetptGzip(HttpServletRequest request) {
-        // Http1.1 header
-        String acceptEncoding = request.getHeader("Accept-Encoding");
-
-        return StringUtils.contains(acceptEncoding, "gzip");
+    private static void setFileDownloadHeader(HttpServletResponse response, String fileName) {
+        // 中文文件名支持
+        String encodedfileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedfileName + "\"");
     }
 
     public void output(Media media, WebRequest webRequest,
@@ -72,7 +57,12 @@ public class MediaService {
                         media.setMd5(DigestUtils.md5DigestAsHex(in));
                         IOUtil.closeQuietly(in);
                     }
-                    media.setMimeType(mimetypesFileTypeMap.getContentType(file));
+
+                    String mimeType = MediaTypeFactory
+                            .getMediaType(file.getName())
+                            .orElse(MediaType.APPLICATION_OCTET_STREAM)
+                            .toString();
+                    media.setMimeType(mimeType);
                 }
             }
         }
@@ -101,8 +91,14 @@ public class MediaService {
         }
     }
 
-    public void output(Supplier<InputStream> inSupplier, int length, String etag, String filename, String mimeType, WebRequest webRequest,
-                       HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void output(Supplier<InputStream> inputStreamSupplier,
+                        int length,
+                        String etag,
+                        String filename,
+                        String mimeType,
+                        WebRequest webRequest,
+                        HttpServletRequest request,
+                        HttpServletResponse response) throws IOException {
         etag = padEtagIfNecessary(etag);
         if (webRequest.checkNotModified(etag)) {
             return;
@@ -115,39 +111,18 @@ public class MediaService {
             setFileDownloadHeader(response, filename);
         }
 
-        OutputStream output;
-        /* 已经启用 Spring Boot gzip，这里不要 gzip，否则二者冲突 response body 无内容
-        boolean needGzip = (length >= GZIP_MINI_LENGTH) && ArrayUtils.contains(GZIP_MIME_TYPES, mimeType);
-        if (checkAccetptGzip(request) && needGzip) {
-            // 使用压缩传输的 outputstream, 使用 http1.1 trunked 编码不设置 content-length.
-            output = buildGzipOutputStream(response);
-        } else {
-            // 使用普通 outputstream, 设置 content-length.
-            response.setContentLength(length);
-            output = response.getOutputStream();
-        }*/
         response.setContentLength(length);
-        output = response.getOutputStream();
+        // 已经启用 Spring Boot gzip，这里不要再 gzip，否则二者冲突 response body 无内容
+        OutputStream output = response.getOutputStream();
 
         InputStream in = null;
         try {
-            in = inSupplier.get();
+            in = inputStreamSupplier.get();
             IOUtil.copy(in, output);
         } finally {
             IOUtil.closeQuietly(in);
         }
         output.flush();
-    }
-
-    /**
-     * 设置让浏览器弹出下载对话框的Header.
-     *
-     * @param fileName 下载后的文件名.
-     */
-    private static void setFileDownloadHeader(HttpServletResponse response, String fileName) {
-        // 中文文件名支持
-        String encodedfileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedfileName + "\"");
     }
 
     private String padEtagIfNecessary(String etag) {
@@ -158,14 +133,5 @@ public class MediaService {
             return etag;
         }
         return "\"" + etag + "\"";
-    }
-
-    /**
-     * 设置Gzip Header并返回GZIPOutputStream.
-     */
-    private OutputStream buildGzipOutputStream(HttpServletResponse response) throws IOException {
-        response.setHeader("Content-Encoding", "gzip");
-        response.setHeader("Vary", "Accept-Encoding");
-        return new GZIPOutputStream(response.getOutputStream());
     }
 }

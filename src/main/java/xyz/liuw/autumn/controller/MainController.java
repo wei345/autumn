@@ -39,8 +39,6 @@ public class MainController {
     private PageService pageService;
     @Autowired
     private SecurityService securityService;
-    @Autowired
-    private WebUtil webUtil;
 
     @RequestMapping(value = "/tree.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public String treeJson(WebRequest webRequest) {
