@@ -3,13 +3,13 @@
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <include resource="org/springframework/boot/logging/logback/file-appender.xml"/>
 
-    <springProfile name="!console">
+    <springProfile name="logfile">
         <root level="INFO">
             <appender-ref ref="FILE"/>
         </root>
     </springProfile>
 
-    <springProfile name="console">
+    <springProfile name="!logfile">
         <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>

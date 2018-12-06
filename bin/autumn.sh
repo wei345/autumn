@@ -15,7 +15,7 @@ do_start() {
     rm "${config_file}"
     ln -s "${DIR}/../www/conf/autumn/application-production.properties" "${config_file}"  || exit 1
     mvn clean package || exit 1
-    nohup java -jar "${JAR_FILE}" --spring.profiles.active=production &>logs/out.log &
+    nohup java -jar "${JAR_FILE}" --spring.profiles.active=production,logfile &>logs/out.log &
     ps -ef | grep "${JAR_FILE}" | grep -v grep
     tail -f logs/out.log logs/autumn.log
 }
