@@ -2,29 +2,27 @@ package xyz.liuw.autumn.controller;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Lists;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import xyz.liuw.autumn.domain.User;
 import xyz.liuw.autumn.service.SecurityService;
+import xyz.liuw.autumn.service.TemplateService;
 import xyz.liuw.autumn.service.UserService;
 import xyz.liuw.autumn.util.WebUtil;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.springframework.web.util.HtmlUtils.htmlEscape;
@@ -37,17 +35,25 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
 public class LoginController {
 
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+
     private int maxFailures = 10;
+
     private int failuresRememberSeconds = 86400;
+
     @Autowired
     private UserService userService;
+
     @Autowired
     private SecurityService securityService;
+
     @Autowired
+
     private StringRedisTemplate stringRedisTemplate;
+
     private LoginToken loginToken;
+
     @Autowired
-    private WebUtil webUtil;
+    private TemplateService templateService;
 
     @PostConstruct
     private void init() {
@@ -62,7 +68,7 @@ public class LoginController {
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public String login(Map<String, Object> model) {
-        webUtil.setCtx(model);
+        templateService.setCtx(model);
         return "login";
     }
 
@@ -74,14 +80,14 @@ public class LoginController {
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public String loginSubmit(String username, String password, String ret, Map<String, Object> model,
                               HttpServletRequest request, HttpServletResponse response) {
-        webUtil.setCtx(model);
+        templateService.setCtx(model);
 
         // 检查客户端 IP 失败次数，如果达到阀值则一段时间内禁止登录
         String clientIp = WebUtil.getClientIpAddress(request);
         if (!loginToken.acquire(clientIp)) {
-            model.put("message", "稍后再试");
-            model.put("username", username);
             response.setStatus(401);
+            model.put("message", "稍后再试");
+            model.put("username", htmlEscape(username));
             return "login";
         }
 
@@ -121,7 +127,7 @@ public class LoginController {
                 "local key = KEYS[1] " +
                         "local current = tonumber(redis.call('incr', key)) " +
                         "if current == 1 then " +
-                        "   redis.call('expire', key, '"+ failuresRememberSeconds +"') " +
+                        "   redis.call('expire', key, '" + failuresRememberSeconds + "') " +
                         "end " +
                         "return current ";
 

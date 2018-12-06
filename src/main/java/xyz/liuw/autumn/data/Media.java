@@ -9,7 +9,7 @@ import java.io.File;
 public class Media {
     private File file;
     private volatile byte[] content; // file content
-    private volatile String md5; // data md5
+    private volatile String md5; // content md5
     private volatile String mimeType;
     private long lastModified; // file last modified
 

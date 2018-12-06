@@ -1,5 +1,5 @@
 package xyz.liuw.autumn.service;
-
+/*
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import org.commonmark.Extension;
 import org.commonmark.ext.autolink.AutolinkExtension;
@@ -17,10 +17,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/**
+*//**
  * @author liuwei
  * Created by liuwei on 2018/11/19.
- */
+ *//*
 public class CommonmarkMarkdownParser implements MarkdownParser {
 
     private Parser parser;
@@ -64,9 +64,9 @@ public class CommonmarkMarkdownParser implements MarkdownParser {
         return renderer.render(document);
     }
 
-    /**
+    *//**
      * Not thread-safe
-     */
+     *//*
     static class TocVisitor extends AbstractVisitor {
 
         private StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
@@ -101,4 +101,4 @@ public class CommonmarkMarkdownParser implements MarkdownParser {
             }
         }
     }
-}
+}*/

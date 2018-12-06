@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
 import xyz.liuw.autumn.data.Media;
+import xyz.liuw.autumn.util.WebUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -99,7 +100,7 @@ public class MediaService {
                         WebRequest webRequest,
                         HttpServletRequest request,
                         HttpServletResponse response) throws IOException {
-        etag = padEtagIfNecessary(etag);
+        etag = WebUtil.padEtagIfNecessary(etag);
         if (webRequest.checkNotModified(etag)) {
             return;
         }
@@ -125,13 +126,4 @@ public class MediaService {
         output.flush();
     }
 
-    private String padEtagIfNecessary(String etag) {
-        if (StringUtils.isBlank(etag)) {
-            return etag;
-        }
-        if ((etag.startsWith("\"") || etag.startsWith("W/\"")) && etag.endsWith("\"")) {
-            return etag;
-        }
-        return "\"" + etag + "\"";
-    }
 }

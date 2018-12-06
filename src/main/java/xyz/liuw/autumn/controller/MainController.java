@@ -1,7 +1,6 @@
 package xyz.liuw.autumn.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,7 +9,6 @@ import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 import org.springframework.web.servlet.view.RedirectView;
 import xyz.liuw.autumn.data.Media;
 import xyz.liuw.autumn.data.Page;
-import xyz.liuw.autumn.data.TreeJson;
 import xyz.liuw.autumn.service.DataService;
 import xyz.liuw.autumn.service.MediaService;
 import xyz.liuw.autumn.service.PageService;
@@ -28,27 +26,25 @@ import java.util.Map;
 public class MainController {
 
     private static final String MD_PATH_SUFFIX = ".md";
-    private static final String VIEW_PAGE = "page";
+    private static final String PAGE_VIEW_NAME = "page";
+
     @Autowired
     private DataService dataService;
+
     @Autowired
     private ResourceHttpRequestHandler resourceHttpRequestHandler;
+
     @Autowired
     private MediaService mediaService;
+
     @Autowired
     private PageService pageService;
+
     @Autowired
     private SecurityService securityService;
 
-    @RequestMapping(value = "/tree.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public String treeJson(WebRequest webRequest) {
-        TreeJson treeJson = dataService.getTreeJson();
-        if (webRequest.checkNotModified(treeJson.getMd5())) {
-            return null;
-        }
-
-        return treeJson.getJson();
-    }
+    @Autowired
+    private StaticController staticController;
 
     @RequestMapping(value = "/**", method = RequestMethod.GET)
     public Object index(String[] h, // h=a&h=b..
@@ -82,6 +78,14 @@ public class MainController {
             return null;
         }
 
+        if ("/js/all.js".equals(path)) {
+            return staticController.allJs(webRequest);
+        }
+
+        if ("/css/all.css".equals(path)) {
+            return staticController.cssJs(webRequest);
+        }
+
         // 静态文件
         resourceHttpRequestHandler.handleRequest(request, response);
         return null;
@@ -106,9 +110,9 @@ public class MainController {
                     ss = new String[10];
                     System.arraycopy(h, 0, ss, 0, ss.length);
                 }
-                return pageService.highlightOutput(page, Arrays.asList(ss), model, VIEW_PAGE);
+                return pageService.highlightOutput(page, Arrays.asList(ss), model, PAGE_VIEW_NAME);
             } else {
-                return pageService.output(page, model, VIEW_PAGE, webRequest);
+                return pageService.output(page, model, PAGE_VIEW_NAME, webRequest);
             }
         }
         // 无权限

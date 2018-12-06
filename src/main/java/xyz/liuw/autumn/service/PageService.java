@@ -35,7 +35,7 @@ public class PageService {
     private MarkdownParser markdownParser;
 
     @Autowired
-    private TemplateWatcher templateWatcher;
+    private ResourceService resourceService;
 
     @Value("${autumn.etag.version}")
     private int etagVersion;
@@ -48,7 +48,7 @@ public class PageService {
 
     public byte[] output(@NotNull Page page, Map<String, Object> model, String view, WebRequest webRequest) {
         Page.ViewCache viewCache = dataService.getViewCache(page);
-        long viewLastModified = templateWatcher.getTemplateLastModified(view);
+        long viewLastModified = resourceService.getTemplateLastModified();
         if (viewCache == null || viewCache.getTemplateLastModified() < viewLastModified) {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (page) {

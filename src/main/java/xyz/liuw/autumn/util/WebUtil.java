@@ -1,11 +1,11 @@
 package xyz.liuw.autumn.util;
 
 import com.vip.vjtools.vjkit.text.EscapeUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
 import java.util.StringTokenizer;
 
 /**
@@ -40,8 +40,14 @@ public class WebUtil {
                 .substring(request.getContextPath().length());
     }
 
-    public void setCtx(Map<String, Object> model) {
-        model.put("ctx", contextPath);
+    public static String padEtagIfNecessary(String etag) {
+        if (StringUtils.isBlank(etag)) {
+            return etag;
+        }
+        if ((etag.startsWith("\"") || etag.startsWith("W/\"")) && etag.endsWith("\"")) {
+            return etag;
+        }
+        return "\"" + etag + "\"";
     }
 
     public String getContextPath() {

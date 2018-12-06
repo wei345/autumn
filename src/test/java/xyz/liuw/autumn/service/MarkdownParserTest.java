@@ -21,21 +21,6 @@ import java.util.Arrays;
  */
 public class MarkdownParserTest {
 
-    public static void main(String[] args) {
-        System.out.println(4 | 8);
-    }
-
-    @Test
-    public void render() throws IOException {
-        MarkdownParser parser = new CommonmarkMarkdownParser();
-
-//        String source = "# 标题 abc\n内容 def\n\n## 标题 2";
-
-        String source = FileUtil.toString(new File("/Users/liuwei/code/bitbucket/weiliu/autumn/readme.md"));
-
-        parser.render(source);
-    }
-
     @Test
     public void flexmark() throws IOException {
         MutableDataSet options = new MutableDataSet();
@@ -48,7 +33,7 @@ public class MarkdownParserTest {
                 TocExtension.create()))
                 .set(TocExtension.LEVELS, 255)
                 .set(TocExtension.TITLE, "Table of Contents")
-        .set(TocExtension.DIV_CLASS, "toc");
+                .set(TocExtension.DIV_CLASS, "toc");
 
         // uncomment to convert soft-breaks to hard breaks
         //options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
