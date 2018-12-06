@@ -32,7 +32,7 @@
 缓存
 
 * 页面缓存。如果页面内容或模版没有变化，那么刷新页面响应 304，即使重启应用，刷新页面也响应 304。
-* 开发过程中模版文件变化后，10 秒内页面更新。TODO 检查 templates/inc
+* 开发过程中模版文件变化后，10 秒内页面更新。
 
 异常
 
@@ -156,15 +156,9 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 
 * 限流使用 script
 
-### 减少请求数
-
-* TODO 合并 css
-* TODO 合并 js
-
 ### Production Ready
 
 * 添加 ctx。nginx 映射到子路径时，不需要调整 Autumn 输出的 url 和跳转路径。
-* TODO 删除已不用的依赖：jsoup 和 commonmark
 
 ### View
 
@@ -177,9 +171,13 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 
 如果客户端禁用了 JS，sidebar 和 toc 将不可用。
 
-TODO 检查是否可触发 mouseover 事件，以决定锚链接显示方式。
+* 如果未启用 JS，需要 JS 控制的元素将不显示。
+* 使用标准 API。不考虑 IE。
 
-* TODO 提示不支持 IE
+减少请求数，并防止浏览器缓存导致 js, css 不更新。
+
+* 合并 css，并在路径中添加版本号
+* 合并 js，并在路径中添加版本号
 
 ### Java 10
 

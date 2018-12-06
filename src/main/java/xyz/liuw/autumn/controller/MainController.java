@@ -74,8 +74,7 @@ public class MainController {
         // Media
         Media media = dataService.getMedia(path);
         if (media != null) {
-            mediaService.output(media, webRequest, request, response);
-            return null;
+            return mediaService.output(media, webRequest, request, response);
         }
 
         if ("/js/all.js".equals(path)) {

@@ -67,21 +67,29 @@ public class DataService {
      */
     public SecurityBox getPageSecurityBox(String path) {
         Page page;
+
+        if ("/".equals(path)) {
+            return isLogged() ? new SecurityBox(dataSource.getAllData().getHomepage())
+                    : new SecurityBox(dataSource.getPublishedData().getHomepage());
+
+        }
+
         if (isLogged()) {
             page = dataSource.getAllData().getPageMap().get(path);
             return page == null ? null : new SecurityBox(page);
-        } else { // 未登录
-            page = dataSource.getPublishedData().getPageMap().get(path);
-            if (page != null) {
-                return new SecurityBox(page);
-            }
-            // 没权限
-            if (dataSource.getAllData().getPageMap().containsKey(path)) {
-                return new SecurityBox(null);
-            }
-            // 没数据
-            return null;
         }
+
+        // 未登录
+        page = dataSource.getPublishedData().getPageMap().get(path);
+        if (page != null) {
+            return new SecurityBox(page);
+        }
+        // 没权限
+        if (dataSource.getAllData().getPageMap().containsKey(path)) {
+            return new SecurityBox(null);
+        }
+        // 没数据
+        return null;
     }
 
     /**

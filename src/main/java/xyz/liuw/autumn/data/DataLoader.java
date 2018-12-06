@@ -41,7 +41,6 @@ public class DataLoader {
     @Value("${autumn.data.reload-interval-seconds:10}")
     private long reloadIntervalSeconds;
     private int reloadContinuousFailures; // default 0
-    private Page welcome;
     @Autowired
     private WebUtil webUtil;
 
@@ -51,80 +50,24 @@ public class DataLoader {
         this.jsonMapper = jsonMapper;
     }
 
-    private static List<Page> recentlyModified(@NotNull Collection<Page> set) {
-        List<Page> list = new ArrayList<>(set);
-        list.sort((o1, o2) -> {
-            // 一定要分出先后，也就是不能返回 0，否则每次搜索结果顺序可能不完全一样
-            int v;
-
-            // 非归档目录
-            v = Integer.compare(o1.getPath().startsWith(ARCHIVE_PATH_PREFIX) ? 1 : 0,
-                    o2.getPath().startsWith(ARCHIVE_PATH_PREFIX) ? 1 : 0);
-            if (v != 0) {
-                return v;
-            }
-
-            // 最近修改日期
-            v = Long.compare(o2.getModified().getTime(), o1.getModified().getTime());
-            if (v != 0) {
-                return v;
-            }
-
-            // 字典顺序
-            return o1.getPath().compareTo(o2.getPath());
-        });
-        return list;
-    }
-
-    /**
-     * 打印用户友好的，与当前时间相比的时间差，如刚刚，5分钟前，今天XXX，昨天XXX
-     * <p>
-     * copy from AndroidUtilCode
-     */
-    private static String formatFriendlyTimeSpanByNow(long timeStampMillis) {
-        long now = ClockUtil.currentTimeMillis();
-        long span = now - timeStampMillis;
-        if (span < 0) {
-            // 'c' 日期和时间，被格式化为 "%ta %tb %td %tT %tZ %tY"，例如 "Sun Jul 20 16:17:00 EDT 1969"。
-            return String.format("%tc", timeStampMillis);
-        }
-        if (span < DateUtil.MILLIS_PER_SECOND) {
-            return "刚刚";
-        } else if (span < DateUtil.MILLIS_PER_MINUTE) {
-            return String.format("%d 秒前", span / DateUtil.MILLIS_PER_SECOND);
-        } else if (span < DateUtil.MILLIS_PER_HOUR) {
-            return String.format("%d 分钟前", span / DateUtil.MILLIS_PER_MINUTE);
-        }
-        // 获取当天00:00
-        long wee = DateUtil.beginOfDate(new Date(now)).getTime();
-        if (timeStampMillis >= wee) {
-            // 'R' 24 小时制的时间，被格式化为 "%tH:%tM"
-            return String.format("今天 %tR", timeStampMillis);
-        } else if (timeStampMillis >= wee - DateUtil.MILLIS_PER_DAY) {
-            return String.format("昨天 %tR", timeStampMillis);
-        } else {
-            // 'F' ISO 8601 格式的完整日期，被格式化为 "%tY-%tm-%td"。
-            return String.format("%tF", timeStampMillis);
-        }
-    }
-
     @PostConstruct
     void start() {
-        welcome = newHomepage(null, true);
-
         ch.qos.logback.classic.Logger parserLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(PageParser.class);
         Level oldLevel = parserLogger.getLevel();
         if (oldLevel == null || oldLevel == Level.INFO) {
-            logger.info("已将 PageParser 日志级别设为 WARN，初始加载完成后会恢复，这是为避免每次启动输出 1000 多条解析日志");
-            logger.info("可设置 logging.level.{}=DEBUG 来阻止这个自动修改日志级别的行为", PageParser.class.getName());
+            logger.debug("已将 PageParser 日志级别设为 WARN，初始加载完成后会恢复，这是为避免每次启动输出 1000 多条解析日志");
+            logger.debug("可设置 logging.level.{}=DEBUG 来阻止这个自动修改日志级别的行为", PageParser.class.getName());
             parserLogger.setLevel(Level.WARN);
         }
 
+        logger.info("Data loading: {}", dataDir);
+        long start = System.currentTimeMillis();
         load();
+        logger.info("Data loaded in {} ms", System.currentTimeMillis() - start);
 
         if (oldLevel == null || oldLevel == Level.INFO) {
             parserLogger.setLevel(oldLevel);
-            logger.info("已恢复 PageParser 日志级别 {}", oldLevel);
+            logger.debug("已恢复 PageParser 日志级别 {}", oldLevel);
         }
 
         timingReload();
@@ -133,7 +76,7 @@ public class DataLoader {
     private void timingReload() {
         String threadName = getClass().getSimpleName() + ".timingReload";
         Thread thread = new Thread(() -> {
-            logger.info("Started '{}' thread", threadName);
+            logger.info("Started thread '{}'", threadName);
             while (reloadIntervalSeconds > 0) {
                 try {
                     long t = reloadIntervalSeconds * 1000 * MathUtil.pow(2, reloadContinuousFailures);
@@ -157,12 +100,7 @@ public class DataLoader {
     @SuppressWarnings("WeakerAccess")
     public synchronized void load() {
         Validate.notBlank(dataDir, "config 'autumn.data-dir' is empty");
-        logger.info("Loading {}", dataDir);
-        long start = System.currentTimeMillis();
-
         load(new File(dataDir));
-
-        logger.info("Loaded in {} ms", System.currentTimeMillis() - start);
     }
 
     private void load(File rootDir) {
@@ -241,21 +179,23 @@ public class DataLoader {
                 }
             }
         }
-        pageMap.put("/", welcome);
 
         boolean pageChanged = pageAddedOrModified > 0 || pageMap.size() != oldPageMap.size();
         boolean mediaChanged = mediaAddedOrModified > 0 || mediaMap.size() != oldMediaMap.size();
         if (!pageChanged && !mediaChanged) {
-            logger.info("dataSource no change");
+            logger.debug("dataSource no change");
             return;
         }
-        logger.info("{} Page added or modified, {} Media added or modified", pageAddedOrModified, mediaAddedOrModified);
 
-        pageMap.put("/", newHomepage(pageMap, false));
+        logger.info("Page added or modified: {}, Media added or modified: {}", pageAddedOrModified, mediaAddedOrModified);
         sortAndRemoveEmptyNode(root);
         String json = jsonMapper.toJson(root);
         TreeJson treeJson = new TreeJson(json);
-        DataSource.Data data = new DataSource.Data(treeJson, pageMap, mediaMap);
+        DataSource.Data data = new DataSource.Data(
+                treeJson,
+                newHomepage(pageMap, false),
+                pageMap,
+                mediaMap);
         dataSource.setAllData(data);
         setPublishedData(root, mediaMap);
         logger.info("dataSource: {}", dataSource);
@@ -338,7 +278,6 @@ public class DataLoader {
             }
             node.children = publishedList;
         }
-        pageMap.put("/", newHomepage(pageMap, true));
         removeEmptyDirNode(allDirNodes);
         String json = jsonMapper.toJson(root);
 
@@ -351,7 +290,11 @@ public class DataLoader {
             }
         }
 
-        DataSource.Data data = new DataSource.Data(new TreeJson(json), pageMap, publishedMedia);
+        DataSource.Data data = new DataSource.Data(
+                new TreeJson(json),
+                newHomepage(pageMap, true),
+                pageMap,
+                publishedMedia);
         dataSource.setPublishedData(data);
     }
 
@@ -360,7 +303,7 @@ public class DataLoader {
         String title = "Home";
         String body = "Welcome";
         if (!CollectionUtils.isEmpty(pageMap)) {
-            List<Page> recently = recentlyModified(pageMap.values());
+            List<Page> recently = getListOrderByModifiedDesc(pageMap.values());
             if (!CollectionUtils.isEmpty(recently)) {
                 StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
                 stringBuilder.append("<ul class='recently_modified'>");
@@ -372,8 +315,11 @@ public class DataLoader {
                             .append(page.getPath())
                             .append("'>")
                             .append(htmlEscape(page.getTitle()))
-                            .append(" <i>")
-                            .append(formatFriendlyTimeSpanByNow(page.getModified().getTime()))
+                            .append(" <i data-time=\"")
+                            .append(page.getModified().getTime())
+                            .append("\"")
+                            .append(">")
+                            .append(String.format("%tF", page.getModified().getTime()))
                             .append("</i></a></li>")
                             .append("\n");
                 }
@@ -394,5 +340,62 @@ public class DataLoader {
         page.setLastModified(now.getTime());
         page.setPath("/");
         return page;
+    }
+
+    private List<Page> getListOrderByModifiedDesc(@NotNull Collection<Page> set) {
+        List<Page> list = new ArrayList<>(set);
+        list.sort((o1, o2) -> {
+            // 一定要分出先后，也就是不能返回 0，否则每次搜索结果顺序可能不完全一样
+            int v;
+
+            // 非归档目录
+            v = Integer.compare(o1.getPath().startsWith(ARCHIVE_PATH_PREFIX) ? 1 : 0,
+                    o2.getPath().startsWith(ARCHIVE_PATH_PREFIX) ? 1 : 0);
+            if (v != 0) {
+                return v;
+            }
+
+            // 最近修改日期
+            v = Long.compare(o2.getModified().getTime(), o1.getModified().getTime());
+            if (v != 0) {
+                return v;
+            }
+
+            // 字典顺序
+            return o1.getPath().compareTo(o2.getPath());
+        });
+        return list;
+    }
+
+    /**
+     * 打印用户友好的，与当前时间相比的时间差，如刚刚，5分钟前，今天XXX，昨天XXX
+     * <p>
+     * copy from AndroidUtilCode
+     */
+    private String formatFriendlyTimeSpanByNow(long timeStampMillis) {
+        long now = ClockUtil.currentTimeMillis();
+        long span = now - timeStampMillis;
+        if (span < 0) {
+            // 'c' 日期和时间，被格式化为 "%ta %tb %td %tT %tZ %tY"，例如 "Sun Jul 20 16:17:00 EDT 1969"。
+            return String.format("%tc", timeStampMillis);
+        }
+        if (span < DateUtil.MILLIS_PER_SECOND) {
+            return "刚刚";
+        } else if (span < DateUtil.MILLIS_PER_MINUTE) {
+            return String.format("%d 秒前", span / DateUtil.MILLIS_PER_SECOND);
+        } else if (span < DateUtil.MILLIS_PER_HOUR) {
+            return String.format("%d 分钟前", span / DateUtil.MILLIS_PER_MINUTE);
+        }
+        // 获取当天00:00
+        long wee = DateUtil.beginOfDate(new Date(now)).getTime();
+        if (timeStampMillis >= wee) {
+            // 'R' 24 小时制的时间，被格式化为 "%tH:%tM"
+            return String.format("今天 %tR", timeStampMillis);
+        } else if (timeStampMillis >= wee - DateUtil.MILLIS_PER_DAY) {
+            return String.format("昨天 %tR", timeStampMillis);
+        } else {
+            // 'F' ISO 8601 格式的完整日期，被格式化为 "%tY-%tm-%td"。
+            return String.format("%tF", timeStampMillis);
+        }
     }
 }

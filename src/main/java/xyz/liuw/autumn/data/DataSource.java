@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -38,10 +39,29 @@ public class DataSource {
     }
 
     public static class Data {
-        static final Data EMPTY = new Data(TreeJson.EMPTY, Collections.emptyMap(), Collections.emptyMap());
+        static final Data EMPTY;
+
+        static {
+            String title = "Home";
+            String body = "Welcome";
+            Date now = new Date(0);
+            Page welcome = new Page();
+            welcome.setCreated(now);
+            welcome.setModified(now);
+            welcome.setPublished(true);
+            welcome.setBody(body);
+            welcome.setSource(body);
+            welcome.setTitle(title);
+            welcome.setLastModified(now.getTime());
+            welcome.setPath("/");
+
+            EMPTY = new Data(TreeJson.EMPTY, welcome, Collections.emptyMap(), Collections.emptyMap());
+        }
 
         @NotNull
         private TreeJson treeJson;
+        @NotNull
+        private Page homepage;
         // path -> Page
         @NotNull
         private Map<String, Page> pageMap;
@@ -50,9 +70,11 @@ public class DataSource {
         private Map<String, Media> mediaMap;
 
         Data(@NotNull TreeJson treeJson,
+             @NotNull Page homepage,
              @NotNull Map<String, Page> pageMap,
              @NotNull Map<String, Media> mediaMap) {
             this.treeJson = treeJson;
+            this.homepage = homepage;
             this.pageMap = pageMap;
             this.mediaMap = mediaMap;
         }
@@ -67,6 +89,10 @@ public class DataSource {
 
         public Map<String, Media> getMediaMap() {
             return mediaMap;
+        }
+
+        public Page getHomepage() {
+            return homepage;
         }
 
         @Override

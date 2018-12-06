@@ -9,12 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
-import org.springframework.http.MediaTypeFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StreamUtils;
 import xyz.liuw.autumn.data.TreeJson;
+import xyz.liuw.autumn.util.MimeTypeUtil;
 import xyz.liuw.autumn.util.ResourceWalker;
 import xyz.liuw.autumn.util.WebUtil;
 
@@ -230,7 +229,7 @@ public class ResourceService {
                     IOUtil.closeQuietly(in);
                 }
                 String md5 = DigestUtils.md5DigestAsHex(content);
-                String mimeType = MediaTypeFactory.getMediaType(relativePath).orElse(MediaType.APPLICATION_OCTET_STREAM).toString();
+                String mimeType = MimeTypeUtil.getMimeType(relativePath);
                 ResourceCache resourceCache = new ResourceCache();
                 resourceCache.setContent(content);
                 resourceCache.setMd5(md5);
@@ -257,7 +256,7 @@ public class ResourceService {
                 throw new RuntimeException(e);
             }
             String md5 = DigestUtils.md5DigestAsHex(content);
-            String mimeType = MediaTypeFactory.getMediaType(f.getName()).orElse(MediaType.APPLICATION_OCTET_STREAM).toString();
+            String mimeType = MimeTypeUtil.getMimeType(f.getName());
             ResourceCache resourceCache = new ResourceCache();
             resourceCache.setContent(content);
             resourceCache.setMd5(md5);
