@@ -127,7 +127,7 @@ public class ResourceService {
 
 
     private void refreshJsCache() {
-        ResourceCache scriptJs = resourceCacheMap.get("/js/script.js");
+        ResourceCache scriptJs = resourceCacheMap.get(STATIC_ROOT + "/js/script.js");
         TreeJson treeJson = dataService.getTreeJson();
         if (jsCache != null && jsCache.checkNotModified(treeJson.getMd5(), scriptJs.getMd5())) {
             return;
@@ -155,8 +155,8 @@ public class ResourceService {
     }
 
     private void refreshCssCache() {
-        ResourceCache normalizeCss = resourceCacheMap.get("/css/normalize.css");
-        ResourceCache styleCss = resourceCacheMap.get("/css/style.css");
+        ResourceCache normalizeCss = resourceCacheMap.get(STATIC_ROOT + "/css/normalize.css");
+        ResourceCache styleCss = resourceCacheMap.get(STATIC_ROOT + "/css/style.css");
         if (cssCache != null && cssCache.checkNotModified(normalizeCss.getMd5(), styleCss.getMd5())) {
             return;
         }
@@ -241,7 +241,7 @@ public class ResourceService {
             }
 
             // File
-            String relativePath = "/" + root.relativize(file).toString();
+            String relativePath = STATIC_ROOT + "/" + root.relativize(file).toString();
             ResourceCache old = oldMap.get(path);
             long lastModified = attrs.lastModifiedTime().toMillis();
             if (old != null && old.getLastModified() >= lastModified) {
