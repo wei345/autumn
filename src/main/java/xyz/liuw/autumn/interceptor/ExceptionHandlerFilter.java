@@ -1,4 +1,4 @@
-package xyz.liuw.autumn.controller;
+package xyz.liuw.autumn.interceptor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

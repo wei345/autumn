@@ -11,7 +11,7 @@
 
     <groupId>xyz.liuw</groupId>
     <artifactId>autumn</artifactId>
-    <version>0.1.0</version>
+    <version>1.0.0-SNAPSHOT</version>
 
     <properties>
         <java.version>1.8</java.version>
@@ -107,9 +107,6 @@
                 <version>1.6.0</version>
                 <configuration>
                     <mainClass>xyz.liuw.autumn.Application</mainClass>
-                    <arguments>
-                        <argument>--spring.profiles.active=production,console</argument>
-                    </arguments>
                 </configuration>
             </plugin>
             <!-- package with dependencies -->

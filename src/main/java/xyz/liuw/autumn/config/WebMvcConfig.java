@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver;
-import xyz.liuw.autumn.controller.UserInterceptor;
+import xyz.liuw.autumn.interceptor.UserInterceptor;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {

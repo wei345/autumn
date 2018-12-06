@@ -12,7 +12,7 @@ import xyz.liuw.autumn.data.Page;
 import xyz.liuw.autumn.service.DataService;
 import xyz.liuw.autumn.service.MediaService;
 import xyz.liuw.autumn.service.PageService;
-import xyz.liuw.autumn.service.SecurityService;
+import xyz.liuw.autumn.service.TemplateService;
 import xyz.liuw.autumn.util.WebUtil;
 
 import javax.servlet.ServletException;
@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+
+import static xyz.liuw.autumn.service.UserService.isLogged;
 
 @RestController
 public class MainController {
@@ -41,10 +43,10 @@ public class MainController {
     private PageService pageService;
 
     @Autowired
-    private SecurityService securityService;
+    private StaticController staticController;
 
     @Autowired
-    private StaticController staticController;
+    private TemplateService templateService;
 
     @RequestMapping(value = "/**", method = RequestMethod.GET)
     public Object index(String[] h, // h=a&h=b..
@@ -54,7 +56,7 @@ public class MainController {
                         Map<String, Object> model) throws ServletException, IOException {
 
         String path = WebUtil.getRelativePath(request);
-        securityService.setFreeMarkerLoggedKey(model);
+        templateService.setLogged(model);
 
         // Page
         DataService.SecurityBox pageBox = dataService.getPageSecurityBox(path);
@@ -115,7 +117,7 @@ public class MainController {
             }
         }
         // 无权限
-        if (!SecurityService.isLogged()) {
+        if (!isLogged()) {
             return new RedirectView("/login?ret=" + path, true, false);
         } else {
             response.sendError(403);

@@ -13,7 +13,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import xyz.liuw.autumn.domain.User;
-import xyz.liuw.autumn.service.SecurityService;
 import xyz.liuw.autumn.service.TemplateService;
 import xyz.liuw.autumn.service.UserService;
 import xyz.liuw.autumn.util.WebUtil;
@@ -44,9 +43,6 @@ public class LoginController {
     private UserService userService;
 
     @Autowired
-    private SecurityService securityService;
-
-    @Autowired
 
     private StringRedisTemplate stringRedisTemplate;
 
@@ -62,7 +58,7 @@ public class LoginController {
 
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
     public String logout(HttpServletRequest request, HttpServletResponse response) {
-        securityService.logout(request, response);
+        userService.logout(request, response);
         return "redirect:/";
     }
 
@@ -96,7 +92,7 @@ public class LoginController {
         // 登录成功
         if (user != null) {
             loginToken.success(clientIp);
-            securityService.setRememberMe(user, password, request, response);
+            userService.setRememberMe(user, password, request, response);
             return (ret != null && ret.startsWith("/")) ? "redirect:" + ret : "redirect:/";
         }
 

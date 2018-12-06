@@ -34,7 +34,6 @@ public class MediaService {
     private List<String> compressionMimeTypes;
 
 
-
     public Object output(Media media, WebRequest webRequest,
                          HttpServletRequest request, HttpServletResponse response) throws IOException {
         File file = media.getFile();

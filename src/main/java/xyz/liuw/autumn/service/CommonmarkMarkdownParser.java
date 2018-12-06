@@ -20,6 +20,8 @@ import java.util.Map;
 *//**
  * @author liuwei
  * Created by liuwei on 2018/11/19.
+ * <p>
+ * Not thread-safe
  *//*
 public class CommonmarkMarkdownParser implements MarkdownParser {
 
@@ -65,8 +67,8 @@ public class CommonmarkMarkdownParser implements MarkdownParser {
     }
 
     *//**
-     * Not thread-safe
-     *//*
+ * Not thread-safe
+ *//*
     static class TocVisitor extends AbstractVisitor {
 
         private StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);

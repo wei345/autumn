@@ -10,6 +10,8 @@ import xyz.liuw.autumn.util.WebUtil;
 import java.io.StringWriter;
 import java.util.Map;
 
+import static xyz.liuw.autumn.service.UserService.isLogged;
+
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/28.
@@ -19,6 +21,7 @@ public class TemplateService {
 
     private static final String JS_CACHE_VERSION = "jsCacheVersion";
     private static final String CSS_CACHE_VERSION = "cssCacheVersion";
+    private static final String LOGGED_MODEL_KEY = "logged";
     private static final String CTX = "ctx";
     @Autowired
     private Configuration freeMarkerConfiguration;
@@ -50,4 +53,7 @@ public class TemplateService {
         model.put(JS_CACHE_VERSION, resourceService.getJsCache().getVersion());
     }
 
+    public void setLogged(Map<String, Object> model) {
+        model.put(LOGGED_MODEL_KEY, isLogged());
+    }
 }

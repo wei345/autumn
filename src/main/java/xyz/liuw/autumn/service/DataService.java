@@ -9,7 +9,8 @@ import xyz.liuw.autumn.data.*;
 
 import java.util.Map;
 
-import static xyz.liuw.autumn.service.SecurityService.isLogged;
+import static xyz.liuw.autumn.service.UserService.isLogged;
+
 
 /**
  * @author liuwei

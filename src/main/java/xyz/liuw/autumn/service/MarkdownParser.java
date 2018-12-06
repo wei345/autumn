@@ -6,6 +6,8 @@ package xyz.liuw.autumn.service;
  */
 public interface MarkdownParser {
     String render(String path, String title, String body);
+
     String render(String title, String body);
+
     String render(String source);
 }

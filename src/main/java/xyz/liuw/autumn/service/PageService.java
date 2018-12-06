@@ -73,8 +73,6 @@ public class PageService {
     }
 
     public String highlightOutput(@NotNull Page page, List<String> searchStrList, Map<String, Object> model, String view) {
-        String title = htmlEscape(page.getTitle());
-//        title = searchService.highlightSearchStr(title, searchStrList);
         String html = getPageHtml(page);
         html = searchService.highlightSearchStr(html, searchStrList);
         model.put(TITLE, htmlEscape(page.getTitle()));
