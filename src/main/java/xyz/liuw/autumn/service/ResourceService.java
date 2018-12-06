@@ -220,7 +220,7 @@ public class ResourceService {
                     relativePath = path.substring(ResourceWalker.SPRING_BOOT_CLASSES.length());
                 }
 
-                InputStream in = getClass().getResourceAsStream("classpath:" + relativePath);
+                InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("classpath:" + relativePath);
                 byte[] content;
                 try {
                     content = StreamUtils.copyToByteArray(in);

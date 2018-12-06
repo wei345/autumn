@@ -1,5 +1,6 @@
 package xyz.liuw.autumn.util;
 
+import com.vip.vjtools.vjkit.io.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,8 +9,8 @@ import java.nio.file.*;
 import java.util.Collections;
 
 public class ResourceWalker {
-    private static Logger logger = LoggerFactory.getLogger(ResourceWalker.class);
     public static final String SPRING_BOOT_CLASSES = "/BOOT-INF/classes";
+    private static Logger logger = LoggerFactory.getLogger(ResourceWalker.class);
 
     public static void walk(String relativePath, FileVisitor<? super Path> visitor) {
         try {
@@ -34,8 +35,9 @@ public class ResourceWalker {
     }
 
     private static void walkJar(URI uri, String relativePath, FileVisitor<? super Path> visitor) {
+        FileSystem fileSystem = null;
         try {
-            FileSystem fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap());
+            fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap());
 
             Path path = fileSystem.getPath(relativePath);
             if (!Files.exists(path)) {
@@ -43,7 +45,7 @@ public class ResourceWalker {
             }
 
             if (!Files.exists(path)) {
-                if(logger.isDebugEnabled()){
+                if (logger.isDebugEnabled()) {
                     logger.debug("{} not found", relativePath);
                 }
                 return;
@@ -52,6 +54,10 @@ public class ResourceWalker {
             Files.walkFileTree(path, visitor);
         } catch (Exception e) {
             throw new RuntimeException(e);
+        } finally {
+            if (fileSystem != null) {
+                IOUtil.closeQuietly(fileSystem);
+            }
         }
     }
 }
