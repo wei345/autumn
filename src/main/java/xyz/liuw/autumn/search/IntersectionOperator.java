@@ -21,7 +21,10 @@ class IntersectionOperator extends AbstractOperator {
     public Matcher operate(Matcher m1, Matcher m2) {
         // 不要 m2.search()，然后 m1.search()，然后取交集，那样效率低
         // 让一个 Matcher 在另一个 Matcher 结果中查找，效率更高
-        return new ResultMatcher(m2.search(m1.search()));
+        // 如果其中一个是 ResultMatcher，先取它的结果
+        return m1 instanceof ResultMatcher ?
+                new ResultMatcher(m2.search(m1.search())) :
+                new ResultMatcher(m1.search(m2.search()));
     }
 
     static class Parser extends AbstractTokenParser {

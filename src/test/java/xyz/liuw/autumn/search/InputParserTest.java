@@ -1,5 +1,6 @@
 package xyz.liuw.autumn.search;
 
+import com.google.common.collect.Sets;
 import org.junit.Test;
 
 import java.util.List;
@@ -14,7 +15,6 @@ public class InputParserTest {
 
     @Test
     public void parse() {
-
         InputParser parser = new InputParser();
 
         String input = "tag:java spring OR bash";

@@ -8,9 +8,12 @@ import java.util.Set;
  */
 interface Matcher extends Token {
 
-    void setSourceData(Set<SearchingPage> sourceData);
+    default void setSourceData(Set<SearchingPage> sourceData) {
+    }
 
-    Set<SearchingPage> getSourceData();
+    default Set<SearchingPage> getSourceData() {
+        return null;
+    }
 
     default Set<SearchingPage> search() {
         return search(getSourceData());

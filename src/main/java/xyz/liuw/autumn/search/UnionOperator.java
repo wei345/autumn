@@ -1,5 +1,7 @@
 package xyz.liuw.autumn.search;
 
+import com.google.common.collect.Sets;
+
 import java.util.Set;
 
 /**
@@ -21,13 +23,21 @@ class UnionOperator extends AbstractOperator {
 
     @Override
     public Matcher operate(Matcher m1, Matcher m2) {
-        Set<SearchingPage> a = m1.search();
-        Set<SearchingPage> b = m2.search();
+        // 不要分别计算两个 Matcher 结果求并集，效率低。
+        // 要先计算一个，另一个在第一个结果的补集里计算。
+        // 如果其中一个是 ResultMatcher，先取它的结果。
+        // 但是为了搜索结果排序和高亮，要找到所有 Hit，
+        // 这跟分别计算两个 Matcher 结果求并集差不多了。
+        return m1 instanceof ResultMatcher ? union(m1, m2) : union(m2, m1);
+    }
 
-        Set<SearchingPage> c = Sorting.SET_SUPPLIER.get();
-        c.addAll(a);
-        c.addAll(b);
-        return new ResultMatcher(c);
+    private Matcher union(Matcher m1, Matcher m2) {
+        Set<SearchingPage> r1 = m1.search();
+        Set<SearchingPage> r2 = m2.search(Sets.difference(m2.getSourceData(), r1));
+        if (m2 instanceof ExactMatcher || m2 instanceof QuoteExactMatcher) {
+            r1.forEach(searchingPage -> ExactMatcher.find(searchingPage, m2.getExpression(), m2.getSearchStr()));
+        }
+        return new ResultMatcher(Sets.union(r1, r2));
     }
 
     // "a OR b"

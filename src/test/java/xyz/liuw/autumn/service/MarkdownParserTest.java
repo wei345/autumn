@@ -41,7 +41,7 @@ public class MarkdownParserTest {
         Parser parser = Parser.builder(options).build();
         HtmlRenderer renderer = HtmlRenderer.builder(options).build();
 
-        String source = "[TOC]\n" + FileUtil.toString(new File("/Users/liuwei/code/bitbucket/weiliu/notes/java/intellijidea.md"));
+        String source = "[TOC]\n" + FileUtil.toString(new File("../notes/java/intellijidea.md"));
 
 
         // You can re-use parser and renderer instances
