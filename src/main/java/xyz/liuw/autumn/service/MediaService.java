@@ -28,7 +28,7 @@ public class MediaService {
     private static Logger logger = LoggerFactory.getLogger(MediaService.class);
 
     @SuppressWarnings("FieldCanBeLocal")
-    private int cacheFileMaxLength = 1024 * 100;
+    private int cacheFileMaxLength = 1024 * 1024;
 
     @Value("${server.compression.mime-types}")
     private List<String> compressionMimeTypes;

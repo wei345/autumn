@@ -45,7 +45,7 @@ public class DataEndpoint {
         long start = System.currentTimeMillis();
         dataLoader.load();
         long cost = System.currentTimeMillis() - start;
-        return String.format("Reloaded in %s ms. %s", cost, dataSource);
+        return String.format("Reloaded in %s ms. %s\n", cost, dataSource);
     }
 
     public static class DataStat {
