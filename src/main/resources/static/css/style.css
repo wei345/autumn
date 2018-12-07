@@ -2,7 +2,6 @@ body {
     margin: 0 15px 15px;
     line-height: 1.6;
     color: #333;
-    /*font-family: Helvetica, Arial, Freesans, Clean, Sans-serif, serif;*/
     font-family: Arial, x-locale-body, sans-serif;
     -webkit-font-smoothing: antialiased
 }
@@ -22,7 +21,6 @@ a {
     text-decoration: none;
 }
 
-/* 不带边框的代码块 */
 code {
     background: #f4f5f6;
     border-radius: 4px;
@@ -45,28 +43,6 @@ pre > code {
     white-space: pre;
     overflow-y: hidden;
 }
-
-/* 带边框的代码块
-pre {
-    color: #000;
-    font-size: 15px;
-    padding: 6px 10px;
-    background-color: #f8f8f8;
-    border: 1px solid #ccc;
-    border-radius: 3px 3px 3px 3px;
-    overflow: auto;
-    line-height: 1.4;
-    font-family: Consolas, liberation mono, Courier, monospace
-}
-
-:not(pre) > code {
-    background-color: #f2f2f2;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 1px 3px 0;
-    text-shadow: none;
-    white-space: nowrap
-}*/
 
 blockquote {
     border-left: 3px solid #d1d1d1;
@@ -104,34 +80,6 @@ th:last-child {
     padding-right: 0;
 }
 
-/* 有 border table
-table {
-    border-spacing: 0;
-    border: 1px solid #ddd !important;
-    border-radius: 4px !important;
-    border-collapse: separate !important;
-    line-height: 1.6;
-    display: table;
-}
-
-thead {
-    background: #f5f5f5;
-}
-
-tr {
-    border-style: none;
-}
-
-table tr:nth-child(2n) {
-    background-color: #f8f8f8;
-}
-
-td,
-th {
-    border: none !important;
-    padding: 6px 13px;
-}*/
-
 hr {
     border: 0;
     border-top: 1px solid #f4f5f6;
@@ -143,6 +91,13 @@ legend {
     display: block;
     font-weight: 700;
     margin-bottom: 5px;
+}
+
+/* 阻止手机浏览器修改搜索框样式 */
+input[type=search] {
+    -moz-appearance: none; /* older firefox */
+    -webkit-appearance: none; /* safari, chrome, edge and ie mobile */
+    appearance: none; /* rest */
 }
 
 input[type='email'],
@@ -453,25 +408,4 @@ input[type='submit'] {
     font-size: small;
     color: #808080;
 }
-
-/* sidebar 和 page 独立滚动
-.header__row_1__search_box {
-    padding-top: .1em;
-}
-
-.header__row_1 {
-    line-height: 1;
-}
-
-html, body, .container, .main, .sidebar, .page {
-    height: 100%;
-}
-
-.sidebar, .page {
-    overflow: auto;
-}
-
-.page {
-    padding-right: 1em;
-}*/
 
