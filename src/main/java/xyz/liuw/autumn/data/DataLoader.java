@@ -73,6 +73,10 @@ public class DataLoader {
     }
 
     private void timingReload() {
+        if (reloadIntervalSeconds <= 0) {
+            return;
+        }
+
         String threadName = getClass().getSimpleName() + ".timingReload";
         Thread thread = new Thread(() -> {
             logger.info("Started thread '{}'", threadName);

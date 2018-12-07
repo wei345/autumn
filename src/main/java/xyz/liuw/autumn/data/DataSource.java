@@ -97,8 +97,7 @@ public class DataSource {
 
         @Override
         public String toString() {
-            return String.format("treeJson length %s, pageMap size %s, mediaMap size %s",
-                    treeJson.getJson().length(), pageMap.size(), mediaMap.size());
+            return String.format("page: %s, media: %s", pageMap.size(), mediaMap.size());
         }
     }
 }

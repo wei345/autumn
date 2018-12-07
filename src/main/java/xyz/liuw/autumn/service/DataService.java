@@ -59,10 +59,6 @@ public class DataService {
         }
     }
 
-    public void reloadData() {
-        dataLoader.load();
-    }
-
     /**
      * 在显示 page 前一定要检查权限
      */
