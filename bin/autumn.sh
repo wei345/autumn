@@ -5,6 +5,9 @@ cd "$(dirname $0)/.."
 DIR="$(pwd)"
 JAR_FILE="${DIR}/target/autumn.jar"
 
+LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/admin/apr/lib"
+export LD_LIBRARY_PATH
+
 do_start() {
     if [[ ! -d "logs" ]]; then
         mkdir logs || exit 1
