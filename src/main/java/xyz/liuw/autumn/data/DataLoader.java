@@ -31,9 +31,8 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
 @Component
 public class DataLoader {
 
-    public static final String ARCHIVE_PATH_PREFIX = "/archive/";
+    private static final String ARCHIVE_PATH_PREFIX = "/archive/";
     private static Logger logger = LoggerFactory.getLogger(DataLoader.class);
-
     private final DataSource dataSource;
     private final JsonMapper jsonMapper;
     @Value("${autumn.data-dir}")
@@ -158,6 +157,7 @@ public class DataLoader {
                             pageAddedOrModified++;
                             page = PageParser.parse(file);
                             page.setPath(path);
+                            page.setArchived(path.startsWith(ARCHIVE_PATH_PREFIX));
                         }
                         pageMap.put(path, page);
 

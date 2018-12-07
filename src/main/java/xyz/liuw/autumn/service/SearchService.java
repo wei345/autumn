@@ -40,7 +40,7 @@ public class SearchService {
     public SearchResult search(String input) {
         Map<String, Page> pageMap = dataService.getPageMap();
         SearchResult sr = searcher.search(input, pageMap.values());
-        logger.info("Search '{}' {} result in {} ms", input, sr.getPages().size(), sr.getTimeCost());
+        logger.info("Search '{}' got {} results in {} ms", input, sr.getPages().size(), sr.getTimeCost());
         return sr;
     }
 

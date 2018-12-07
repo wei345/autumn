@@ -1,5 +1,8 @@
 package xyz.liuw.autumn.search;
 
+import org.apache.commons.lang3.Validate;
+
+import javax.validation.constraints.NotNull;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -14,7 +17,9 @@ abstract class AbstractMatcher implements Matcher {
     private String searchStr;
     private Set<SearchingPage> sourceData;
 
-    AbstractMatcher(String expression, String searchStr) {
+    AbstractMatcher(@NotNull String expression, @NotNull String searchStr) {
+        Validate.notNull(expression, "Matcher expression is null");
+        Validate.notNull(searchStr, "Matcher searchStr is null");
         this.expression = expression;
         this.searchStr = searchStr;
     }

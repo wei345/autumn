@@ -17,6 +17,8 @@ public class Page {
     private String category;
     private Set<String> tags;
     private boolean published; // default false
+    private boolean archived; // 是否已归档
+    private String name; // file name without extension
     private String title;
     private String body;
     private volatile String html;
@@ -170,5 +172,21 @@ public class Page {
 
     public void setSourceMd5(String sourceMd5) {
         this.sourceMd5 = sourceMd5;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
     }
 }

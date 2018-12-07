@@ -43,6 +43,9 @@ public class PageParser {
         }
         Page page = parse(text);
         page.setLastModified(file.lastModified());
+        int dotIndex = file.getName().lastIndexOf('.');
+        String name = (dotIndex == -1) ? "" : file.getName().substring(0, dotIndex);
+        page.setName(name);
         return page;
     }
 

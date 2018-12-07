@@ -1,7 +1,6 @@
 package xyz.liuw.autumn.search;
 
 import com.google.common.collect.Sets;
-import xyz.liuw.autumn.data.DataLoader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,15 +22,32 @@ class Sorting {
 
             int v;
 
-            // 非归档目录
-            v = Integer.compare(o1.getPage().getPath().startsWith(DataLoader.ARCHIVE_PATH_PREFIX) ? 1 : 0,
-                    o2.getPage().getPath().startsWith(DataLoader.ARCHIVE_PATH_PREFIX) ? 1 : 0);
+            // 文件名相等
+            v = Integer.compare(o2.getNameEqCount(), o1.getNameEqCount());
+            if (v != 0) {
+                return v;
+            }
+
+            // 标题相等
+            v = Integer.compare(o2.getTitleEqCount(), o1.getTitleEqCount());
+            if (v != 0) {
+                return v;
+            }
+
+            // 文件名匹配
+            v = Integer.compare(o2.getNameHitCount(), o1.getNameHitCount());
             if (v != 0) {
                 return v;
             }
 
             // 标题匹配
             v = Integer.compare(o2.getTitleHitCount(), o1.getTitleHitCount());
+            if (v != 0) {
+                return v;
+            }
+
+            // 非归档目录
+            v = Integer.compare(o1.getPage().isArchived() ? 1 : 0, o2.getPage().isArchived() ? 1 : 0);
             if (v != 0) {
                 return v;
             }

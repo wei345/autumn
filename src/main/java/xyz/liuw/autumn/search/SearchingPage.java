@@ -17,10 +17,13 @@ public class SearchingPage {
     // MatcherExpression -> PageHit
     private Map<String, PageHit> hitMap;
 
-    private int hitCount;
+    private int hitCount; // default 0
     private int pathHitCount;
     private int titleHitCount;
     private int bodyHitCount;
+    private int nameEqCount;
+    private int titleEqCount;
+    private int nameHitCount;
 
     private String pathPreview;
     private String titlePreview;
@@ -45,28 +48,31 @@ public class SearchingPage {
 
     void putPageHit(String expression, PageHit pageHit) {
         hitMap.put(expression, pageHit);
-        updateHitCount();
+        // 即使 expression 重复也要累加 hit，排序更准
+        updateHitCount(pageHit);
     }
 
-    private void updateHitCount() {
-        int pathHitCount = 0;
-        int titleHitCount = 0;
-        int bodyHitCount = 0;
-        for (Map.Entry<String, PageHit> entry : hitMap.entrySet()) {
-            PageHit pageHit = entry.getValue();
-            pathHitCount += pageHit.getPathHitList().size();
-            titleHitCount += pageHit.getTitleHitList().size();
-            bodyHitCount += pageHit.getBodyHitList().size();
+    private void updateHitCount(PageHit pageHit) {
+        if (pageHit.isNameEqual()) {
+            nameEqCount++;
         }
-        this.pathHitCount = pathHitCount;
-        this.titleHitCount = titleHitCount;
-        this.bodyHitCount = bodyHitCount;
-        this.hitCount = pathHitCount + titleHitCount + bodyHitCount;
+        if (pageHit.isTitleEqual()) {
+            titleEqCount++;
+        }
+        nameHitCount += pageHit.getNameHitList().size();
+        pathHitCount += pageHit.getPathHitList().size();
+        titleHitCount += pageHit.getTitleHitList().size();
+        bodyHitCount += pageHit.getBodyHitList().size();
+        hitCount = pathHitCount + titleHitCount + bodyHitCount;
     }
 
     @SuppressWarnings("WeakerAccess")
     public int getHitCount() {
         return hitCount;
+    }
+
+    public int getNameHitCount() {
+        return nameHitCount;
     }
 
     public int getPathHitCount() {
@@ -115,6 +121,14 @@ public class SearchingPage {
 
     public void setHighlightString(String highlightString) {
         this.highlightString = highlightString;
+    }
+
+    public int getNameEqCount() {
+        return nameEqCount;
+    }
+
+    public int getTitleEqCount() {
+        return titleEqCount;
     }
 
     @Override
