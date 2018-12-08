@@ -32,7 +32,7 @@ code {
 
 pre {
     background: #f4f5f6;
-    border-left: 3px solid #9b4dca;
+    /*border-left: 3px solid #9b4dca;*/
     overflow-y: hidden;
 }
 
@@ -42,6 +42,28 @@ pre > code {
     padding: 10px 15px;
     white-space: pre;
     overflow-y: hidden;
+}
+
+pre code table {
+    margin: 0;
+    padding-right: 15px;
+    width: unset;
+}
+
+pre code table td {
+    border: 0;
+    padding: 0;
+}
+
+pre code table td.line-number {
+    min-width: 1em;
+    text-align: right;
+    padding-right: 0.8em;
+    color: rgba(27, 31, 35, .3);
+}
+
+pre code table td.line-number:before {
+    content: attr(data-line-number);
 }
 
 blockquote {

@@ -17,9 +17,9 @@ import java.util.Arrays;
 
 /**
  * @author liuwei
- * Created by liuwei on 2018/11/30.
+ * Created by liuwei on 2018/12/8.
  */
-public class MarkdownParserTest {
+public class FlexmarkMarkdownParserTest {
 
     @Test
     public void flexmark() throws IOException {
@@ -48,5 +48,15 @@ public class MarkdownParserTest {
         Node document = parser.parse(source);
         String html = renderer.render(document);  // "<p>This is <em>Sparta</em></p>\n"
         System.out.println(html);
+    }
+
+    @Test
+    public void render() throws IOException {
+
+        String source = "[TOC]\n" + FileUtil.toString(new File("../notes/java/concurrent/thread-life-cycle.md"));
+
+        FlexmarkMarkdownParser parser = new FlexmarkMarkdownParser();
+        System.out.println(parser.render(source));
+
     }
 }
