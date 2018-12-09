@@ -135,11 +135,6 @@
                 searchInput.select();
                 event.preventDefault();
             }
-            if (event.key === 'Escape' && document.activeElement === searchInput) {
-                if(searchInput.value.length === 0){
-                    searchInput.blur();
-                }
-            }
         });
     }
 

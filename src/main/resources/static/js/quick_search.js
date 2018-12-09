@@ -19,6 +19,9 @@
     function updateVisitList() {
         // 确定 currentPath
         var currentPath = autumn.pathname();
+        if (autumn.ctx.length > 0) {
+            currentPath = currentPath.substr(autumn.ctx.length);
+        }
         if (currentPath === '/' || currentPath === '/login') {
             return;
         }
@@ -65,6 +68,7 @@
         var unfoldedString = '−';
         var currentQsrActivation = -1;
         var catToggleEnabled = false;
+        var qsOpened = false;
 
         renderCat();
         bindCatToggle();
@@ -74,12 +78,14 @@
             qs(true);
         });
 
-        searchInput.addEventListener('blur', function () {
-            qs(true);
-        });
-
         searchInput.addEventListener('keyup', function (evt) {
             qs();
+        });
+
+        document.addEventListener('click', function (event) {
+            if(qsOpened){
+                qs();
+            }
         });
 
         searchInput.addEventListener('keydown', function (event) {
@@ -116,6 +122,11 @@
                         location.href = href;
                         event.preventDefault();
                     }
+                }
+            } else if (event.key === 'Escape' && document.activeElement === searchInput) {
+                if (searchInput.value.length === 0) {
+                    searchInput.blur();
+                    qs();
                 }
             } else {
                 if (currentQsrActivation >= 0 && currentQsrActivation < qsrList.children.length) {
@@ -170,7 +181,7 @@
         }
 
         function closeCat() {
-            if (!catToggleEnabled && cat.classList.contains('show')) {
+            if (cat.classList.contains('show')) {
                 cat.classList.toggle('show', false);
                 catToggle.innerHTML = foldedString;
             }
@@ -305,12 +316,15 @@
         function quickSearch() {
             var s = searchInput.value;
 
-            if (s === '' && document.activeElement !== searchInput) {
+            if (qsOpened && s === '' && document.activeElement !== searchInput) {
                 closeCat();
                 clearResult();
                 lastS = null;
+                qsOpened = false;
                 return;
             }
+
+            qsOpened = true;
 
             s = s.trim();
             if (lastS === s) {
