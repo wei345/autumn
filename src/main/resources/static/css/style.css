@@ -186,6 +186,7 @@ input[type='submit'] {
 
 .row .column.sidebar {
     display: none;
+    padding-bottom: 1em;
 }
 
 .row.show_sidebar .column.sidebar {
@@ -195,6 +196,12 @@ input[type='submit'] {
 @media (min-width: 640px) {
     body {
         margin: 0 30px 15px;
+    }
+
+    .toc {
+        float: right;
+        max-width: 16em;
+        padding-left: .8em;
     }
 
     .row {
@@ -223,12 +230,6 @@ input[type='submit'] {
         也可以改为 overflow-x:非visible */
         width: 75%;
     }
-
-    .toc {
-        float: right;
-        max-width: 16em;
-        padding-left: .8em;
-    }
 }
 
 .no_selection {
@@ -253,12 +254,17 @@ input[type='submit'] {
     opacity: .54;
 }
 
-.header__row_1__search_box input {
+.header__row_1__search_form {
+    max-width: 600px;
+    position: relative;
+}
+
+.header__row_1__search_form input {
     background-color: rgba(0, 0, 0, 0.04);
     line-height: 1.6;
     border-width: 0;
     padding-left: 3em;
-    max-width: 600px;
+    padding-right: 3em;
 }
 
 .header__row_1__search_box input:focus {
@@ -431,3 +437,66 @@ input[type='submit'] {
     color: #808080;
 }
 
+.search_box__category_and_tags {
+    display: none;
+}
+
+.search_box__category_and_tags.show {
+    display: unset;
+}
+
+.search_box__category_and_tags ul {
+    list-style: none;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+
+.search_box__category_and_tags ul li {
+    display: inline-block;
+    margin: 0 .25em;
+    padding: 0 .25em;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.search_box__category_and_tags ul li:hover {
+    border-color: #d7d7d7;
+}
+
+.search_box__category_list_title, .search_box__tags_list_title {
+    font-weight: bold;
+    padding-right: 1em;
+}
+
+.search_box__category_and_tags ul li.cat_activation {
+    background: #e0e0e0;
+    border-color: #d7d7d7;
+}
+
+.category_box, .tags_box {
+    margin-top: .5em;
+    line-height: 1.2;
+}
+
+.header__row_1__search_form__category_and_tags_toggle {
+    position: absolute;
+    right: 15px;
+    top: 3px;
+    font-size: 1.5em;
+    cursor: pointer;
+    display: none;
+}
+
+.js .header__row_1__search_form__category_and_tags_toggle {
+    display: unset;
+}
+
+.qsr__list {
+    margin-top: 0.5em;
+    padding-left: 1.2em;
+}
+
+.qsr_activation {
+    background: bisque;
+}

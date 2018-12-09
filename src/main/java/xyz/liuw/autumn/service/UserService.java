@@ -194,6 +194,13 @@ public class UserService {
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         removeSessionUser(request.getSession());
         deleteCookie(REMEMBER_ME_COOKIE_NAME, response);
+
+        // 设置 logout cookie，JavaScript 检查该 cookie，清理客户端用户数据，然后删除该 cookie
+        CookieGenerator cg = new CookieGenerator();
+        cg.setCookieName(LOGOUT_COOKIE_NAME);
+        cg.setCookieMaxAge(-1);
+        cg.setCookiePath(webUtil.getContextPath() + "/");
+        cg.addCookie(response, String.valueOf(System.currentTimeMillis()));
     }
 
     private void removeSessionUser(HttpSession session) {
