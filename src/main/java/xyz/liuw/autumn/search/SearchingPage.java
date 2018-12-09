@@ -14,7 +14,7 @@ public class SearchingPage {
 
     private Page page;
 
-    // MatcherExpression -> PageHit
+    // Matcher expression -> PageHit
     private Map<String, PageHit> hitMap;
 
     private int hitCount; // default 0

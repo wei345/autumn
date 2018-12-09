@@ -3,11 +3,11 @@ package xyz.liuw.autumn.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
 import xyz.liuw.autumn.data.Page;
+import xyz.liuw.autumn.util.WebUtil;
 
 import javax.validation.constraints.NotNull;
 import java.nio.charset.StandardCharsets;
@@ -23,11 +23,9 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
 @Component
 public class PageService {
 
-    private static Logger logger = LoggerFactory.getLogger(PageService.class);
-
     private static final String PAGE_HTML = "pageHtml";
     private static final String TITLE = "title";
-
+    private static Logger logger = LoggerFactory.getLogger(PageService.class);
     @Autowired
     private DataService dataService;
 
@@ -37,16 +35,16 @@ public class PageService {
     @Autowired
     private ResourceService resourceService;
 
-    @Value("${autumn.etag.version}")
-    private int etagVersion;
-
     @Autowired
     private TemplateService templateService;
 
     @Autowired
     private SearchService searchService;
 
-    public byte[] output(@NotNull Page page, Map<String, Object> model, String view, WebRequest webRequest) {
+    @Autowired
+    private WebUtil webUtil;
+
+    public byte[] getPageContent(@NotNull Page page, Map<String, Object> model, String view, WebRequest webRequest) {
         Page.ViewCache viewCache = dataService.getViewCache(page);
         long viewLastModified = resourceService.getTemplateLastModified();
         if (viewCache == null || viewCache.getTemplateLastModified() < viewLastModified) {
@@ -59,7 +57,7 @@ public class PageService {
                     model.put(PAGE_HTML, getPageHtml(page));
                     byte[] content = templateService.merge(model, view).getBytes(StandardCharsets.UTF_8);
                     String md5 = DigestUtils.md5DigestAsHex(content);
-                    dataService.setViewCache(page, new Page.ViewCache(content, getEtag(md5), viewLastModified));
+                    dataService.setViewCache(page, new Page.ViewCache(content, webUtil.getEtag(md5), viewLastModified));
                 }
             }
             viewCache = dataService.getViewCache(page);
@@ -80,7 +78,7 @@ public class PageService {
         return templateService.merge(model, view);
     }
 
-    public String outputSource(@NotNull Page page, WebRequest webRequest) {
+    public String getPageSource(@NotNull Page page, WebRequest webRequest) {
         // check ETag
         String md5 = page.getSourceMd5();
         if (md5 == null) {
@@ -93,7 +91,7 @@ public class PageService {
             }
             md5 = page.getSourceMd5();
         }
-        String etag = getEtag(md5);
+        String etag = webUtil.getEtag(md5);
         if (webRequest.checkNotModified(etag)) {
             return null;
         }
@@ -112,10 +110,6 @@ public class PageService {
             }
         }
         return page.getHtml();
-    }
-
-    private String getEtag(String md5) {
-        return "\"" + etagVersion + "|" + md5 + "\"";
     }
 
 }

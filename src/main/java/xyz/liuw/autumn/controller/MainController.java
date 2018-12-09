@@ -103,7 +103,7 @@ public class MainController {
         Page page = pageBox.get();
         if (page != null) {
             if (source) {
-                return pageService.outputSource(page, webRequest);
+                return pageService.getPageSource(page, webRequest);
             } else if (h != null && h.length > 0) {
                 String[] ss = h;
                 // 太多高亮词会影响性能，正常不会太多，可能是恶意请求
@@ -113,7 +113,7 @@ public class MainController {
                 }
                 return pageService.highlightOutput(page, Arrays.asList(ss), model, PAGE_VIEW_NAME);
             } else {
-                return pageService.output(page, model, PAGE_VIEW_NAME, webRequest);
+                return pageService.getPageContent(page, model, PAGE_VIEW_NAME, webRequest);
             }
         }
         // 无权限

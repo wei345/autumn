@@ -1,7 +1,6 @@
 package xyz.liuw.autumn.util;
 
 import com.vip.vjtools.vjkit.text.EscapeUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +16,9 @@ public class WebUtil {
 
     @Value("${server.servlet.context-path:}")
     private String contextPath;
+
+    @Value("${autumn.etag.version}")
+    private int etagVersion;
 
     public static String getClientIpAddress(HttpServletRequest request) {
         String clientIp;
@@ -40,14 +42,12 @@ public class WebUtil {
                 .substring(request.getContextPath().length());
     }
 
-    public static String padEtagIfNecessary(String etag) {
-        if (StringUtils.isBlank(etag)) {
-            return etag;
-        }
-        if ((etag.startsWith("\"") || etag.startsWith("W/\"")) && etag.endsWith("\"")) {
-            return etag;
-        }
-        return "\"" + etag + "\"";
+    public String getEtag(String md5) {
+        return getEtag(etagVersion, md5);
+    }
+
+    public static String getEtag(int etagVersion, String md5) {
+        return "\"" + etagVersion + "|" + md5 + "\"";
     }
 
     public String getContextPath() {

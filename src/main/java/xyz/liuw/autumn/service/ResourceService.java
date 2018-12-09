@@ -12,7 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StreamUtils;
-import xyz.liuw.autumn.data.TreeJson;
+import xyz.liuw.autumn.data.DataLoader;
+import xyz.liuw.autumn.data.DataSource;
 import xyz.liuw.autumn.util.MimeTypeUtil;
 import xyz.liuw.autumn.util.ResourceWalker;
 import xyz.liuw.autumn.util.WebUtil;
@@ -31,6 +32,7 @@ import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.FileVisitResult.CONTINUE;
+import static xyz.liuw.autumn.service.UserService.isLogged;
 
 /**
  * @author liuwei
@@ -42,12 +44,12 @@ public class ResourceService {
     private static final String STATIC_ROOT = "/static";
     private static final String TEMPLATE_ROOT = "/templates";
     private static Logger logger = LoggerFactory.getLogger(ResourceService.class);
-    @Autowired
-    private DataService dataService;
 
     private volatile Map<String, ResourceCache> resourceCacheMap = Collections.emptyMap();
 
-    private volatile JsCache jsCache;
+    private volatile JsCache userJsCache;
+
+    private volatile JsCache guestJsCache;
 
     private volatile CssCache cssCache;
 
@@ -59,22 +61,29 @@ public class ResourceService {
     @Autowired
     private WebUtil webUtil;
 
-    public long getTemplateLastModified() {
-        return templateLastModified;
-    }
+    @Autowired
+    private DataLoader dataLoader;
 
-    public JsCache getJsCache() {
-        return jsCache;
-    }
-
-    public CssCache getCssCache() {
-        return cssCache;
-    }
+    @Autowired
+    private DataSource dataSource;
 
     @PostConstruct
     private void init() {
         refreshCache();
         timingRefreshCache();
+        dataLoader.addListener(this::refreshJsCache);
+    }
+
+    public long getTemplateLastModified() {
+        return templateLastModified;
+    }
+
+    public JsCache getJsCache() {
+        return isLogged() ? userJsCache : guestJsCache;
+    }
+
+    public CssCache getCssCache() {
+        return cssCache;
     }
 
     private void timingRefreshCache() {
@@ -124,33 +133,47 @@ public class ResourceService {
         }
     }
 
-
-    private void refreshJsCache() {
+    private synchronized void refreshJsCache() {
         ResourceCache scriptJs = resourceCacheMap.get(STATIC_ROOT + "/js/script.js");
-        TreeJson treeJson = dataService.getTreeJson();
-        if (jsCache != null && jsCache.checkNotModified(treeJson.getMd5(), scriptJs.getMd5())) {
-            return;
+        ResourceCache quickSearchJs = resourceCacheMap.get(STATIC_ROOT + "/js/quick_search.js");
+
+        String userTreeJsonMd5 = dataSource.getAllData().getTreeJson().getMd5();
+        if (userJsCache == null || !userJsCache.checkNotModified(userTreeJsonMd5, scriptJs.getMd5(), quickSearchJs.getMd5())) {
+            userJsCache = createJsCache(userTreeJsonMd5, scriptJs, quickSearchJs);
+            templateLastModified = System.currentTimeMillis();
+            logger.info("userJsCache updated");
         }
 
+        String guestTreeJsonMd5 = dataSource.getPublishedData().getTreeJson().getMd5();
+        if (guestJsCache == null || !guestJsCache.checkNotModified(guestTreeJsonMd5, scriptJs.getMd5(), quickSearchJs.getMd5())) {
+            guestJsCache = createJsCache(guestTreeJsonMd5, scriptJs, quickSearchJs);
+            templateLastModified = System.currentTimeMillis();
+            logger.info("guestJsCache updated");
+        }
+    }
+
+    private JsCache createJsCache(String treeJsonMd5, ResourceCache scriptJs, ResourceCache quickSearchJs) {
         StringBuilder sb = StringBuilderHolder.getGlobal();
         sb.append("window.autumn = {ctx: '")
                 .append(webUtil.getContextPath())
+                .append("', treeVersion: '")
+                .append(treeJsonMd5, 0, 7)
                 .append("'}; ")
-                .append(new String(scriptJs.getContent(), UTF_8));
+                .append(new String(scriptJs.getContent(), UTF_8))
+                .append(new String(quickSearchJs.getContent(), UTF_8));
 
         String jsText = sb.toString();
         JsCache jsCache = new JsCache();
         jsCache.setContent(jsText.getBytes(UTF_8));
         String md5 = DigestUtils.md5DigestAsHex(jsCache.getContent());
-        String etag = WebUtil.padEtagIfNecessary(md5);
+        String etag = webUtil.getEtag(md5);
         String version = md5.substring(0, 7);
         jsCache.setEtag(etag);
         jsCache.setVersion(version);
+        jsCache.setTreeJsonMd5(treeJsonMd5);
         jsCache.setScriptJsMd5(scriptJs.getMd5());
-        jsCache.setTreeJsonMd5(treeJson.getMd5());
-        this.jsCache = jsCache;
-        this.templateLastModified = System.currentTimeMillis();
-        logger.info("jsCache updated");
+        jsCache.setQuickSearchJsMd5(quickSearchJs.getMd5());
+        return jsCache;
     }
 
     private void refreshCssCache() {
@@ -164,7 +187,7 @@ public class ResourceService {
         CssCache cssCache = new CssCache();
         cssCache.setContent(cssText.getBytes(UTF_8));
         String md5 = DigestUtils.md5DigestAsHex(cssCache.getContent());
-        String etag = WebUtil.padEtagIfNecessary(md5);
+        String etag = webUtil.getEtag(md5);
         String version = md5.substring(0, 7);
         cssCache.setEtag(etag);
         cssCache.setVersion(version);
@@ -322,21 +345,25 @@ public class ResourceService {
 
     static class JsCache extends WebPageReferenceData {
 
-        private String treeJsonMd5;
+        private String quickSearchJsMd5;
 
         private String scriptJsMd5;
 
+        private String treeJsonMd5;
 
-        boolean checkNotModified(String treeJsonMd5, String scriptJsMd5) {
-            return this.treeJsonMd5.equals(treeJsonMd5) && this.scriptJsMd5.equals(scriptJsMd5);
+
+        boolean checkNotModified(String treeJsonMd5, String scriptJsMd5, String quickSearchJsMd5) {
+            return this.treeJsonMd5.equals(treeJsonMd5)
+                    && this.scriptJsMd5.equals(scriptJsMd5)
+                    && this.quickSearchJsMd5.equals(quickSearchJsMd5);
         }
 
-        public String getTreeJsonMd5() {
-            return treeJsonMd5;
+        public String getQuickSearchJsMd5() {
+            return quickSearchJsMd5;
         }
 
-        public void setTreeJsonMd5(String treeJsonMd5) {
-            this.treeJsonMd5 = treeJsonMd5;
+        public void setQuickSearchJsMd5(String quickSearchJsMd5) {
+            this.quickSearchJsMd5 = quickSearchJsMd5;
         }
 
         public String getScriptJsMd5() {
@@ -345,6 +372,10 @@ public class ResourceService {
 
         public void setScriptJsMd5(String scriptJsMd5) {
             this.scriptJsMd5 = scriptJsMd5;
+        }
+
+        public void setTreeJsonMd5(String treeJsonMd5) {
+            this.treeJsonMd5 = treeJsonMd5;
         }
     }
 

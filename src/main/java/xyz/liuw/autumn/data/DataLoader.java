@@ -42,6 +42,7 @@ public class DataLoader {
     private int reloadContinuousFailures; // default 0
     @Autowired
     private WebUtil webUtil;
+    private List<DataChangedListener> listeners = new ArrayList<>(1);
 
     @Autowired
     public DataLoader(DataSource dataSource, JsonMapper jsonMapper) {
@@ -167,7 +168,7 @@ public class DataLoader {
 
                         // add node
                         TreeNode node = new TreeNode(name, path, false);
-                        node.page = page;
+                        node.setPage(page);
                         parent.addChild(node);
                     }
                     // Media
@@ -203,6 +204,7 @@ public class DataLoader {
         dataSource.setAllData(data);
         setPublishedData(root, mediaMap);
         logger.info("dataSource: {}", dataSource);
+        listeners.forEach(DataChangedListener::onChanged);
     }
 
     private String filename(File f) {
@@ -275,8 +277,8 @@ public class DataLoader {
                     publishedList.add(nd);
                     dirStack.push(nd);
                     allDirNodes.push(nd);
-                } else if (nd.page.isPublished()) {
-                    pageMap.put(nd.getPath(), nd.page);
+                } else if (nd.getPage().isPublished()) {
+                    pageMap.put(nd.getPath(), nd.getPage());
                     publishedList.add(nd);
                 }
             }
@@ -401,5 +403,13 @@ public class DataLoader {
             // 'F' ISO 8601 格式的完整日期，被格式化为 "%tY-%tm-%td"。
             return String.format("%tF", timeStampMillis);
         }
+    }
+
+    public void addListener(DataChangedListener listener){
+        this.listeners.add(listener);
+    }
+
+    public interface DataChangedListener {
+        void onChanged();
     }
 }

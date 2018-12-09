@@ -37,6 +37,8 @@ public class UserService {
 
     private static final String REMEMBER_ME_COOKIE_NAME = "ME";
 
+    private static final String LOGOUT_COOKIE_NAME = "logout";
+
     private static final String SEPARATOR = "|";
 
     private static final String SESSION_USER_KEY = "user";

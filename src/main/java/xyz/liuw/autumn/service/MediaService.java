@@ -4,6 +4,7 @@ import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.io.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -33,6 +34,8 @@ public class MediaService {
     @Value("${server.compression.mime-types}")
     private List<String> compressionMimeTypes;
 
+    @Autowired
+    private WebUtil webUtil;
 
     public Object output(Media media, WebRequest webRequest,
                          HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -87,13 +90,13 @@ public class MediaService {
 
     private Object output(byte[] content,
                           int length,
-                          String etag,
+                          String md5,
                           String filename,
                           String mimeType,
                           WebRequest webRequest,
                           HttpServletRequest request,
                           HttpServletResponse response) {
-        etag = WebUtil.padEtagIfNecessary(etag);
+        String etag = webUtil.getEtag(md5);
         if (webRequest.checkNotModified(etag)) {
             return null;
         }
@@ -116,13 +119,13 @@ public class MediaService {
 
     private void output(Supplier<InputStream> inputStreamSupplier,
                         int length,
-                        String etag,
+                        String md5,
                         String filename,
                         String mimeType,
                         WebRequest webRequest,
                         HttpServletRequest request,
                         HttpServletResponse response) throws IOException {
-        etag = WebUtil.padEtagIfNecessary(etag);
+        String etag = webUtil.getEtag(md5);
         if (webRequest.checkNotModified(etag)) {
             return;
         }

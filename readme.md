@@ -41,7 +41,7 @@
 
 搜索
 
-  * TODO 页面快速搜索页面名，category, tags
+  * 页面快速搜索页面名，category, tags
   * 单词完全匹配。例如 word1 word2，匹配既包含 word1 又包含 word2 的页面
   * 句子完全匹配。例如 "word1 word2"，匹配包含 word1 word2 的页面
   * TODO 句子完全匹配支持通配符
@@ -58,6 +58,17 @@
 ## 设计
 
 ### 数据
+
+数据目录。
+
+```text
+---
+created: 2018-05-11 16:49:16
+modified: 2018-05-11 17:21:01
+category:
+tags:
+---
+```
 
 主要是 notes、templates。
 登录用户和访客看到的内容是不一样的。
@@ -115,7 +126,7 @@ commonmark-java 只是 core 速度比较好，commonmark-java 扩展可能不怎
 * 缓存中间结果和最终结果
 * 排序
 * 展示结果
-* TODO 搜索文件名
+* 搜索文件名
 * TODO 搜索结果缓存
 * TODO 优化：记录搜索词-点击的页面-次数
 

@@ -11,10 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author liuwei
@@ -88,8 +85,12 @@ public class PageParser {
                     page.setCategory(value);
                 } else if (line.startsWith(HEADER_TAGS)) {
                     String value = line.substring(HEADER_TAGS.length()).trim();
-                    Set<String> tags = new HashSet<>(Arrays.asList(value.split("\\s+")));
-                    page.setTags(tags);
+                    if (value.length() > 0) {
+                        Set<String> tags = new HashSet<>(Arrays.asList(value.split("\\s+")));
+                        page.setTags(tags);
+                    } else {
+                        page.setTags(Collections.emptySet());
+                    }
                 } else if (line.startsWith(HEADER_PUBLISHED)) {
                     String value = line.substring(HEADER_PUBLISHED.length()).trim();
                     page.setPublished(Boolean.valueOf(value));
@@ -126,6 +127,7 @@ public class PageParser {
                 String value = line.substring(TITLE_START_WITH.length()).trim();
                 page.setTitle(value);
             } else {
+                page.setTitle("");
                 source.back();
             }
             break;

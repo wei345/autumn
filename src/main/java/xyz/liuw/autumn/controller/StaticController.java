@@ -9,6 +9,7 @@ import org.springframework.web.context.request.WebRequest;
 import xyz.liuw.autumn.data.TreeJson;
 import xyz.liuw.autumn.service.DataService;
 import xyz.liuw.autumn.service.ResourceService;
+import xyz.liuw.autumn.util.WebUtil;
 
 /**
  * @author liuwei
@@ -22,6 +23,9 @@ public class StaticController {
 
     @Autowired
     private ResourceService resourceService;
+
+    @Autowired
+    private WebUtil webUtil;
 
     // 这里定义的 mapping 不起作用，会进入优先级更高的 MainController "/**"
     @RequestMapping(value = "/js/all.js", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -42,14 +46,24 @@ public class StaticController {
         return cssCache.getContent();
     }
 
-
     @RequestMapping(value = "/tree.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public String treeJson(WebRequest webRequest) {
         TreeJson treeJson = dataService.getTreeJson();
-        if (webRequest.checkNotModified(treeJson.getMd5())) {
-            return null;
+
+        String etag = treeJson.getEtag();
+        if (etag == null) {
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+            synchronized (treeJson) {
+                if (treeJson.getEtag() == null) {
+                    treeJson.setEtag(webUtil.getEtag(treeJson.getMd5()));
+                }
+            }
+            etag = treeJson.getEtag();
         }
 
+        if (webRequest.checkNotModified(etag)) {
+            return null;
+        }
         return treeJson.getJson();
     }
 

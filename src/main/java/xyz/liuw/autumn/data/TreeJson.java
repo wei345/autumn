@@ -8,6 +8,7 @@ public class TreeJson {
     static final TreeJson EMPTY = new TreeJson("{}");
     private String json;
     private String md5;
+    private volatile String etag;
 
     TreeJson(String json) {
         this.json = json;
@@ -28,5 +29,13 @@ public class TreeJson {
 
     public void setMd5(String md5) {
         this.md5 = md5;
+    }
+
+    public String getEtag() {
+        return etag;
+    }
+
+    public void setEtag(String etag) {
+        this.etag = etag;
     }
 }
