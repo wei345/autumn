@@ -27,6 +27,7 @@ public class Page {
     private volatile ViewCache userViewCache; // 已登录用户页面缓存
     private volatile ViewCache guestViewCache; // 未登录用户页面缓存
     private String path; // 页面路径，以 '/' 开头，无后缀名。如：/java/idea
+    // searchStr -> PageHit
     private volatile ConcurrentHashMap<String, PageHit> searchHitCache;
     private volatile String sourceMd5;
 

@@ -22,7 +22,7 @@ class CategoryMatcher extends AbstractMatcher {
 
         @Override
         protected String getPrefix() {
-            return "category:";
+            return "c:";
         }
 
         @Override

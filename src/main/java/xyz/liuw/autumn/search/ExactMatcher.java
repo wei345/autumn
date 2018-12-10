@@ -33,6 +33,7 @@ class ExactMatcher extends AbstractMatcher {
         Validate.notNull(searchingPage);
         Validate.notNull(matcherExpression);
         Validate.notNull(searchStr);
+
         // 本次查询缓存
         PageHit pageHit = searchingPage.getPageHit(matcherExpression);
 
@@ -50,7 +51,7 @@ class ExactMatcher extends AbstractMatcher {
                 }
                 cache = page.getSearchHitCache();
             }
-            pageHit = cache.get(matcherExpression);
+            pageHit = cache.get(searchStr);
             if (pageHit == null) {
                 logger.debug("Searching page {} for {}", page.getPath(), searchStr);
                 boolean nameEq = searchStr.equalsIgnoreCase(page.getName());
@@ -60,7 +61,7 @@ class ExactMatcher extends AbstractMatcher {
                 List<Hit> t = find(page.getTitle(), searchStr);
                 List<Hit> b = find(page.getBody(), searchStr);
                 pageHit = new PageHit(nameEq, titleEq, n, p, t, b);
-                cache.put(matcherExpression, pageHit);
+                cache.put(searchStr, pageHit);
             }
             searchingPage.putPageHit(matcherExpression, pageHit);
         }

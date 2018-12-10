@@ -21,11 +21,17 @@ interface Matcher extends Token {
 
     Set<SearchingPage> search(Set<SearchingPage> source);
 
+    /**
+     * @return 小写的 expression e.g. tag:abc
+     */
     @Override
     default String getExpression() {
         return null;
     }
 
+    /**
+     * @return 小写的 searchStr e.g. abc
+     */
     default String getSearchStr() {
         return null;
     }

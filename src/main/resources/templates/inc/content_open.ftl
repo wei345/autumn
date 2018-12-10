@@ -4,6 +4,9 @@
             <h1>
                 <a href="${ctx!}/">Autumn</a>
             </h1>
+            <#if logged == true>
+                <a class="header__row_1__heading__logout" href="${ctx!}/logout">Logout</a>
+            </#if>
         </div>
         <div class="header__row_1__search_box column">
             <form class="header__row_1__search_form" method="GET" action="${ctx!}/search">
@@ -15,12 +18,9 @@
                 <span class="header__row_1__search_form__category_and_tags_toggle no_selection"></span>
                 <input class="header__row_1__search_input" type="search" name="s" value="${s!}" autocomplete="off"
                        placeholder="Search"/>
-                <div class="search_box__category_and_tags no_selection">
-
-                </div>
-                <div class="qsr">
-
-                </div>
+                <div class="search_box__category_and_tags no_selection"></div>
+                <span class="qsr__close no_selection">X</span>
+                <div class="qsr"></div>
             </form>
         </div>
         <div class="header__row_1__right column">

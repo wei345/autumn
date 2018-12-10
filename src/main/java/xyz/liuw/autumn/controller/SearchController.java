@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.view.RedirectView;
 import xyz.liuw.autumn.search.SearchResult;
 import xyz.liuw.autumn.service.RateLimitService;
 import xyz.liuw.autumn.service.SearchService;
@@ -42,8 +43,7 @@ public class SearchController {
     public Object search(String s, Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws IOException {
         templateService.setLogged(model);
         if (StringUtils.isBlank(s)) {
-            response.sendRedirect("/");
-            return null;
+            return new RedirectView("/", true, false);
         }
 
         if (rateLimitService.acquireSearch(WebUtil.getClientIpAddress(request))) {

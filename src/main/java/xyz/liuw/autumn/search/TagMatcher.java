@@ -25,7 +25,7 @@ class TagMatcher extends AbstractMatcher {
 
         @Override
         protected String getPrefix() {
-            return "tag:";
+            return "t:";
         }
 
         @Override

@@ -153,21 +153,32 @@ public class ResourceService {
     }
 
     private JsCache createJsCache(String treeJsonMd5, ResourceCache scriptJs, ResourceCache quickSearchJs) {
-        StringBuilder sb = StringBuilderHolder.getGlobal();
-        sb.append("window.autumn = {ctx: '")
-                .append(webUtil.getContextPath())
-                .append("', treeVersion: '")
-                .append(treeJsonMd5, 0, 7)
-                .append("'}; ")
-                .append(new String(scriptJs.getContent(), UTF_8))
-                .append(new String(quickSearchJs.getContent(), UTF_8));
 
-        String jsText = sb.toString();
-        JsCache jsCache = new JsCache();
-        jsCache.setContent(jsText.getBytes(UTF_8));
-        String md5 = DigestUtils.md5DigestAsHex(jsCache.getContent());
+        String scriptJsContent = new String(scriptJs.getContent(), UTF_8)
+                .replaceFirst("\"use strict\";\n", "")
+                .replaceFirst("ctx: ''", "ctx: '" + webUtil.getContextPath() + "'")
+                .replaceFirst("treeVersion: ''", "treeVersion: '" + treeJsonMd5.substring(0, 7) + "'")
+                .trim();
+
+        String quickSearchJsContent = new String(quickSearchJs.getContent(), UTF_8)
+                .replaceFirst("\"use strict\";\n", "")
+                .trim();
+
+        byte[] jsBytes = StringBuilderHolder.getGlobal()
+                .append("\"use strict\";\n")
+                .append("(function () {\n")
+                .append(scriptJsContent).append("\n")
+                .append(quickSearchJsContent).append("\n")
+                .append("})();")
+                .toString()
+                .getBytes(UTF_8);
+
+        String md5 = DigestUtils.md5DigestAsHex(jsBytes);
         String etag = webUtil.getEtag(md5);
         String version = md5.substring(0, 7);
+
+        JsCache jsCache = new JsCache();
+        jsCache.setContent(jsBytes);
         jsCache.setEtag(etag);
         jsCache.setVersion(version);
         jsCache.setTreeJsonMd5(treeJsonMd5);

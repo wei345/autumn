@@ -27,7 +27,7 @@ public class Searcher {
 
         List<SearchingPage> result1 = Sorting.sort(result0);
 
-        highlighter.highlightHits(result1);
+        highlighter.highlightSearchingPage(result1);
 
         long cost = System.currentTimeMillis() - start;
         return new SearchResult(result1, cost, all.size());

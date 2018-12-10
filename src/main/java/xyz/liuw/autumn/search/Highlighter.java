@@ -39,11 +39,11 @@ public class Highlighter {
     private StringBuilderHolder stringBuilderHolder2 = new StringBuilderHolder(64);
 
 
-    void highlightHits(Collection<SearchingPage> searchingPages) {
-        searchingPages.forEach(this::highlightHits);
+    void highlightSearchingPage(Collection<SearchingPage> searchingPages) {
+        searchingPages.forEach(this::highlightSearchingPage);
     }
 
-    private void highlightHits(SearchingPage searchingPage) {
+    private void highlightSearchingPage(SearchingPage searchingPage) {
         Page page = searchingPage.getPage();
         if (CollectionUtils.isEmpty(searchingPage.getUnmodifiableHitMap())) {
             searchingPage.setPathPreview(escapeHtml(page.getPath()));
@@ -64,18 +64,18 @@ public class Highlighter {
         }
 
         searchingPage.setPathPreview(
-                highlight(page.getPath(), pathHits, true));
+                highlightHits(page.getPath(), pathHits, true));
         searchingPage.setTitlePreview(
-                highlight(page.getTitle(), titleHits, true));
+                highlightHits(page.getTitle(), titleHits, true));
         searchingPage.setBodyPreview(
-                highlight(page.getBody(), new ArrayList<>(bodyHits), maxPreviewLength));
+                highlightHitsLessOrEqLength(page.getBody(), new ArrayList<>(bodyHits), maxPreviewLength));
 
         Set<String> searchStrSet = Sets.union(getSearchStrs(titleHits), getSearchStrs(bodyHits));
         String highlightString = toHighlightString(searchStrSet);
         searchingPage.setHighlightString(highlightString);
     }
 
-    private String highlight(String source, Collection<Hit> hits, boolean escape) {
+    private String highlightHits(String source, Collection<Hit> hits, boolean escape) {
         if (CollectionUtils.isEmpty(hits) || StringUtils.isBlank(source)) {
             return escape ? escapeHtml(source) : source;
         }
@@ -113,7 +113,7 @@ public class Highlighter {
         return stringBuilder.toString();
     }
 
-    private String highlight(String source, List<Hit> hits, int maxLength) {
+    private String highlightHitsLessOrEqLength(String source, List<Hit> hits, int maxLength) {
         if (CollectionUtils.isEmpty(hits) || StringUtils.isBlank(source)) {
             return escapeHtml(StringUtils.substring(source, 0, maxLength));
         }
@@ -223,7 +223,7 @@ public class Highlighter {
     public String highlightSearchStr(String html, List<String> searchStrList) {
         Set<Hit> hits = Sets.newTreeSet(HIT_COMPARATOR);
         searchStrList.forEach(s -> hits.addAll(ExactMatcher.htmlFind(html, escapeHtml(s))));
-        return highlight(html, hits, false);
+        return highlightHits(html, hits, false);
     }
 
     private String htmlEscape(String str, int start, int end) {

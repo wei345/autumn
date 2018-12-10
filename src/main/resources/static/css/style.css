@@ -193,45 +193,6 @@ input[type='submit'] {
     display: block;
 }
 
-@media (min-width: 640px) {
-    body {
-        margin: 0 30px 15px;
-    }
-
-    .toc {
-        float: right;
-        max-width: 16em;
-        padding-left: .8em;
-    }
-
-    .row {
-        flex-direction: row;
-    }
-
-    .row .column.header__row_1__heading, .row .column.sidebar {
-        flex: 0 0 22%;
-        max-width: 256px;
-    }
-
-    .row .column.header__row_1__search_box {
-        /* 与 .content 对齐 */
-        padding-left: 1em;
-    }
-
-    .row .column.header__row_1__right {
-        flex: 0 0 6em;
-    }
-
-    .row.show_sidebar .column.content {
-        box-sizing: border-box;
-        padding-left: 1em;
-        /* 避免子元素 pre 不出横向滚动条，这个元素的宽度被撑大。
-        width 值可以随便写，只要 <= 这个元素该有的宽度就可以。
-        也可以改为 overflow-x:非visible */
-        width: 75%;
-    }
-}
-
 .no_selection {
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -242,6 +203,14 @@ input[type='submit'] {
 
 .header__row_1__heading {
     padding-top: 0.5em;
+}
+
+.header__row_1__heading h1 {
+    display: inline-block;
+}
+
+.header__row_1__heading__logout {
+    float: right;
 }
 
 .header__row_1__search_box {
@@ -272,8 +241,16 @@ input[type='submit'] {
     border-width: 1px;
 }
 
+.row .column.header__row_1__right {
+    display: none;
+}
+
 .header__row_1__right__logout {
     float: right;
+}
+
+.header__toolbar {
+    margin-top: 1.5em;
 }
 
 .header__toolbar__sidebar_toggle {
@@ -499,4 +476,86 @@ input[type='submit'] {
 
 .qsr_activation {
     background: bisque;
+}
+
+.qsr__list__show_all {
+    text-align: center;
+    list-style: none;
+}
+
+.qsr__list__show_all__btn {
+    cursor: pointer;
+}
+
+.qsr__search_str {
+    font-style: normal;
+    background-color: #ff9;
+}
+
+.qsr_page_path {
+    color: #006621;
+}
+
+.qsr__close {
+    display: none;
+    position: absolute;
+    top: 3.2em;
+    right: 1em;
+    cursor: pointer;
+}
+
+.mobi.js .qsr__close.show {
+    display: unset;
+}
+
+.mobi.js .qsr__list li:first-child {
+    padding-right: 3em;
+}
+
+@media (min-width: 640px) {
+    body {
+        margin: 0 30px 15px;
+    }
+
+    .toc {
+        float: right;
+        max-width: 16em;
+        padding-left: .8em;
+    }
+
+    .row {
+        flex-direction: row;
+    }
+
+    .row .column.header__row_1__heading, .row .column.sidebar {
+        flex: 0 0 22%;
+        max-width: 256px;
+    }
+
+    .row .column.header__row_1__search_box {
+        /* 与 .content 对齐 */
+        padding-left: 1em;
+    }
+
+    .row .column.header__row_1__right {
+        flex: 0 0 6em;
+        display: unset;
+    }
+
+    .row.show_sidebar .column.content {
+        box-sizing: border-box;
+        padding-left: 1em;
+        /* 避免子元素 pre 不出横向滚动条，这个元素的宽度被撑大。
+        width 值可以随便写，只要 <= 这个元素该有的宽度就可以。
+        也可以改为 overflow-x:非visible */
+        width: 75%;
+    }
+
+    .row .header__row_1__heading__logout {
+        display: none;
+    }
+
+    .header__toolbar {
+        margin-top: 0;
+    }
 }
