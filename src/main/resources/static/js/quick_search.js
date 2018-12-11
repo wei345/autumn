@@ -112,6 +112,11 @@ function setupQuickSearch(root) {
 
     qsrClose.addEventListener('click', closeQs);
 
+    document.getElementsByClassName('header__row_1__search_form')[0].addEventListener('click', function (evt) {
+        // 避免搜索框为空时，点击搜索结果（最近访问），qs 关闭
+        evt.stopPropagation();
+    });
+
     function resetSelect() {
         unSelect();
         qsrSelectedIndex = -1;
@@ -315,10 +320,12 @@ function setupQuickSearch(root) {
             clearResult();
             lastS = null;
             qsOpened = false;
+            document.body.classList.remove('qs_opened');
             return;
         }
 
         qsOpened = true;
+        document.body.classList.add('qs_opened');
 
         s = s.trim();
         if (lastS === s) {
@@ -654,10 +661,8 @@ function setupQuickSearch(root) {
     }
 
     function showMoreResult() {
-        var start = new Date().getTime();
         renderPages(qsrAllPages);
         select();
-        console.log('show all ', new Date().getTime() - start, ' ms'); // 1000 条 13 ms
     }
 
     function renderPages(pages, maxLines) {
@@ -749,6 +754,9 @@ function setupQuickSearch(root) {
     }
 
     function buildResultHtml(pages, maxLength) {
+        if (!pages || pages.length === 0) {
+            return '';
+        }
         var len = Math.min(pages.length, maxLength);
         var html = '<ul class="qsr__list">';
         var i = 0;
@@ -761,7 +769,7 @@ function setupQuickSearch(root) {
 
         if (i < pages.length) {
             html += '<li class="qsr__list__show_all">';
-            html += '<span class="qsr__list__show_all__btn">还有 ' + (pages.length - i) + ' 条</span>';
+            html += '<span class="qsr__list__show_all__btn no_selection">' + (i + 1) + ' ... ' + pages.length + '</span>';
             html += '</li>';
         }
 
@@ -771,8 +779,8 @@ function setupQuickSearch(root) {
 
     function createResultLink(path, titlePreview, pathPreview) {
         var html = '<a href="' + autumn.ctx + path + '">';
-        html += '<span class="qsr_page_title">' + titlePreview + '</span></br>';
-        html += '<span class="qsr_page_path">' + pathPreview + '</span>';
+        html += '<span class="qsr__list__page_title">' + titlePreview + '</span></br>';
+        html += '<span class="qsr__list__page_path">' + pathPreview + '</span>';
         html += '</a>';
         return html;
     }
