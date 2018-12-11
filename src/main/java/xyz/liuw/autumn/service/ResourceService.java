@@ -47,6 +47,10 @@ public class ResourceService {
 
     @PostConstruct
     private void init() {
+        templateLastModified = resourceLoader.getTemplateLastModified();
+        refreshJsCache();
+        refreshCssCache();
+
         dataLoader.addListener(this::refreshJsCache);
         resourceLoader.addStaticChangedListener(() -> {
             refreshJsCache();
