@@ -1,6 +1,9 @@
 package xyz.liuw.autumn.controller;
 
+import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
 import static xyz.liuw.autumn.service.UserService.isLogged;
@@ -47,6 +51,8 @@ public class MainController {
 
     @Autowired
     private TemplateService templateService;
+
+    private Map<String, String> pathToView;
 
     @RequestMapping(value = "/**", method = RequestMethod.GET)
     public Object index(String[] h, // h=a&h=b..
@@ -102,6 +108,11 @@ public class MainController {
 
         Page page = pageBox.get();
         if (page != null) {
+            String view = pathToView.get(path);
+            if (view == null) {
+                view = PAGE_VIEW_NAME;
+            }
+
             if (source) {
                 return pageService.getPageSource(page, webRequest);
             } else if (h != null && h.length > 0) {
@@ -111,9 +122,9 @@ public class MainController {
                     ss = new String[10];
                     System.arraycopy(h, 0, ss, 0, ss.length);
                 }
-                return pageService.highlightOutput(page, Arrays.asList(ss), model, PAGE_VIEW_NAME);
+                return pageService.highlightOutput(page, Arrays.asList(ss), model, view);
             } else {
-                return pageService.getPageContent(page, model, PAGE_VIEW_NAME, webRequest);
+                return pageService.getPageContent(page, model, view, webRequest);
             }
         }
         // 无权限
@@ -125,4 +136,20 @@ public class MainController {
         }
     }
 
+    @Value("${autumn.path-to-view}")
+    public void setPathToView(String str) {
+        if (StringUtils.isBlank(str)) {
+            this.pathToView = Collections.emptyMap();
+            return;
+        }
+
+        String[] keyValuePairs = str.trim().split("\\s*,\\s*");
+        Map<String, String> pathToView = Maps.newHashMapWithExpectedSize(keyValuePairs.length);
+        Arrays.stream(keyValuePairs).forEach(s -> {
+            String[] kv = s.split("\\s*=\\s*");
+            pathToView.put(kv[0], kv[1]);
+        });
+
+        this.pathToView = pathToView;
+    }
 }

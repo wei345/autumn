@@ -817,7 +817,7 @@ function updateVisitList() {
     if (autumn.ctx.length > 0) {
         currentPath = currentPath.substr(autumn.ctx.length);
     }
-    if (currentPath === '/' || currentPath === '/login') {
+    if (currentPath === '/' || currentPath === '/login' || currentPath === '/help') {
         return;
     }
     if (document.getElementsByClassName('error_page').length > 0) {

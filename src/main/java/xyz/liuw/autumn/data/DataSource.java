@@ -60,14 +60,17 @@ public class DataSource {
 
         @NotNull
         private TreeJson treeJson;
-        @NotNull
-        private Page homepage;
         // path -> Page
         @NotNull
         private Map<String, Page> pageMap;
         // path -> Media
         @NotNull
         private Map<String, Media> mediaMap;
+
+        @NotNull
+        private Page homepage;
+        @NotNull
+        private volatile Page helpPage;
 
         Data(@NotNull TreeJson treeJson,
              @NotNull Page homepage,
@@ -93,6 +96,14 @@ public class DataSource {
 
         public Page getHomepage() {
             return homepage;
+        }
+
+        public Page getHelpPage() {
+            return helpPage;
+        }
+
+        public void setHelpPage(Page helpPage) {
+            this.helpPage = helpPage;
         }
 
         @Override

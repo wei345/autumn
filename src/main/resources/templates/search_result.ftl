@@ -1,7 +1,7 @@
 <#assign title = "Search">
 <#include "inc/head.ftl">
 <#include "inc/content_open.ftl">
-    <div class="sr">
+    <div class="sr center_position">
         <#if (sr)??>
             <div class="sr_stats">${sr.pages?size!} results (${sr.timeCost!} ms)</div>
             <div class="sr_pages">

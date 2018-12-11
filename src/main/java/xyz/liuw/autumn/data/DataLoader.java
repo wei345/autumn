@@ -5,8 +5,6 @@ import com.google.common.collect.Maps;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import com.vip.vjtools.vjkit.number.MathUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
-import com.vip.vjtools.vjkit.time.ClockUtil;
-import com.vip.vjtools.vjkit.time.DateUtil;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +18,7 @@ import xyz.liuw.autumn.util.WebUtil;
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.springframework.web.util.HtmlUtils.htmlEscape;
@@ -32,6 +31,7 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
 public class DataLoader {
 
     private static final String ARCHIVE_PATH_PREFIX = "/archive/";
+    private static final String HELP_MD = "/static/help.md";
     private static Logger logger = LoggerFactory.getLogger(DataLoader.class);
     private final DataSource dataSource;
     private final JsonMapper jsonMapper;
@@ -43,6 +43,9 @@ public class DataLoader {
     @Autowired
     private WebUtil webUtil;
     private List<DataChangedListener> listeners = new ArrayList<>(1);
+    @Autowired
+    private ResourceLoader resourceLoader;
+    private volatile Page helpPage;
 
     @Autowired
     public DataLoader(DataSource dataSource, JsonMapper jsonMapper) {
@@ -52,6 +55,9 @@ public class DataLoader {
 
     @PostConstruct
     void start() {
+        initHelpPage();
+
+        // load
         ch.qos.logback.classic.Logger parserLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(PageParser.class);
         Level oldLevel = parserLogger.getLevel();
         if (oldLevel == null || oldLevel == Level.INFO) {
@@ -59,12 +65,10 @@ public class DataLoader {
             logger.debug("可设置 logging.level.{}=DEBUG 来阻止这个自动修改日志级别的行为", PageParser.class.getName());
             parserLogger.setLevel(Level.WARN);
         }
-
         logger.info("Data loading: {}", dataDir);
         long start = System.currentTimeMillis();
         load();
         logger.info("Data loaded in {} ms", System.currentTimeMillis() - start);
-
         if (oldLevel == null || oldLevel == Level.INFO) {
             parserLogger.setLevel(oldLevel);
             logger.debug("已恢复 PageParser 日志级别 {}", oldLevel);
@@ -122,7 +126,7 @@ public class DataLoader {
                 oldMediaMap.size() == 0 ? 100 : oldMediaMap.size());
         int mediaAddedOrModified = 0;
 
-        TreeNode root = new TreeNode("", "/", true);
+        TreeNode root = new TreeNode("home", "/", true);
         Stack<File> dirStack = new Stack<>();
         Stack<TreeNode> nodeStack = new Stack<>();
         dirStack.push(rootDir);
@@ -201,6 +205,7 @@ public class DataLoader {
                 newHomepage(pageMap, false),
                 pageMap,
                 mediaMap);
+        data.setHelpPage(helpPage);
         dataSource.setAllData(data);
         setPublishedData(root, mediaMap);
         logger.info("dataSource: {}", dataSource);
@@ -301,6 +306,7 @@ public class DataLoader {
                 newHomepage(pageMap, true),
                 pageMap,
                 publishedMedia);
+        data.setHelpPage(helpPage);
         dataSource.setPublishedData(data);
     }
 
@@ -312,7 +318,8 @@ public class DataLoader {
             List<Page> recently = getListOrderByModifiedDesc(pageMap.values());
             if (!CollectionUtils.isEmpty(recently)) {
                 StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
-                stringBuilder.append("<ul class='recently_modified'>");
+                stringBuilder.append("## Recently Modified\n")
+                        .append("<ul class='recently_modified'>");
                 for (int i = 0; i < 20 && i < recently.size(); i++) {
                     Page page = recently.get(i);
 
@@ -330,7 +337,7 @@ public class DataLoader {
                             .append("\n");
                 }
                 stringBuilder.append("</ul>");
-                title = "Recently Modified";
+                title = "Home";
                 body = stringBuilder.toString();
             }
         }
@@ -373,40 +380,38 @@ public class DataLoader {
         return list;
     }
 
-    /**
-     * 打印用户友好的，与当前时间相比的时间差，如刚刚，5分钟前，今天XXX，昨天XXX
-     * <p>
-     * copy from AndroidUtilCode
-     */
-    private String formatFriendlyTimeSpanByNow(long timeStampMillis) {
-        long now = ClockUtil.currentTimeMillis();
-        long span = now - timeStampMillis;
-        if (span < 0) {
-            // 'c' 日期和时间，被格式化为 "%ta %tb %td %tT %tZ %tY"，例如 "Sun Jul 20 16:17:00 EDT 1969"。
-            return String.format("%tc", timeStampMillis);
-        }
-        if (span < DateUtil.MILLIS_PER_SECOND) {
-            return "刚刚";
-        } else if (span < DateUtil.MILLIS_PER_MINUTE) {
-            return String.format("%d 秒前", span / DateUtil.MILLIS_PER_SECOND);
-        } else if (span < DateUtil.MILLIS_PER_HOUR) {
-            return String.format("%d 分钟前", span / DateUtil.MILLIS_PER_MINUTE);
-        }
-        // 获取当天00:00
-        long wee = DateUtil.beginOfDate(new Date(now)).getTime();
-        if (timeStampMillis >= wee) {
-            // 'R' 24 小时制的时间，被格式化为 "%tH:%tM"
-            return String.format("今天 %tR", timeStampMillis);
-        } else if (timeStampMillis >= wee - DateUtil.MILLIS_PER_DAY) {
-            return String.format("昨天 %tR", timeStampMillis);
-        } else {
-            // 'F' ISO 8601 格式的完整日期，被格式化为 "%tY-%tm-%td"。
-            return String.format("%tF", timeStampMillis);
-        }
+    public void addListener(DataChangedListener listener) {
+        this.listeners.add(listener);
     }
 
-    public void addListener(DataChangedListener listener){
-        this.listeners.add(listener);
+    private void initHelpPage() {
+        setHelpPage(resourceLoader.getResourceCache(HELP_MD));
+
+        resourceLoader.addStaticChangedListener(() -> {
+            ResourceLoader.ResourceCache h = resourceLoader.getResourceCache(HELP_MD);
+            if (h.getLastModified() > helpPage.getLastModified()) {
+                setHelpPage(h);
+            }
+        });
+    }
+
+    private void setHelpPage(ResourceLoader.ResourceCache resourceCache) {
+        Page page = newPageOf(resourceCache);
+        page.setPath("/help");
+        helpPage = page;
+        dataSource.getAllData().setHelpPage(helpPage);
+        dataSource.getPublishedData().setHelpPage(helpPage);
+        logger.info("/help updated");
+    }
+
+    private Page newPageOf(ResourceLoader.ResourceCache resourceCache) {
+        String content = new String(resourceCache.getContent(), StandardCharsets.UTF_8);
+        Page page = PageParser.parse(content);
+        Date date = new Date(resourceCache.getLastModified());
+        page.setCreated(date);
+        page.setModified(date);
+        page.setLastModified(date.getTime());
+        return page;
     }
 
     public interface DataChangedListener {

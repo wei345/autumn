@@ -45,10 +45,7 @@ public class ResourceWalker {
             }
 
             if (!Files.exists(path)) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("{} not found", relativePath);
-                }
-                return;
+                throw new RuntimeException(relativePath + " not exist");
             }
 
             Files.walkFileTree(path, visitor);

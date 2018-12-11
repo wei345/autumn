@@ -13,7 +13,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h2, h3, h4, h5, h6 {
-    margin: 1em 0 10px;
+    margin: 1em 0 0;
 }
 
 a {
@@ -201,29 +201,31 @@ input[type='submit'] {
     -ms-user-select: none;
 }
 
+.header {
+    padding-bottom: 1em;
+}
+
 .header__row_1__heading {
-    padding-top: 0.5em;
+    flex: 0 0 8em;
 }
 
 .header__row_1__heading h1 {
     display: inline-block;
 }
 
-.header__row_1__heading__logout {
-    float: right;
+.row .column.header__row_1__search_box {
+    padding-top: .2em;
+    max-width: 816px;
 }
 
-.header__row_1__search_box {
-    padding-top: .7em;
-}
-
-.header__row_1__search_box svg {
+.header__row_1__search_box .search_icon {
     position: absolute;
     margin: 11px 0 0 14px;
     opacity: .54;
 }
 
 .header__row_1__search_form {
+    margin: 0 auto;
     max-width: 600px;
     position: relative;
 }
@@ -241,24 +243,16 @@ input[type='submit'] {
     border-width: 1px;
 }
 
-.row .column.header__row_1__right {
-    display: none;
-}
-
-.header__row_1__right__logout {
-    float: right;
-}
-
 .header__toolbar {
     margin-top: 1.5em;
 }
 
-.header__toolbar__sidebar_toggle {
+.sidebar_toggle {
     cursor: pointer;
     display: none;
 }
 
-.js .header__toolbar__sidebar_toggle {
+.js .sidebar_toggle {
     display: unset;
 }
 
@@ -335,10 +329,11 @@ input[type='submit'] {
 }
 
 .js .toc {
-    display: unset;
+    display: block;
 }
 
 .toc h3 {
+    display: inline-block;
     margin-bottom: .5em;
     font-size: 1em;
     cursor: pointer;
@@ -419,10 +414,6 @@ input[type='submit'] {
     font-size: 14px;
 }
 
-.search_box__category_and_tags.show {
-    display: block;
-}
-
 .search_box__category_and_tags ul {
     list-style: none;
     display: inline-block;
@@ -459,11 +450,12 @@ input[type='submit'] {
 
 .header__row_1__search_form__category_and_tags_toggle {
     position: absolute;
-    right: 15px;
-    top: 3px;
+    right: 10px;
+    top: 5px;
     font-size: 1.5em;
     cursor: pointer;
     display: none;
+    padding: 0 .5em;
 }
 
 .js .header__row_1__search_form__category_and_tags_toggle {
@@ -530,14 +522,49 @@ input[type='submit'] {
     top: 3.2em;
     right: 1em;
     cursor: pointer;
-}
-
-.qsr__close.show {
-    display: block;
+    padding: 0 .5em;
 }
 
 .qsr__list li:first-child {
     padding-right: 3em;
+}
+
+ul.header__row_1__tools {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.header__row_1__tools li {
+    display: inline-block;
+    padding-left: .5em;
+}
+
+.header__row_1__right {
+    position: absolute;
+    text-align: right;
+    flex: 0 0 12em;
+}
+
+.container {
+    position: relative;
+}
+
+.sitemap, .site_help {
+    display: none;
+}
+
+.sitemap_toggle, .site_help_toggle {
+    cursor: pointer;
+}
+
+.show {
+    display: block !important;
+}
+
+.center_position {
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 @media (min-width: 640px) {
@@ -556,18 +583,19 @@ input[type='submit'] {
     }
 
     .row .column.header__row_1__heading, .row .column.sidebar {
-        flex: 0 0 22%;
-        max-width: 256px;
-    }
-
-    .row .column.header__row_1__search_box {
-        /* 与 .content 对齐 */
-        padding-left: 1em;
+        flex: 0 1 12em;
+        min-width: 7em;
     }
 
     .row .column.header__row_1__right {
-        flex: 0 0 6em;
-        display: unset;
+        position: inherit;
+        flex: 0 1 12em;
+        min-width: 7em;
+    }
+
+    .row.show_sidebar .row .column.header__row_1__search_box {
+        /* 与 .content 对齐 */
+        padding-left: 1em;
     }
 
     .row.show_sidebar .column.content {
@@ -579,11 +607,13 @@ input[type='submit'] {
         width: 75%;
     }
 
-    .row .header__row_1__heading__logout {
-        display: none;
-    }
-
     .header__toolbar {
         margin-top: 0;
+    }
+}
+
+@media (min-width: 880px) {
+    .row .column.header__row_1__heading, .row .column.header__row_1__right {
+        min-width: 12em;
     }
 }

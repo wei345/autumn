@@ -71,6 +71,11 @@ public class DataService {
 
         }
 
+        if ("/help".equals(path)) {
+            return isLogged() ? new SecurityBox(dataSource.getAllData().getHelpPage())
+                    : new SecurityBox(dataSource.getPublishedData().getHelpPage());
+        }
+
         if (isLogged()) {
             page = dataSource.getAllData().getPageMap().get(path);
             return page == null ? null : new SecurityBox(page);

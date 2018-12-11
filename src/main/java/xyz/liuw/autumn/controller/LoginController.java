@@ -2,6 +2,7 @@ package xyz.liuw.autumn.controller;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,7 +88,11 @@ public class LoginController {
             return "login";
         }
 
-        User user = userService.checkPassword(username, password);
+        User user = null;
+        if (StringUtils.isNotBlank(username) && username.length() <= 32
+                && StringUtils.isNotBlank(password) && password.length() <= 32) {
+            user = userService.checkPassword(username, password);
+        }
 
         // 登录成功
         if (user != null) {
