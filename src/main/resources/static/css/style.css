@@ -420,7 +420,7 @@ input[type='submit'] {
 }
 
 .search_box__category_and_tags.show {
-    display: unset;
+    display: block;
 }
 
 .search_box__category_and_tags ul {
@@ -476,7 +476,7 @@ input[type='submit'] {
 }
 
 .qsr {
-    padding-top: 0.5em;
+    padding-top: 1em;
     box-sizing: border-box;
     min-height: 600px;
     display: none;
@@ -533,7 +533,7 @@ input[type='submit'] {
 }
 
 .qsr__close.show {
-    display: unset;
+    display: block;
 }
 
 .qsr__list li:first-child {

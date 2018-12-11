@@ -139,10 +139,26 @@ function bindShortcut() {
         return; // 可能在登录页
     }
     document.addEventListener('keydown', function (event) {
-        if (event.key === '/' && document.activeElement !== searchInput) {
-            searchInput.focus();
-            searchInput.select();
-            event.preventDefault();
+        if (event.target === document.body) {
+            switch (event.key) {
+                case '/':
+                    searchInput.focus();
+                    searchInput.select();
+                    event.preventDefault();
+                    break;
+                case 'g':
+                    scroll(0, 0);
+                    break;
+                case 'G':
+                    scroll(0, document.scrollingElement.scrollHeight);
+                    break;
+                case 'u':
+                    document.scrollingElement.scrollTop -= window.innerHeight / 2;
+                    break;
+                case 'd':
+                    document.scrollingElement.scrollTop += window.innerHeight / 2;
+                    break;
+            }
         }
     });
 }

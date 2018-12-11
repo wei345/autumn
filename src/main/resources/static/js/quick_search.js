@@ -778,6 +778,9 @@ function setupQuickSearch(root) {
     }
 
     function createResultLink(path, titlePreview, pathPreview) {
+        if (titlePreview === '') {
+            titlePreview = 'No Title';
+        }
         var html = '<a href="' + autumn.ctx + path + '">';
         html += '<span class="qsr__list__page_title">' + titlePreview + '</span></br>';
         html += '<span class="qsr__list__page_path">' + pathPreview + '</span>';
