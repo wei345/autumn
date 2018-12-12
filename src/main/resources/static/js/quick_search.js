@@ -1,9 +1,4 @@
 "use strict";
-var lsRecentVisitKey = 'autumn.recently_visit';
-var recentlyVisitMaxCount = 100;
-var recentlyVisitPages;
-var logoutCookieName = 'logout';
-
 function setupQuickSearch(root) {
     var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
     var cat = document.getElementsByClassName('search_box__category_and_tags')[0];

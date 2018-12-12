@@ -1,5 +1,6 @@
 package xyz.liuw.autumn.service;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
@@ -21,7 +22,7 @@ import xyz.liuw.autumn.util.WebUtil;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import javax.validation.constraints.NotNull;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -45,6 +46,10 @@ public class UserService {
 
     private static final User NULL_USER = new User();
 
+    private static final User USER_REMEMBER_ME_PARSE_ERROR = new User();
+
+    private static final User USER_NOT_EXIST_OR_PASSWORD_ERROR = new User();
+
     private static Logger logger = LoggerFactory.getLogger(UserService.class);
 
     private static ThreadLocal<User> userThreadLocal = new ThreadLocal<>();
@@ -58,41 +63,58 @@ public class UserService {
 
     private Map<Long, User> idToUser;
 
-    private Cache<String, User> sessionUserCache = CacheBuilder.newBuilder()
-            .expireAfterWrite(30, TimeUnit.SECONDS)
-            .maximumSize(1_000_000)
-            .build();
-
     @Autowired
     private JsonMapper jsonMapper;
 
     @Autowired
     private WebUtil webUtil;
 
-    // 获得当前用户: ThreadLocal User > Cache Session User > Session User > RememberMe
+    /*private Cache<String, User> sessionUserCache = CacheBuilder.newBuilder()
+            .expireAfterWrite(30, TimeUnit.SECONDS)
+            .maximumSize(1_000_000)
+            .build();*/
+
+    private Cache<String, User> rememberMeToUserCache = CacheBuilder.newBuilder()
+            .expireAfterWrite(30, TimeUnit.SECONDS)
+            .maximumSize(10_000)
+            .build();
 
     public static boolean isLogged() {
-        return getCurrentUser() != null;
-    }
-
-    private static User getCurrentUser() {
-        return userThreadLocal.get();
-    }
-
-    @Value("${autumn.aes.key}")
-    private void setAesKey(String aesKey) {
-        this.aesKey = EncodeUtil.decodeHex(aesKey.toUpperCase());
+        return userThreadLocal.get() != null;
     }
 
     public void setCurrentUser(HttpServletRequest request, HttpServletResponse response) {
-        User user = getRequestUser(request, response);
+        User user = getRememberMeUser(request, response);
         userThreadLocal.set(user);
     }
 
-    private User getRequestUser(HttpServletRequest request, HttpServletResponse response) {
+    /**
+     * @return 如果登录成功，则返回 true，否则返回 false
+     */
+    public boolean login(String username, String plainPassword, HttpServletRequest request, HttpServletResponse response) {
+        User user = checkPassword(username, plainPassword);
+        if (user == null) {
+            return false;
+        }
+        setRememberMe(user, plainPassword, request, response);
+        return true;
+    }
+
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        deleteCookie(REMEMBER_ME_COOKIE_NAME, response);
+
+        // 设置 logout cookie，JavaScript 检查该 cookie，清理客户端用户数据，然后删除该 cookie
+        CookieGenerator cg = new CookieGenerator();
+        cg.setCookieName(LOGOUT_COOKIE_NAME);
+        cg.setCookieMaxAge(-1);
+        cg.setCookiePath(webUtil.getContextPath() + "/");
+        cg.addCookie(response, String.valueOf(System.currentTimeMillis()));
+    }
+
+    /*private User getRequestUser(HttpServletRequest request, HttpServletResponse response) {
         User user = getSessionUser(request.getSession());
         if (user == null) {
-            user = getRememberMe(request, response);
+            user = getRememberMeUser(request, response);
             if (user != null) {
                 setSessionUser(user, request.getSession());
             }
@@ -104,9 +126,10 @@ public class UserService {
         User u = new User();
         u.setId(user.getId());
         u.setUsername(user.getUsername());
-        String json = jsonMapper.toJson(u);
+        String uJson = jsonMapper.toJson(u);
+
         sessionUserCache.put(session.getId(), u);
-        session.setAttribute(SESSION_USER_KEY, json);
+        session.setAttribute(SESSION_USER_KEY, uJson);
     }
 
     private User getSessionUser(HttpSession session) {
@@ -131,31 +154,76 @@ public class UserService {
         return user == NULL_USER ? null : user;
     }
 
-    private User getRememberMe(HttpServletRequest request, HttpServletResponse response) {
+    private void removeSessionUser(HttpSession session) {
+        sessionUserCache.invalidate(session.getId());
+        session.removeAttribute(SESSION_USER_KEY);
+    }
+    */
+
+    private void setRememberMe(User user, String plainPassword, HttpServletRequest request, HttpServletResponse response) {
+        // id|password|timeOnSeconds
+        String raw = user.getId() + SEPARATOR + plainPassword + SEPARATOR + System.currentTimeMillis() / 1000;
+        String encrypted = EncodeUtil.encodeBase64(
+                CryptoUtil.aesEncrypt(raw.getBytes(StandardCharsets.UTF_8), aesKey));
+        CookieGenerator cg = new CookieGenerator();
+        cg.setCookieName(REMEMBER_ME_COOKIE_NAME);
+        cg.setCookieMaxAge(rememberMeSeconds);
+        cg.setCookieHttpOnly(true);
+        cg.setCookiePath(webUtil.getContextPath() + "/");
+        cg.addCookie(response, encrypted);
+    }
+
+    /**
+     * @return 如果 rememberMe 验证成功，返回 User 对象，否则返回 null
+     */
+    private User getRememberMeUser(HttpServletRequest request, HttpServletResponse response) {
         Cookie cookie = getCookie(REMEMBER_ME_COOKIE_NAME, request);
         if (cookie == null) {
             return null;
         }
-        String value = cookie.getValue();
-        if (StringUtils.isNotBlank(value)) {
-            try {
-                String decrypted = CryptoUtil.aesDecrypt(EncodeUtil.decodeBase64(value), aesKey);
-                StringTokenizer tokenizer = new StringTokenizer(decrypted, SEPARATOR);
-                long id = Long.parseLong(tokenizer.nextToken());
-                String password = tokenizer.nextToken();
-                User user = checkPassword(id, password);
-                if (user != null) {
-                    return user;
-                }
-            } catch (Exception e) {
-                logger.debug(String.format("解析 rememberMe cookie 失败 '%s'", value), e);
-            }
+
+        String rememberMe = cookie.getValue();
+        if (StringUtils.isBlank(rememberMe)) {
+            deleteCookie(cookie.getName(), response);
+            return null;
         }
-        // 如果 cookie 无效或解析失败，删除 cookie
+
+        User user;
+        try {
+            user = rememberMeToUserCache.get(rememberMe, () -> parseRememberMeForUser(rememberMe));
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+        if (user != null && user != USER_NOT_EXIST_OR_PASSWORD_ERROR && user != USER_REMEMBER_ME_PARSE_ERROR) {
+            return user;
+        }
+
         deleteCookie(cookie.getName(), response);
         return null;
     }
 
+    /**
+     * @param rememberMe 存在登录用户 cookie 里 AES 加密的字符串
+     * @return USER_REMEMBER_ME_PARSE_ERROR 或 USER_NOT_EXIST_OR_PASSWORD_ERROR 或正常用户对象
+     */
+    private @NotNull User parseRememberMeForUser(String rememberMe) {
+        try {
+            String decrypted = CryptoUtil.aesDecrypt(EncodeUtil.decodeBase64(rememberMe), aesKey);
+            StringTokenizer tokenizer = new StringTokenizer(decrypted, SEPARATOR);
+            long id = Long.parseLong(tokenizer.nextToken());
+            String password = tokenizer.nextToken();
+            User user = checkPassword(id, password);
+            if (user == null) {
+                return USER_NOT_EXIST_OR_PASSWORD_ERROR;
+            }
+            return user;
+        } catch (Exception e) {
+            logger.debug(String.format("解析 rememberMe cookie 失败 '%s'", rememberMe), e);
+            return USER_REMEMBER_ME_PARSE_ERROR;
+        }
+    }
+
+    @SuppressWarnings("SameParameterValue")
     private Cookie getCookie(String name, HttpServletRequest request) {
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
@@ -176,38 +244,50 @@ public class UserService {
         cg.addCookie(response, null);
     }
 
-    public void setRememberMe(User user, String plainPassword, HttpServletRequest request, HttpServletResponse response) {
-        // id|password|timeOnSeconds
-        String raw = user.getId() + SEPARATOR + plainPassword + SEPARATOR + System.currentTimeMillis() / 1000;
-        String encrypted = EncodeUtil.encodeBase64(
-                CryptoUtil.aesEncrypt(raw.getBytes(StandardCharsets.UTF_8), aesKey));
-        CookieGenerator cg = new CookieGenerator();
-        cg.setCookieName(REMEMBER_ME_COOKIE_NAME);
-        cg.setCookieMaxAge(rememberMeSeconds);
-        cg.setCookieHttpOnly(true);
-        cg.setCookiePath(webUtil.getContextPath() + "/");
-        cg.addCookie(response, encrypted);
-
-        setSessionUser(user, request.getSession());
+    /**
+     * @return 如果 username 和 password 验证通过，则返回 User 对象，否则返回 null
+     */
+    private User checkPassword(Long id, String password) {
+        User user = idToUser.get(id);
+        return checkPassword(user, password);
     }
 
-    public void logout(HttpServletRequest request, HttpServletResponse response) {
-        removeSessionUser(request.getSession());
-        deleteCookie(REMEMBER_ME_COOKIE_NAME, response);
-
-        // 设置 logout cookie，JavaScript 检查该 cookie，清理客户端用户数据，然后删除该 cookie
-        CookieGenerator cg = new CookieGenerator();
-        cg.setCookieName(LOGOUT_COOKIE_NAME);
-        cg.setCookieMaxAge(-1);
-        cg.setCookiePath(webUtil.getContextPath() + "/");
-        cg.addCookie(response, String.valueOf(System.currentTimeMillis()));
+    /**
+     * @return 如果 username 和 password 验证通过，则返回 User 对象，否则返回 null
+     */
+    @VisibleForTesting
+    User checkPassword(String username, String password) {
+        User user = users.get(username);
+        return checkPassword(user, password);
     }
 
-    private void removeSessionUser(HttpSession session) {
-        sessionUserCache.invalidate(session.getId());
-        session.removeAttribute(SESSION_USER_KEY);
+    /**
+     * @return 如果 username 和 password 验证通过，则返回 User 对象，否则返回 null
+     */
+    private User checkPassword(User user, String password) {
+        if (user == null) {
+            return null;
+        }
+        String s = password + user.getSalt();
+        String md5 = DigestUtils.md5DigestAsHex(s.getBytes(StandardCharsets.UTF_8));
+        if (md5.equals(user.getPassword())) {
+            return user;
+        } else {
+            return null;
+        }
     }
 
+    @VisibleForTesting
+    User getUser(String username) {
+        return users.get(username);
+    }
+
+    @Value("${autumn.aes.key}")
+    private void setAesKey(String aesKey) {
+        this.aesKey = EncodeUtil.decodeHex(aesKey.toUpperCase());
+    }
+
+    @VisibleForTesting
     @Value("${autumn.users}")
     void setUsers(String input) {
         Validate.notBlank(input, "config 'autumn.users' is blank");
@@ -228,37 +308,6 @@ public class UserService {
             users.put(username, user);
             idToUser.put(id, user);
         }
-    }
-
-    User checkPassword(Long id, String password) {
-        User user = idToUser.get(id);
-        return checkPassword(user, password);
-    }
-
-    public User checkPassword(String username, String password) {
-        User user = users.get(username);
-        return checkPassword(user, password);
-    }
-
-    private User checkPassword(User user, String password) {
-        if (user == null) {
-            return null;
-        }
-        String s = password + user.getSalt();
-        String md5 = DigestUtils.md5DigestAsHex(s.getBytes(StandardCharsets.UTF_8));
-        if (md5.equals(user.getPassword())) {
-            return user;
-        } else {
-            return null;
-        }
-    }
-
-    public User getUser(Long id) {
-        return idToUser.get(id);
-    }
-
-    User getUser(String username) {
-        return users.get(username);
     }
 
 }

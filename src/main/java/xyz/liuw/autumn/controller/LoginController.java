@@ -13,7 +13,6 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import xyz.liuw.autumn.domain.User;
 import xyz.liuw.autumn.service.TemplateService;
 import xyz.liuw.autumn.service.UserService;
 import xyz.liuw.autumn.util.WebUtil;
@@ -88,17 +87,15 @@ public class LoginController {
             return "login";
         }
 
-        User user = null;
-        if (StringUtils.isNotBlank(username) && username.length() <= 32
-                && StringUtils.isNotBlank(password) && password.length() <= 32) {
-            user = userService.checkPassword(username, password);
-        }
+        if (StringUtils.isNotBlank(username)
+                && username.length() <= 32
+                && StringUtils.isNotBlank(password)
+                && password.length() <= 32) {
 
-        // 登录成功
-        if (user != null) {
-            loginToken.success(clientIp);
-            userService.setRememberMe(user, password, request, response);
-            return (ret != null && ret.startsWith("/")) ? "redirect:" + ret : "redirect:/";
+            if (userService.login(username, password, request, response)) {
+                loginToken.success(clientIp);
+                return (ret != null && ret.startsWith("/")) ? "redirect:" + ret : "redirect:/";
+            }
         }
 
         // 登录失败

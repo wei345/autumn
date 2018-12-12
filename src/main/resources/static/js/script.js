@@ -3,7 +3,12 @@ var autumn = {
     ctx: '',
     treeVersion: ''
 };
+var lsRecentVisitKey = 'autumn.recently_visit';
+var recentlyVisitMaxCount = 100;
+var recentlyVisitPages;
+var logoutCookieName = 'logout';
 var isMobi = /Mobi/.test(navigator.userAgent);
+var alwaysUnfoldRoot = false;
 window.addEventListener('load', function () {
     bindSidebarToggle();
     bindTocToggle();
@@ -170,20 +175,25 @@ function buildTree(then) {
 
     function unfoldCurrentPath(root) {
         var path = autumn.pathname().substr(autumn.ctx.length);
-        var dirs = [root];
         var current;
-        while (dirs.length > 0) {
-            var dir = dirs.pop();
-            for (var i = 0; i < dir.children.length; i++) {
-                var node = dir.children[i];
-                node.parent = dir;
-                if (node.path === path) {
-                    node.current = true;
-                    current = node;
-                    break;
-                }
-                if (node.children) {
-                    dirs.push(node);
+        if (path === '/') {
+            current = root;
+            root.current = true;
+        } else {
+            var dirs = [root];
+            while (dirs.length > 0) {
+                var dir = dirs.pop();
+                for (var i = 0; i < dir.children.length; i++) {
+                    var node = dir.children[i];
+                    node.parent = dir;
+                    if (node.path === path) {
+                        node.current = true;
+                        current = node;
+                        break;
+                    }
+                    if (node.children) {
+                        dirs.push(node);
+                    }
                 }
             }
         }
@@ -193,6 +203,10 @@ function buildTree(then) {
             while (parent = parent.parent) {
                 parent.unfolded = true;
             }
+        }
+
+        if (alwaysUnfoldRoot) {
+            root.unfolded = true;
         }
     }
 

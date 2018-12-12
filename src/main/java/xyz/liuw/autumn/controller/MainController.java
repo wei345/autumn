@@ -2,6 +2,7 @@ package xyz.liuw.autumn.controller;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,17 +22,19 @@ import xyz.liuw.autumn.util.WebUtil;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
+import static xyz.liuw.autumn.service.DataService.PAGE_NEED_LOGIN;
 import static xyz.liuw.autumn.service.UserService.isLogged;
 
 @RestController
 public class MainController {
 
-    private static final String MD_PATH_SUFFIX = ".md";
+    private static final String DOT_MD = ".md";
     private static final String PAGE_VIEW_NAME = "page";
 
     @Autowired
@@ -65,17 +68,16 @@ public class MainController {
         templateService.setLogged(model);
 
         // Page
-        DataService.SecurityBox pageBox = dataService.getPageSecurityBox(path);
-        if (pageBox != null) {
-            return handlePage(pageBox, path, false, h, webRequest, response, model);
+        Page page = dataService.getPage(path);
+        if (page != null) {
+            return handlePage(page, path, false, h, webRequest, response, model);
         }
 
-        // Page markdown source
-        if (path.endsWith(MD_PATH_SUFFIX)) {
-            String path2 = path.substring(0, path.length() - MD_PATH_SUFFIX.length());
-            pageBox = dataService.getPageSecurityBox(path2);
-            if (pageBox != null) {
-                return handlePage(pageBox, path, true, h, webRequest, response, model);
+        if (path.endsWith(DOT_MD)) {
+            String withoutDotMd = path.substring(0, path.length() - DOT_MD.length());
+            page = dataService.getPage(withoutDotMd);
+            if (page != null) {
+                return handlePage(page, path, true, h, webRequest, response, model);
             }
         }
 
@@ -98,41 +100,41 @@ public class MainController {
         return null;
     }
 
-    private Object handlePage(DataService.SecurityBox pageBox,
+    private Object handlePage(@NotNull Page page,
                               String path,
                               boolean source,
                               String[] h,
                               WebRequest webRequest,
                               HttpServletResponse response,
                               Map<String, Object> model) throws IOException {
+        Validate.notNull(page);
 
-        Page page = pageBox.get();
-        if (page != null) {
-            String view = pathToView.get(path);
-            if (view == null) {
-                view = PAGE_VIEW_NAME;
-            }
-
-            if (source) {
-                return pageService.getPageSource(page, webRequest);
-            } else if (h != null && h.length > 0) {
-                String[] ss = h;
-                // 太多高亮词会影响性能，正常不会太多，可能是恶意请求
-                if (ss.length > 10) {
-                    ss = new String[10];
-                    System.arraycopy(h, 0, ss, 0, ss.length);
-                }
-                return pageService.highlightOutput(page, Arrays.asList(ss), model, view);
+        if (page == PAGE_NEED_LOGIN) {
+            if (!isLogged()) {
+                return new RedirectView("/login?ret=" + path, true, false);
             } else {
-                return pageService.getPageContent(page, model, view, webRequest);
+                response.sendError(403);
+                return null;
             }
         }
-        // 无权限
-        if (!isLogged()) {
-            return new RedirectView("/login?ret=" + path, true, false);
+
+        String view = pathToView.get(path);
+        if (view == null) {
+            view = PAGE_VIEW_NAME;
+        }
+
+        if (source) {
+            return pageService.getPageSource(page, webRequest);
+        } else if (h != null && h.length > 0) {
+            String[] ss = h;
+            // 太多高亮词会影响性能，正常不会太多
+            if (ss.length > 10) {
+                ss = new String[10];
+                System.arraycopy(h, 0, ss, 0, ss.length);
+            }
+            return pageService.highlightOutput(page, Arrays.asList(ss), model, view);
         } else {
-            response.sendError(403);
-            return null;
+            return pageService.getPageContent(page, model, view, webRequest);
         }
     }
 

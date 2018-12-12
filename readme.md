@@ -96,8 +96,8 @@ path
 
 有时 Command + R，浏览器不发送请求，Command + Shift + R 会发送请求。
 
-TODO cache 所有 category 和 tags
-TODO 触发 reload 数据的接口，生产环境不需要定时频繁 reload
+TODO cache 所有 category 和 tags ?
+触发 reload 数据的接口，生产环境不需要定时频繁 reload
 
 ### Markdown 解析器
 
@@ -201,5 +201,23 @@ java --add-modules java.se.ee -jar myapp.jar
 
 --add-modules ALL-MODULE-PATH
 
+### 安全
+
+TODO
+
+* 记录用户 logout 时间和设备。验证 rememberMe 登录时间 > logout 时间，可退出所有设备。
+* 记录用户登录时间和设备
+
+如果只退出特定的设备呢？
+
+* 记录已失效的 token？不好。已失效的数据会一直增长。如果服务器把这些数据丢了，那就变成有效的了。
+* 记录有效的 token？优点是强登录验证，用户退出就一定是退出的，即使再收到之前的 rememberMe，服务端也是不认的。缺点是如果服务器把这些数据丢了，所有用户设备需要重新登录。
+
+Someday
+
+* 限制单个 IP 访问次数
+* 限制单个 IP rememberMe 解析错误次数
+* 限制单个 IP rememberMe 用户验证错误次数
+* 限制单个 IP 创建 session 数量
 
 

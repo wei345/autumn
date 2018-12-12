@@ -1,11 +1,11 @@
 package xyz.liuw.autumn.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
-import xyz.liuw.autumn.data.*;
+import xyz.liuw.autumn.data.DataSource;
+import xyz.liuw.autumn.data.Media;
+import xyz.liuw.autumn.data.Page;
+import xyz.liuw.autumn.data.TreeJson;
 
 import java.util.Map;
 
@@ -19,10 +19,7 @@ import static xyz.liuw.autumn.service.UserService.isLogged;
 @Component
 public class DataService {
 
-    private static Logger logger = LoggerFactory.getLogger(DataService.class);
-
-    @Autowired
-    private DataLoader dataLoader;
+    public static final Page PAGE_NEED_LOGIN = new Page();
 
     @Autowired
     private DataSource dataSource;
@@ -39,11 +36,11 @@ public class DataService {
                 dataSource.getPublishedData().getMediaMap().get(path);
     }
 
-    public Page.ViewCache getViewCache(Page page) {
+    Page.ViewCache getViewCache(Page page) {
         return isLogged() ? page.getUserViewCache() : page.getGuestViewCache();
     }
 
-    public void setViewCache(Page page, Page.ViewCache viewCache) {
+    void setViewCache(Page page, Page.ViewCache viewCache) {
         if (isLogged()) {
             page.setUserViewCache(viewCache);
         } else {
@@ -51,7 +48,7 @@ public class DataService {
         }
     }
 
-    public Map<String, Page> getPageMap() {
+    Map<String, Page> getPageMap() {
         if (isLogged()) {
             return dataSource.getAllData().getPageMap();
         } else {
@@ -60,59 +57,42 @@ public class DataService {
     }
 
     /**
-     * 在显示 page 前一定要检查权限
+     * @param path 首页 /，其他 /xxx
+     * @return null 未找到, PAGE_NEED_LOGIN 找到了但登录后才能看, Page 找到
      */
-    public SecurityBox getPageSecurityBox(String path) {
+    public Page getPage(String path) {
         Page page;
 
         if ("/".equals(path)) {
-            return isLogged() ? new SecurityBox(dataSource.getAllData().getHomepage())
-                    : new SecurityBox(dataSource.getPublishedData().getHomepage());
-
+            if (isLogged()) {
+                return dataSource.getAllData().getHomepage();
+            } else {
+                return dataSource.getPublishedData().getHomepage();
+            }
         }
 
         if ("/help".equals(path)) {
-            return isLogged() ? new SecurityBox(dataSource.getAllData().getHelpPage())
-                    : new SecurityBox(dataSource.getPublishedData().getHelpPage());
+            if (isLogged()) {
+                return dataSource.getAllData().getHelpPage();
+            } else {
+                return dataSource.getPublishedData().getHelpPage();
+            }
         }
 
         if (isLogged()) {
-            page = dataSource.getAllData().getPageMap().get(path);
-            return page == null ? null : new SecurityBox(page);
+            return dataSource.getAllData().getPageMap().get(path);
         }
 
-        // 未登录
         page = dataSource.getPublishedData().getPageMap().get(path);
         if (page != null) {
-            return new SecurityBox(page);
+            return page;
         }
-        // 没权限
+
         if (dataSource.getAllData().getPageMap().containsKey(path)) {
-            return new SecurityBox(null);
+            return PAGE_NEED_LOGIN;
         }
-        // 没数据
+
         return null;
     }
 
-    /**
-     * 调用者想看看有没有数据，如果有数据，检查权限，如果有权限，读取内容，如果没权限，提示用户没权限或需要登录。
-     * "有没有数据"和"读取内容"，这是两步操作，有可能第二步之前另一个线程删除了数据，如果保证并发安全，那么需要
-     * 加锁，成本高。如果"看看有没有数据"时把数据交给调用者，那么会有更多安全风险，万一调用者忘记检查用户权限了呢。
-     * <p>
-     * 用这个类包装数据，调用者可以知道有没有数据，确保会经过权限检查，也不会带来并发安全问题。
-     */
-    public static class SecurityBox {
-        private Page page;
-
-        SecurityBox(@Nullable Page page) {
-            this.page = page;
-        }
-
-        /**
-         * @return data, null 如果当前未登录或权限不足
-         */
-        public Page get() {
-            return page;
-        }
-    }
 }
