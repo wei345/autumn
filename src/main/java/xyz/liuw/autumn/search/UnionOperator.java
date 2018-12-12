@@ -37,6 +37,9 @@ class UnionOperator extends AbstractOperator {
         if (m2 instanceof ExactMatcher || m2 instanceof QuoteExactMatcher) {
             r1.forEach(searchingPage -> ExactMatcher.find(searchingPage, m2.getExpression(), m2.getSearchStr()));
         }
+        if(m2 instanceof WildcardQuoteMatcher){
+            r1.forEach(searchingPage -> WildcardQuoteMatcher.findPageHit(searchingPage, ((WildcardQuoteMatcher) m2)));
+        }
         return new ResultMatcher(Sets.union(r1, r2));
     }
 

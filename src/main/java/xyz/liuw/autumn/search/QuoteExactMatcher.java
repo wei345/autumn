@@ -10,8 +10,6 @@ import java.util.Set;
  */
 class QuoteExactMatcher extends AbstractMatcher {
 
-    private static StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(64);
-
     private QuoteExactMatcher(String expression, String searchStr) {
         super(expression, searchStr);
     }
@@ -22,9 +20,10 @@ class QuoteExactMatcher extends AbstractMatcher {
     }
 
     static class Parser extends AbstractTokenParser {
+        private static StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(64);
 
         public boolean accept(String input, int start) {
-            if (input.charAt(start) != '"' || input.length() - start < 3) {
+            if (input.charAt(start) != '"' || input.length() - start < 3) { // 最短 "x" 3 个字符
                 return false;
             }
 
@@ -35,7 +34,7 @@ class QuoteExactMatcher extends AbstractMatcher {
                 char c = input.charAt(i);
 
                 if (escape) {
-                    // 只转义双引号，其余保存原样
+                    // 只转义双引号，其余保持原样
                     if (c == '"') {
                         stringBuilder.append(c);
                     } else {
@@ -51,11 +50,12 @@ class QuoteExactMatcher extends AbstractMatcher {
                 }
 
                 if (c == '"') {
-                    if (i == input.length() - 1 || input.charAt(i + 1) <= ' ') {
-                        String expression = input.substring(start, i + 1).toLowerCase();
+                    int nextIndex = i + 1;
+                    if (nextIndex == input.length() || input.charAt(nextIndex) <= ' ') {
+                        String expression = input.substring(start, nextIndex).toLowerCase();
                         String searchStr = stringBuilder.toString().toLowerCase();
                         token = new QuoteExactMatcher(expression, searchStr);
-                        nextStart = i + 1;
+                        nextStart = nextIndex;
                         return true;
                     } else {
                         return false;

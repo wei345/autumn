@@ -1,11 +1,9 @@
 package xyz.liuw.autumn.search;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
-import xyz.liuw.autumn.data.Page;
 import xyz.liuw.autumn.util.HtmlUtil;
 
 import javax.validation.constraints.NotNull;
@@ -13,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author liuwei
@@ -28,44 +25,11 @@ class ExactMatcher extends AbstractMatcher {
     }
 
     static PageHit find(@NotNull SearchingPage searchingPage,
-                        @NotNull String matcherExpression,
+                        @NotNull String expression,
                         @NotNull String searchStr) {
-        Validate.notNull(searchingPage);
-        Validate.notNull(matcherExpression);
-        Validate.notNull(searchStr);
-
-        // 本次查询缓存
-        PageHit pageHit = searchingPage.getPageHit(matcherExpression);
-
-        if (pageHit == null) {
-            Page page = searchingPage.getPage();
-
-            // Page 级缓存
-            ConcurrentHashMap<String, PageHit> cache = page.getSearchHitCache();
-            if (cache == null) {
-                //noinspection SynchronizationOnLocalVariableOrMethodParameter
-                synchronized (page) {
-                    if (page.getSearchHitCache() == null) {
-                        page.setSearchHitCache(new ConcurrentHashMap<>(4));
-                    }
-                }
-                cache = page.getSearchHitCache();
-            }
-            pageHit = cache.get(searchStr);
-            if (pageHit == null) {
-                logger.debug("Searching page {} for {}", page.getPath(), searchStr);
-                boolean nameEq = searchStr.equalsIgnoreCase(page.getName());
-                boolean titleEq = searchStr.equalsIgnoreCase(page.getTitle());
-                List<Hit> n = find(page.getName(), searchStr);
-                List<Hit> p = find(page.getPath(), searchStr);
-                List<Hit> t = find(page.getTitle(), searchStr);
-                List<Hit> b = find(page.getBody(), searchStr);
-                pageHit = new PageHit(nameEq, titleEq, n, p, t, b);
-                cache.put(searchStr, pageHit);
-            }
-            searchingPage.putPageHit(matcherExpression, pageHit);
-        }
-        return pageHit;
+        // expression 和 searchStr 都可以作为 cacheKey，searchStr 命中率更高，
+        // 因为结果 PageHit 由 searchStr 决定，而 xxx 和 -xxx searchStr 都是 xxx
+        return cacheableFindPageHit(searchingPage, expression, searchStr, s -> find(s, searchStr));
     }
 
     @SuppressWarnings("WeakerAccess")

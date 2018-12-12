@@ -26,6 +26,7 @@ class InputParser {
         List<Token> tokenList = new ArrayList<>(4);
 
         TokenParser[] parsers = new TokenParser[]{
+                new WildcardQuoteMatcher.Parser(),
                 new QuoteExactMatcher.Parser(),
                 new CategoryMatcher.Parser(),
                 new TagMatcher.Parser(),
@@ -35,7 +36,7 @@ class InputParser {
                 new IntersectionOperator.Parser()
         };
 
-        input = input.trim();
+        input = input.trim().replaceAll("\n", "");
         int start = 0;
         while (start < input.length()) {
             boolean accepted = false;

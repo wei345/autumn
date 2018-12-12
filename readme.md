@@ -44,7 +44,7 @@
   * 页面快速搜索页面名，category, tags
   * 单词完全匹配。例如 word1 word2，匹配既包含 word1 又包含 word2 的页面
   * 句子完全匹配。例如 "word1 word2"，匹配包含 word1 word2 的页面
-  * TODO 句子完全匹配支持通配符
+  * 句子完全匹配支持通配符
   * 组合搜索。例如 word1 OR word2，匹配包含 word1 或 word2 的页面
   * 特定 tag 或 category。例如 tag:tag1 word1，匹配包含 tag1 和 word1 的页面
   * TODO 特定路径。例如 path:/java word1，匹配 数据目录/java 目录下包含 word1 的页面

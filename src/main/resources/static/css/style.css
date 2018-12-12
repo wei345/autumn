@@ -451,7 +451,7 @@ input[type='submit'] {
 .header__row_1__search_form__category_and_tags_toggle {
     position: absolute;
     right: 10px;
-    top: 5px;
+    top: 3px;
     font-size: 1.5em;
     cursor: pointer;
     display: none;
