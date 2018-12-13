@@ -1,4 +1,5 @@
 "use strict";
+
 function setupQuickSearch(root) {
     var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
     var cat = document.getElementsByClassName('search_box__category_and_tags')[0];
@@ -32,14 +33,10 @@ function setupQuickSearch(root) {
     });
 
     searchInput.addEventListener('keydown', function (event) {
-        if (!qsrList || qsrList.children.length === 0) {
-            return;
-        }
-
-        var down = (event.key === 'ArrowDown');
-        var up = (event.key === 'ArrowUp');
 
         // 上下移动
+        var down = (event.key === 'ArrowDown');
+        var up = (event.key === 'ArrowUp');
         if (down || up) {
             if (qsrSelectedIndexInBound()) {
                 unSelect();
@@ -87,11 +84,6 @@ function setupQuickSearch(root) {
 
             searchInput.blur();
             qs();
-        }
-
-        // 空格取消选中
-        if (event.key === 'Escape') {
-            resetSelect();
         }
     });
 

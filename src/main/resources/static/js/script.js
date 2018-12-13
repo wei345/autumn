@@ -125,7 +125,6 @@ function bindTocToggle() {
 }
 
 function bindShortcut() {
-    // 按 '/' 搜索框获得焦点，按 'ESC' 搜索框失去焦点
     var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
     if (!searchInput) {
         return; // 可能在登录页
