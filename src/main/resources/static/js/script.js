@@ -18,7 +18,6 @@ window.addEventListener('load', function () {
     checkLogout();
     updateVisitList();
     bindToggle('sitemap');
-    bindToggle('site_help');
     document.body.classList.add('js');
     if (isMobi) {
         document.body.classList.add('mobi');
@@ -116,7 +115,7 @@ function bindTocToggle() {
         }
         return;
     }
-    toggle.classList.add('no_selection');
+    toggle.classList.add('no_selection', 'action_toggle');
     var lsKey = 'autumn.toc.display';
     body.classList.toggle('show', localStorage.getItem(lsKey) !== '0');
     toggle.addEventListener('click', function () {
@@ -232,14 +231,14 @@ function buildTree(then) {
             // icon
             html += '<span class="tree_node_header_icon no_selection">';
             if (node.children) {
-                html += (node.unfolded ? unfoldedString : foldedString);
+                //html += (node.unfolded ? unfoldedString : foldedString);
             } else {
-                html += '•';
+                // html += '•';
             }
             html += '</span>';
 
             // title
-            html += (node.children ? '<span>' : ('<a href="' + (autumn.ctx + node.path) + '">'));
+            html += (node.children ? '<span class="tree_node_header_name action_toggle no_selection">' : ('<a href="' + (autumn.ctx + node.path) + '">'));
             html += node.name;
             html += (node.children ? '</span>' : '</a>');
 
@@ -258,19 +257,19 @@ function buildTree(then) {
     function bindNodeToggle(tree) {
         var els = tree.getElementsByClassName('tree_node_dir');
         for (var i = 0; i < els.length; i++) {
-            els[i].getElementsByClassName('tree_node_header')[0].addEventListener('click', toggle);
+            var t = els[i].getElementsByClassName('tree_node_header')[0];
+            t.addEventListener('click', toggle);
         }
     }
 
     function toggle(event) {
-        var target = event.target;
-        var node = parentWithClass(target, 'tree_node');
+        var node = event.currentTarget.parentNode; // tree_node
         var icon = node.getElementsByClassName('tree_node_header_icon')[0];
         if (node.classList.contains('tree_node_folded')) {
-            icon.innerHTML = unfoldedString;
+            // icon.innerHTML = unfoldedString;
             autumn.replaceClass(node, 'tree_node_folded', 'tree_node_unfolded');
         } else {
-            icon.innerHTML = foldedString;
+            // icon.innerHTML = foldedString;
             autumn.replaceClass(node, 'tree_node_unfolded', 'tree_node_folded');
         }
     }

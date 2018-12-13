@@ -6,8 +6,8 @@ function setupQuickSearch(root) {
     var catToggle = document.getElementsByClassName('header__row_1__search_form__category_and_tags_toggle')[0];
     var qsr = document.getElementsByClassName('qsr')[0];
     var qsrClose = document.getElementsByClassName('qsr__close')[0];
+    var qsrList = document.getElementsByClassName('qsr__list')[0];
     var qsrAllPages;
-    var qsrList;
     var qsrMaxLines = 6;
     var qsrSelectedIndex = -1;
     var categoryPrefix = 'c:';
@@ -205,7 +205,7 @@ function setupQuickSearch(root) {
             html += '<span class="search_box__' + field + '_list_title">' + title + '</span>';
             html += '<ul class="search_box__' + field + '_list">';
             a.forEach(function (item) {
-                html += '<li><span class="' + (field === 'tags' ? 'tag' : field) + '">' + item[field] + '</span>';
+                html += '<li class="action_toggle"><span class="' + (field === 'tags' ? 'tag' : field) + '">' + item[field] + '</span>';
                 html += '<span class="count"> (' + item.count + ') </span>';
                 html += '</li>';
             });
@@ -215,17 +215,38 @@ function setupQuickSearch(root) {
 
         function bindClick(field) {
             var categoryOrTag = field === 'category' ? 'category' : 'tag';
-
-            var els = document.getElementsByClassName('search_box__' + field + '_list')[0].getElementsByTagName('li');
-            for (var i = 0; i < els.length; i++) {
-                els[i].addEventListener('click', function (evt) {
-                    categoryOrTagOnClick(evt, categoryOrTag);
-                });
-            }
-
             var selectedCategory;
 
-            function categoryOrTagOnClick(event, categoryOrTag) {
+            // 点击 "分类" 或 "标签" 清空选择
+            document.getElementsByClassName('search_box__' + field + '_list_title')[0].addEventListener('click', cleanCategoryOrTag);
+
+            Array.prototype.forEach.call(document.getElementsByClassName('search_box__' + field + '_list')[0].getElementsByTagName('li'), function (li) {
+                li.addEventListener('click', function (evt) {
+                    toggleCategoryOrTag(evt, categoryOrTag);
+                });
+            });
+
+            function cleanCategoryOrTag(evt) {
+                // 利用 map 把 getElementsByClassName 结果放到数组里，否则 classList.remove 使 getElementsByClassName 结果 length -1
+                Array.prototype.map.call(evt.currentTarget.parentNode.getElementsByClassName('cat_selected'), function (el) {
+                    return el;
+                }).forEach(function (el) {
+                    el.classList.remove('cat_selected');
+                });
+
+                var newValueBuilder = [];
+                var prefix = categoryOrTag === 'tag' ? tagPrefix : categoryPrefix;
+                parseS(searchInput.value).forEach(function (token) {
+                    if (!token.startsWith(prefix)) {
+                        newValueBuilder.push(token);
+                    }
+                });
+                searchInput.value = newValueBuilder.join(' ');
+                searchInput.focus();
+                qs();
+            }
+
+            function toggleCategoryOrTag(event, categoryOrTag) {
                 var isTag = categoryOrTag === 'tag';
                 var li = event.currentTarget;
                 var prefix = isTag ? tagPrefix : categoryPrefix;
@@ -249,12 +270,12 @@ function setupQuickSearch(root) {
                     newValue = t + ' ' + newValue;
                     if (!isTag) {
                         if (selectedCategory) {
-                            selectedCategory.classList.remove('cat_activation');
+                            selectedCategory.classList.remove('cat_selected');
                         }
                         selectedCategory = li;
                     }
                 }
-                li.classList.toggle('cat_activation', add);
+                li.classList.toggle('cat_selected', add);
                 searchInput.value = newValue;
                 searchInput.focus();
                 qs();
@@ -265,9 +286,6 @@ function setupQuickSearch(root) {
             catToggle.addEventListener('click', function () {
                 var show = cat.classList.toggle('show');
                 catToggle.innerHTML = show ? unfoldedString : foldedString;
-                if (show || searchInput.value.length > 0) {
-                    searchInput.focus();
-                }
             });
             // 初始状态
             catToggle.innerHTML = foldedString;
@@ -303,7 +321,6 @@ function setupQuickSearch(root) {
         var s = searchInput.value;
 
         if (qsOpened && s === '' && document.activeElement !== searchInput) {
-            closeCat();
             clearResult();
             lastS = null;
             qsOpened = false;
@@ -662,13 +679,13 @@ function setupQuickSearch(root) {
             var showAllBtn = qsrList.getElementsByClassName('qsr__list__show_all__btn')[0];
             if (showAllBtn) {
                 showAllBtn.addEventListener('click', showMoreResult);
+                showAllBtn.classList.add('action_toggle');
             }
         }
     }
 
     function renderQsrHtml(html) {
-        qsr.innerHTML = html;
-        qsrList = document.getElementsByClassName('qsr__list')[0];
+        qsrList.innerHTML = html;
         qsrClose.classList.toggle('show', true);
     }
 
@@ -745,7 +762,7 @@ function setupQuickSearch(root) {
             return '';
         }
         var len = Math.min(pages.length, maxLength);
-        var html = '<ul class="qsr__list">';
+        var html = '';
         var i = 0;
         for (; i < len; i++) {
             var page = pages[i];
@@ -759,8 +776,6 @@ function setupQuickSearch(root) {
             html += '<span class="qsr__list__show_all__btn no_selection">' + (i + 1) + ' ... ' + pages.length + '</span>';
             html += '</li>';
         }
-
-        html += '</ul>';
         return html;
     }
 
@@ -776,8 +791,7 @@ function setupQuickSearch(root) {
     }
 
     function clearResult() {
-        qsr.innerHTML = '';
-        qsrList = null;
+        qsrList.innerHTML = '';
         qsrAllPages = null;
         qsrSelectedIndex = -1;
         qsrClose.classList.toggle('show', false);

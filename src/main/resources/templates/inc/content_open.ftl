@@ -16,14 +16,16 @@
                 <input class="header__row_1__search_input" type="search" name="s" value="${s!}" autocomplete="off"
                        placeholder="Search"/>
                 <div class="search_box__category_and_tags no_selection"></div>
-                <span class="qsr__close no_selection">X</span>
-                <div class="qsr"></div>
+                <div class="qsr">
+                    <span class="qsr__close no_selection">X</span>
+                    <ul class="qsr__list"></ul>
+                </div>
             </form>
         </div>
         <div class="header__row_1__right column">
             <ul class="header__row_1__tools no_selection">
-                <#--<span class="sidebar_toggle">Sidebar</span>-->
-                <li><span class="sitemap_toggle">Sitemap</span></li>
+            <#--<span class="sidebar_toggle">Sidebar</span>-->
+                <li><span class="sitemap_toggle action_toggle">Sitemap</span></li>
                 <li><a href="${ctx!}/help">Help</a></li>
             <#if logged == true>
                 <li><a class="header__row_1__right__logout" href="${ctx!}/logout">Logout</a></li>
