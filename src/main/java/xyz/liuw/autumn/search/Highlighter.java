@@ -33,6 +33,7 @@ public class Highlighter {
         // o1 和 o2 只留一个
         return 0;
     };
+    @SuppressWarnings("FieldCanBeLocal")
     private int maxPreviewLength = 120;
 
     private StringBuilderHolder stringBuilderHolder1 = new StringBuilderHolder(64);
@@ -222,7 +223,7 @@ public class Highlighter {
     // apply highlight string
     public String highlightSearchStr(String html, List<String> searchStrList) {
         Set<Hit> hits = Sets.newTreeSet(HIT_COMPARATOR);
-        searchStrList.forEach(s -> hits.addAll(ExactMatcher.htmlFind(html, escapeHtml(s))));
+        searchStrList.forEach(s -> hits.addAll(ExactMatcher.htmlFindHitList(html, escapeHtml(s))));
         return highlightHits(html, hits, false);
     }
 

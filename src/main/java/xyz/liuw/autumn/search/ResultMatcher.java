@@ -18,6 +18,16 @@ class ResultMatcher implements Matcher {
     }
 
     @Override
+    public void setSourceData(Set<SearchingPage> sourceData) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<SearchingPage> getSourceData() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Set<SearchingPage> search() {
         return result;
     }
@@ -27,6 +37,11 @@ class ResultMatcher implements Matcher {
         return source.size() < result.size() ?
                 Sets.intersection(source, result) :
                 Sets.intersection(result, source);
+    }
+
+    @Override
+    public String getExpression() {
+        throw new UnsupportedOperationException();
     }
 
 }

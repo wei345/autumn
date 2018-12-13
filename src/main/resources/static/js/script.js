@@ -18,10 +18,7 @@ window.addEventListener('load', function () {
     checkLogout();
     updateVisitList();
     bindToggle('sitemap');
-    document.body.classList.add('js');
-    if (isMobi) {
-        document.body.classList.add('mobi');
-    }
+    detectClient();
 });
 
 /**
@@ -71,6 +68,13 @@ autumn.setCookie = function (name, value, seconds) {
 autumn.deleteCookie = function deleteCookie(name) {
     autumn.setCookie(name, '', -1);
 };
+
+function detectClient() {
+    document.body.classList.add('js');
+    if (isMobi) {
+        document.body.classList.add('mobi');
+    }
+}
 
 function bindSidebarToggle() {
     var toggle = document.getElementsByClassName('sidebar_toggle')[0];

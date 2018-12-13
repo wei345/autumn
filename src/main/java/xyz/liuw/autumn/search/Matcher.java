@@ -8,12 +8,9 @@ import java.util.Set;
  */
 interface Matcher extends Token {
 
-    default void setSourceData(Set<SearchingPage> sourceData) {
-    }
+    void setSourceData(Set<SearchingPage> sourceData);
 
-    default Set<SearchingPage> getSourceData() {
-        return null;
-    }
+    Set<SearchingPage> getSourceData();
 
     default Set<SearchingPage> search() {
         return search(getSourceData());
@@ -25,14 +22,5 @@ interface Matcher extends Token {
      * @return 小写的 expression e.g. tag:abc
      */
     @Override
-    default String getExpression() {
-        return null;
-    }
-
-    /**
-     * @return 小写的 searchStr e.g. abc
-     */
-    default String getSearchStr() {
-        return null;
-    }
+    String getExpression();
 }

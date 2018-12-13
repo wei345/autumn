@@ -9,16 +9,17 @@ import java.util.Set;
 // tag:abc
 class TagMatcher extends AbstractMatcher {
 
+    private String searchStr;
+
     private TagMatcher(String expression, String searchStr) {
-        super(expression, searchStr);
+        super(expression);
+        this.searchStr = searchStr;
     }
 
     @Override
-    public Set<SearchingPage> search(Set<SearchingPage> source) {
-        return search(source, searchingPage -> {
-            Set<String> tags = searchingPage.getPage().getTags();
-            return tags != null && tags.contains(getSearchStr());
-        });
+    protected boolean test(SearchingPage searchingPage) {
+        Set<String> tags = searchingPage.getPage().getTags();
+        return tags != null && tags.contains(searchStr);
     }
 
     static class Parser extends AbstractPrefixMatcherParser {

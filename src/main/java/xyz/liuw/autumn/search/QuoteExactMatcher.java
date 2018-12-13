@@ -2,21 +2,34 @@ package xyz.liuw.autumn.search;
 
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
-class QuoteExactMatcher extends AbstractMatcher {
+class QuoteExactMatcher extends AbstractPageHitMatcher {
+
+    private String searchStr;
 
     private QuoteExactMatcher(String expression, String searchStr) {
-        super(expression, searchStr);
+        super(expression);
+        this.searchStr = searchStr;
     }
 
     @Override
-    public Set<SearchingPage> search(Set<SearchingPage> source) {
-        return search(source, searchingPage -> ExactMatcher.find(searchingPage, getExpression(), getSearchStr()).getHitCount() > 0);
+    protected boolean test(SearchingPage searchingPage) {
+        return getPageHit(searchingPage).getHitCount() > 0;
+    }
+
+    @Override
+    List<Hit> getHitList(String source) {
+        return ExactMatcher.findHitList(source, searchStr);
+    }
+
+    @Override
+    String getPageHitCacheKey() {
+        return searchStr;
     }
 
     static class Parser extends AbstractTokenParser {

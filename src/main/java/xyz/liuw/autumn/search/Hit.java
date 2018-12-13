@@ -19,7 +19,7 @@ class Hit {
         return end;
     }
 
-    public String getStr() {
+    String getStr() {
         return str;
     }
 }

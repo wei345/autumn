@@ -35,10 +35,10 @@ class UnionOperator extends AbstractOperator {
         Set<SearchingPage> r1 = m1.search();
         Set<SearchingPage> r2 = m2.search(Sets.difference(m2.getSourceData(), r1));
         if (m2 instanceof ExactMatcher || m2 instanceof QuoteExactMatcher) {
-            r1.forEach(searchingPage -> ExactMatcher.find(searchingPage, m2.getExpression(), m2.getSearchStr()));
+            r1.forEach(((AbstractPageHitMatcher) m2)::getPageHit);
         }
-        if(m2 instanceof WildcardQuoteMatcher){
-            r1.forEach(searchingPage -> WildcardQuoteMatcher.findPageHit(searchingPage, ((WildcardQuoteMatcher) m2)));
+        if (m2 instanceof WildcardQuoteMatcher) {
+            r1.forEach(((WildcardQuoteMatcher) m2)::getPageHit);
         }
         return new ResultMatcher(Sets.union(r1, r2));
     }

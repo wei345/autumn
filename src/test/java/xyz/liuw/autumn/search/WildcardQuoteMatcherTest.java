@@ -22,7 +22,7 @@ public class WildcardQuoteMatcherTest {
         assertThat(parser.accept(s, 0)).isTrue();
         assertThat(parser.getToken() instanceof WildcardQuoteMatcher).isTrue();
         WildcardQuoteMatcher matcher = (WildcardQuoteMatcher) parser.getToken();
-        List<Hit> hitList = WildcardQuoteMatcher.findHit(text, matcher.getSearches());
+        List<Hit> hitList = WildcardQuoteMatcher.findHitList(text, matcher.getSearches());
         assertThat(hitList.size()).isEqualTo(1);
         assertThat(hitList.get(0).getStart()).isEqualTo(0);
         assertThat(hitList.get(0).getEnd()).isEqualTo(text.length());

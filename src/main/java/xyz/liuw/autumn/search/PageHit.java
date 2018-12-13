@@ -32,27 +32,27 @@ public class PageHit {
         this.hitCount = pathHitList.size() + titleHitList.size() + bodyHitList.size();
     }
 
-    public boolean isNameEqual() {
+    boolean isNameEqual() {
         return nameEqual;
     }
 
-    public boolean isTitleEqual() {
+    boolean isTitleEqual() {
         return titleEqual;
     }
 
-    public List<Hit> getNameHitList() {
+    List<Hit> getNameHitList() {
         return nameHitList;
     }
 
-    public List<Hit> getPathHitList() {
+    List<Hit> getPathHitList() {
         return pathHitList;
     }
 
-    public List<Hit> getTitleHitList() {
+    List<Hit> getTitleHitList() {
         return titleHitList;
     }
 
-    public List<Hit> getBodyHitList() {
+    List<Hit> getBodyHitList() {
         return bodyHitList;
     }
 

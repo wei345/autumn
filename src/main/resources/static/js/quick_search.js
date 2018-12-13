@@ -676,11 +676,12 @@ function setupQuickSearch(root) {
         renderQsrHtml(buildResultHtml(pages, maxLines));
 
         if (maxLines < pages.length) {
+            var showAllIcon = qsrList.getElementsByClassName('qsr__list__show_all__icon')[0];
+            showAllIcon.addEventListener('click', showMoreResult);
+
             var showAllBtn = qsrList.getElementsByClassName('qsr__list__show_all__btn')[0];
-            if (showAllBtn) {
-                showAllBtn.addEventListener('click', showMoreResult);
-                showAllBtn.classList.add('action_toggle');
-            }
+            showAllBtn.addEventListener('click', showMoreResult);
+            showAllBtn.classList.add('action_toggle');
         }
     }
 
@@ -773,6 +774,7 @@ function setupQuickSearch(root) {
 
         if (i < pages.length) {
             html += '<li class="qsr__list__show_all">';
+            html += '<span class="qsr__list__show_all__icon"></span>';
             html += '<span class="qsr__list__show_all__btn no_selection">' + (i + 1) + ' ... ' + pages.length + '</span>';
             html += '</li>';
         }

@@ -22,6 +22,8 @@ import java.util.Map;
  * Created by liuwei on 2018/11/19.
  * <p>
  * Not thread-safe
+ * <p>
+ * Not thread-safe
  *//*
 public class CommonmarkMarkdownParser implements MarkdownParser {
 

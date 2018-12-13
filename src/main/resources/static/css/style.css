@@ -466,6 +466,7 @@ input[type='submit'] {
     display: inline-block;
     margin: 0 .25em;
     padding: 0 .25em;
+    cursor: pointer;
 }
 
 .search_box__category_list_title, .search_box__tags_list_title {
@@ -543,7 +544,11 @@ input[type='submit'] {
     margin-left: -18px;
 }
 
-.qsr__list__show_all:before {
+.qsr__list__show_all__icon {
+    cursor: pointer;
+}
+
+.qsr__list__show_all__icon:before {
     content: '+';
 }
 

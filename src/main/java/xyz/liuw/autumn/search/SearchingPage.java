@@ -71,15 +71,15 @@ public class SearchingPage {
         return hitCount;
     }
 
-    public int getNameHitCount() {
+    int getNameHitCount() {
         return nameHitCount;
     }
 
-    public int getPathHitCount() {
+    int getPathHitCount() {
         return pathHitCount;
     }
 
-    public int getTitleHitCount() {
+    int getTitleHitCount() {
         return titleHitCount;
     }
 
@@ -87,7 +87,7 @@ public class SearchingPage {
         return bodyHitCount;
     }
 
-    public Map<String, PageHit> getUnmodifiableHitMap() {
+    Map<String, PageHit> getUnmodifiableHitMap() {
         return Collections.unmodifiableMap(hitMap);
     }
 
@@ -95,7 +95,7 @@ public class SearchingPage {
         return pathPreview;
     }
 
-    public void setPathPreview(String pathPreview) {
+    void setPathPreview(String pathPreview) {
         this.pathPreview = pathPreview;
     }
 
@@ -103,7 +103,7 @@ public class SearchingPage {
         return titlePreview;
     }
 
-    public void setTitlePreview(String titlePreview) {
+    void setTitlePreview(String titlePreview) {
         this.titlePreview = titlePreview;
     }
 
@@ -111,7 +111,7 @@ public class SearchingPage {
         return bodyPreview;
     }
 
-    public void setBodyPreview(String bodyPreview) {
+    void setBodyPreview(String bodyPreview) {
         this.bodyPreview = bodyPreview;
     }
 
@@ -119,15 +119,15 @@ public class SearchingPage {
         return highlightString;
     }
 
-    public void setHighlightString(String highlightString) {
+    void setHighlightString(String highlightString) {
         this.highlightString = highlightString;
     }
 
-    public int getNameEqCount() {
+    int getNameEqCount() {
         return nameEqCount;
     }
 
-    public int getTitleEqCount() {
+    int getTitleEqCount() {
         return titleEqCount;
     }
 

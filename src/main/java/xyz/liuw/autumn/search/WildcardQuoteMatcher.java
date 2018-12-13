@@ -1,16 +1,14 @@
 package xyz.liuw.autumn.search;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import org.springframework.lang.Nullable;
 
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.indexOfIgnoreCase;
-import static xyz.liuw.autumn.search.ExactMatcher.cacheableFindPageHit;
 
 /**
  * <code>*</code> 可以匹配 0 个或多个任意字符。
@@ -19,27 +17,16 @@ import static xyz.liuw.autumn.search.ExactMatcher.cacheableFindPageHit;
  * @author liuwei
  * Created by liuwei on 2018/12/12.
  */
-public class WildcardQuoteMatcher implements Matcher {
+class WildcardQuoteMatcher extends AbstractPageHitMatcher {
 
-    private Set<SearchingPage> sourceData;
-
-    private String expression;
     private String[] searches;
 
     private WildcardQuoteMatcher(String expression, String[] searches) {
-        this.expression = expression;
+        super(expression);
         this.searches = searches;
     }
 
-    static PageHit findPageHit(@NotNull SearchingPage searchingPage, WildcardQuoteMatcher matcher) {
-        return cacheableFindPageHit(
-                searchingPage,
-                matcher.getExpression(),
-                matcher.getExpression(),
-                s -> findHit(s, matcher.getSearches()));
-    }
-
-    static List<Hit> findHit(@Nullable String source, @Nullable String[] searches) {
+    static List<Hit> findHitList(@Nullable String source, @Nullable String[] searches) {
         if (source == null || searches == null || searches.length == 0) {
             return Collections.emptyList();
         }
@@ -99,41 +86,24 @@ public class WildcardQuoteMatcher implements Matcher {
         return index;
     }
 
+    @VisibleForTesting
     String[] getSearches() {
         return searches;
     }
 
     @Override
-    public Set<SearchingPage> search(Set<SearchingPage> source) {
-        return AbstractMatcher.search(
-                source,
-                searchingPage -> findPageHit(searchingPage, this).getHitCount() > 0);
+    protected boolean test(SearchingPage searchingPage) {
+        return getPageHit(searchingPage).getHitCount() > 0;
     }
 
     @Override
-    public String getSearchStr() {
-        throw new UnsupportedOperationException();
-    }
-
-
-    @Override
-    public void setSourceData(Set<SearchingPage> sourceData) {
-        this.sourceData = sourceData;
+    List<Hit> getHitList(String source) {
+        return findHitList(source, searches);
     }
 
     @Override
-    public Set<SearchingPage> getSourceData() {
-        return sourceData;
-    }
-
-    @Override
-    public Set<SearchingPage> search() {
-        return search(sourceData);
-    }
-
-    @Override
-    public String getExpression() {
-        return expression;
+    String getPageHitCacheKey() {
+        return getExpression();
     }
 
     static class Parser extends AbstractTokenParser {

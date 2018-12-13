@@ -1,21 +1,34 @@
 package xyz.liuw.autumn.search;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
 // -abc
-class ExcludeMatcher extends AbstractMatcher {
+class ExcludeMatcher extends AbstractPageHitMatcher {
+
+    private String searchStr;
 
     private ExcludeMatcher(String expression, String searchStr) {
-        super(expression, searchStr);
+        super(expression);
+        this.searchStr = searchStr;
     }
 
     @Override
-    public Set<SearchingPage> search(Set<SearchingPage> source) {
-        return search(source, searchingPage -> ExactMatcher.find(searchingPage, getExpression(), getSearchStr()).getHitCount() == 0);
+    protected boolean test(SearchingPage searchingPage) {
+        return getPageHit(searchingPage).getHitCount() == 0;
+    }
+
+    @Override
+    List<Hit> getHitList(String source) {
+        return ExactMatcher.findHitList(source, searchStr);
+    }
+
+    @Override
+    String getPageHitCacheKey() {
+        return searchStr;
     }
 
     static class Parser extends AbstractPrefixMatcherParser {

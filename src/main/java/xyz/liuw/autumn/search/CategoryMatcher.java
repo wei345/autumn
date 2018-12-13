@@ -1,7 +1,5 @@
 package xyz.liuw.autumn.search;
 
-import java.util.Set;
-
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/27.
@@ -9,13 +7,16 @@ import java.util.Set;
 // category:abc
 class CategoryMatcher extends AbstractMatcher {
 
+    private String searchStr;
+
     private CategoryMatcher(String expression, String searchStr) {
-        super(expression, searchStr);
+        super(expression);
+        this.searchStr = searchStr;
     }
 
     @Override
-    public Set<SearchingPage> search(Set<SearchingPage> source) {
-        return search(source, searchingPage -> getSearchStr().equals(searchingPage.getPage().getCategory()));
+    protected boolean test(SearchingPage searchingPage) {
+        return searchStr.equals(searchingPage.getPage().getCategory());
     }
 
     static class Parser extends AbstractPrefixMatcherParser {
