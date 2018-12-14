@@ -485,18 +485,26 @@ input[type='submit'] {
     line-height: 1.2;
 }
 
-.header__row_1__search_form__category_and_tags_toggle {
+.search_box__category_and_tags_toggle {
     position: absolute;
     right: 10px;
-    top: 3px;
+    top: 4px;
     font-size: 1.5em;
     cursor: pointer;
     display: none;
     padding: 0 .5em;
 }
 
-.js .header__row_1__search_form__category_and_tags_toggle {
-    display: unset;
+.search_box__category_and_tags_toggle:before {
+    content: '+';
+}
+
+.search_box__category_and_tags_toggle.unfolded:before {
+    content: '−';
+}
+
+.js .search_box__category_and_tags_toggle {
+    display: block;
 }
 
 .qs_opened .header__row_1__search_input {

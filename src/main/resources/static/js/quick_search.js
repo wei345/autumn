@@ -3,7 +3,7 @@
 function setupQuickSearch(root) {
     var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
     var categoryAndTags = document.getElementsByClassName('search_box__category_and_tags')[0];
-    var categoryAndTagsToggle = document.getElementsByClassName('header__row_1__search_form__category_and_tags_toggle')[0];
+    var categoryAndTagsToggle = document.getElementsByClassName('search_box__category_and_tags_toggle')[0];
     var qsrClose = document.getElementsByClassName('qsr__close')[0];
     var qsrList = document.getElementsByClassName('qsr__list')[0];
     var qsrAllPages;
@@ -11,9 +11,6 @@ function setupQuickSearch(root) {
     var qsrSelectedIndex = -1;
     var categoryPrefix = 'c:';
     var tagPrefix = 't:';
-    var foldedString = '+';
-    var unfoldedString = '−';
-    var categoryAndTagsToggleEnabled = false;
     var qsOpened = false;
     var allPages;
     var pathToPage;
@@ -28,7 +25,6 @@ function setupQuickSearch(root) {
 
     function bindSearchInputEvent() {
         searchInput.addEventListener('focus', function () {
-            openCategoryAndTags();
             qs(true);
         });
 
@@ -95,7 +91,10 @@ function setupQuickSearch(root) {
     function bindQuickSearchCloseEvent() {
         // 不用 blur 关闭 QuickSearch，因为会导致无法用鼠标点击搜索结果，在鼠标点到链接之前 QuickSearch 就关闭了
 
-        qsrClose.addEventListener('click', closeQs);
+        qsrClose.addEventListener('click', function (event) {
+            closeQs();
+            event.stopPropagation();
+        });
 
         document.addEventListener('click', function () {
             if (qsOpened) {
@@ -103,9 +102,12 @@ function setupQuickSearch(root) {
             }
         });
 
-        document.getElementsByClassName('header__row_1__search_form')[0].addEventListener('click', function (evt) {
+        document.getElementsByClassName('header__row_1__search_form')[0].addEventListener('click', function (event) {
             // 避免搜索框为空时，点击搜索结果（最近访问），qs 关闭
-            evt.stopPropagation();
+            event.stopPropagation();
+            if (qsOpened && document.activeElement !== searchInput) {
+                searchInput.focus();
+            }
         });
     }
 
@@ -184,7 +186,7 @@ function setupQuickSearch(root) {
     }
 
     function doSearch(s) {
-        var tokens = parseS(s);
+        var matchers = parseS(s);
         var pages = allPages;
         pages.forEach(function (page) {
             page.searching = {
@@ -202,30 +204,8 @@ function setupQuickSearch(root) {
                 hitCount: 0
             }
         });
-        tokens.forEach(function (token) {
-            // 搜索分类
-            if (token.startsWith(categoryPrefix)) {
-                var category = token.substr(categoryPrefix.length);
-                if (category.length > 0) {
-                    pages = searchCategory(pages, category);
-                    return;
-                }
-            }
-            // 搜索标签
-            if (token.startsWith(tagPrefix)) {
-                var tag = token.substr(tagPrefix.length);
-                if (tag.length > 0) {
-                    pages = searchTag(pages, tag);
-                    return;
-                }
-            }
-            // 搜索 name, title, path
-            if (token.length > 1 && token.charAt(0) === '-') {
-                var searchStr = token.substr(1);
-                pages = searchPagesExclude(pages, searchStr);
-                return;
-            }
-            pages = searchPagesInclude(pages, token);
+        matchers.forEach(function (matcher) {
+            pages = matcher.search(pages);
         });
         sort(pages);
         highlight(pages);
@@ -237,34 +217,71 @@ function setupQuickSearch(root) {
         if (s.length === 0) {
             return [];
         }
-        return s.split(/\s+/);
-    }
-
-    function searchCategory(pages, category) {
-        return pages.filter(function (page) {
-            return page.category === category;
+        return s.split(/\s+/).map(function (part) {
+            if (part.startsWith(categoryPrefix)) {
+                const category = part.substr(categoryPrefix.length);
+                if (category.length > 0) {
+                    return new CategoryMatcher(part, category);
+                }
+            }
+            if (part.startsWith(tagPrefix)) {
+                const tag = part.substr(tagPrefix.length);
+                if (tag.length > 0) {
+                    return new TagMatcher(part, tag);
+                }
+            }
+            if (part.length > 1 && part.charAt(0) === '-') {
+                return new ExcludeMatcher(part, part.substr(1));
+            }
+            return new ExactMatcher(part, part);
         });
     }
 
-    function searchTag(pages, tag) {
-        return pages.filter(function (page) {
-            return page.tags.includes(tag);
-        })
+    class Matcher {
+        constructor(expression, searchStr) {
+            this.expression = expression;
+            this.searchStr = searchStr;
+        }
     }
 
-    function searchPagesInclude(pages, searchStr) {
-        return pages.filter(function (page) {
-            return searchPage(page, searchStr).hitCount > 0;
-        });
+    class CategoryMatcher extends Matcher {
+        search(pages) {
+            const _this = this;
+            return pages.filter(function (page) {
+                return page.category === _this.searchStr;
+            });
+        }
     }
 
-    function searchPagesExclude(pages, searchStr) {
-        return pages.filter(function (page) {
-            return searchPage(page, searchStr).hitCount === 0;
-        });
+    class TagMatcher extends Matcher {
+        search(pages) {
+            const _this = this;
+            return pages.filter(function (page) {
+                return page.tags.includes(_this.searchStr);
+            })
+        }
     }
 
-    function searchPage(page, searchStr) {
+    // 搜索 name, title, path
+    class ExactMatcher extends Matcher {
+        search(pages) {
+            const _this = this;
+            return pages.filter(function (page) {
+                return getPageHit(page, _this.searchStr).hitCount > 0;
+            });
+        }
+    }
+
+    class ExcludeMatcher extends Matcher {
+        search(pages) {
+            const _this = this;
+            return pages.filter(function (page) {
+                return getPageHit(page, _this.searchStr).hitCount === 0;
+            });
+        }
+    }
+
+    function getPageHit(page, searchStr) {
         var search = searchStr.toLowerCase();
 
         // page-searchStr 缓存
@@ -671,11 +688,31 @@ function setupQuickSearch(root) {
     function setUpCategoryAndTags() {
         var categoryField = 'category';
         var tagField = 'tags';
-        var html = buildHtml(allPages, categoryField, '分类');
-        html += buildHtml(allPages, tagField, '标签');
-        categoryAndTags.innerHTML = html;
-        bindClick(categoryField);
-        bindClick(tagField);
+        var selectedClassName = 'cat_selected';
+        categoryAndTags.innerHTML = buildHtml(allPages, categoryField, '分类') + buildHtml(allPages, tagField, '标签');
+        var categoryList = document.getElementsByClassName('search_box__' + categoryField + '_list')[0];
+        var tagList = document.getElementsByClassName('search_box__' + tagField + '_list')[0];
+        const categoryTitle = document.getElementsByClassName('search_box__' + categoryField + '_list_title')[0];
+        const tagTitle = document.getElementsByClassName('search_box__' + tagField + '_list_title')[0];
+
+        Array.prototype.forEach.call(categoryList.getElementsByTagName('li'), function (li) {
+            li.addEventListener('click', toggleCategorySelected);
+        });
+
+        Array.prototype.forEach.call(tagList.getElementsByTagName('li'), function (li) {
+            li.addEventListener('click', toggleTagSelected);
+        });
+
+        categoryTitle.addEventListener('click', function () {
+            cleanSelected(categoryList, CategoryMatcher);
+            focusAndQs();
+        });
+
+        tagTitle.addEventListener('click', function () {
+            cleanSelected(tagList, TagMatcher);
+            focusAndQs();
+        });
+
         bindCategoryAndTagsToggle();
 
         function buildHtml(pages, field, title) {
@@ -720,94 +757,170 @@ function setupQuickSearch(root) {
             return html;
         }
 
-        function bindClick(field) {
-            var isTag = (field === 'tags');
-            var tokenPrefix = (isTag ? tagPrefix : categoryPrefix);
-            var selectedClassName = 'cat_selected';
-            var selectedCategory;
-
-            // 点击 "分类" 或 "标签" 清空选择
-            document.getElementsByClassName('search_box__' + field + '_list_title')[0].addEventListener('click', cleanSelected);
-
-            Array.prototype.forEach.call(document.getElementsByClassName('search_box__' + field + '_list')[0].getElementsByTagName('li'), function (li) {
-                li.addEventListener('click', toggleSelected);
-            });
-
-            function cleanSelected(evt) {
-                // 利用 map 把 getElementsByClassName 结果放到数组里，否则 classList.remove 使 getElementsByClassName 结果 length -1
-                Array.prototype.map.call(evt.currentTarget.parentNode.getElementsByClassName(selectedClassName), function (el) {
-                    return el;
-                }).forEach(function (el) {
-                    el.classList.remove(selectedClassName);
-                });
-
-                var newValueBuilder = [];
-                parseS(searchInput.value).forEach(function (token) {
-                    if (!token.startsWith(tokenPrefix)) {
-                        newValueBuilder.push(token);
-                    }
-                });
-                searchInput.value = newValueBuilder.join(' ');
-                searchInput.focus();
-                qs();
-            }
-
-            function toggleSelected(event) {
-                var li = event.currentTarget;
-                var item = li.getElementsByClassName(isTag ? 'tag' : 'category')[0].innerText;
-                var itemToken = tokenPrefix + item;
-                var isAdd = true;
-                var newValueBuilder = [];
-                parseS(searchInput.value).forEach(function (token) {
-                    if (token === itemToken) {
-                        isAdd = false;
-                        return;
-                    }
-                    if (isTag) {
-                        newValueBuilder.push(token);
-                    } else if (!token.startsWith(tokenPrefix)) {
-                        newValueBuilder.push(token);
-                    }
-                });
-                var newValue = newValueBuilder.join(' ');
-                if (isAdd) {
-                    newValue = itemToken + ' ' + newValue;
-                    if (!isTag) {
-                        if (selectedCategory) {
-                            selectedCategory.classList.remove(selectedClassName);
-                        }
-                        selectedCategory = li;
-                    }
+        function sContains(s, exp) {
+            const matchers = parseS(s);
+            for (let i = 0; i < matchers.length; i++) {
+                if (matchers[i].expression === exp) {
+                    return true;
                 }
-                li.classList.toggle(selectedClassName, isAdd);
-                searchInput.value = newValue;
-                searchInput.focus();
-                qs();
             }
+            return false;
+        }
+
+        function sRemove(s, exp) {
+            return sFilter(s, function (matcher) {
+                return matcher.expression !== exp;
+            });
+        }
+
+        function sRemoveMatcherType(s, matcherFn) {
+            return sFilter(s, function (matcher) {
+                return matcher.constructor.name !== matcherFn.name;
+            });
+        }
+
+        function sFilter(s, test) {
+            const stringBuilder = [];
+            const matchers = parseS(s);
+            for (let i = 0; i < matchers.length; i++) {
+                if (test(matchers[i])) {
+                    stringBuilder.push(matchers[i].expression);
+                }
+            }
+            return stringBuilder.join(' ');
+        }
+
+        function getTag(li) {
+            return li.getElementsByClassName('tag')[0].innerText;
+        }
+
+        function getCategory(li) {
+            return li.getElementsByClassName('category')[0].innerText;
+        }
+
+        function toArray(elements) {
+            // elements 不是正常的数组，如果在遍历过程中对 element 进行修改导致不符合之前的查询条件，
+            // 该 element 会自动从 elements 中移除，导致遍历漏掉之后的元素。
+            // 将 elements 转为正常的数组可避免这种情况
+            return Array.prototype.map.call(elements, function (e) {
+                return e;
+            });
+        }
+
+        function toggleCategorySelected(event) {
+            var li = event.currentTarget;
+            var category = getCategory(li);
+            var exp = categoryPrefix + category;
+            var s = searchInput.value;
+            var selected = li.classList.toggle(selectedClassName);
+
+            if (!selected) {
+                searchInput.value = sRemove(s, exp);
+                focusAndQs();
+                return;
+            }
+
+            if (!multiSelectEnabled(event)) {
+                cleanTagSelected();
+            }
+            cleanCategorySelected();
+            li.classList.add(selectedClassName);
+            searchInput.value = exp + ' ' + searchInput.value;
+            focusAndQs();
+        }
+
+        function toggleTagSelected(event) {
+            var li = event.currentTarget;
+            var tag = getTag(li);
+            var exp = tagPrefix + tag;
+            var s = searchInput.value;
+            var selected = li.classList.toggle(selectedClassName);
+
+            if (!selected) {
+                searchInput.value = sRemove(s, exp);
+                focusAndQs();
+                return;
+            }
+
+            if (multiSelectEnabled(event)) {
+                if (!sContains(s, exp)) {
+                    searchInput.value = exp + ' ' + s;
+                }
+                focusAndQs();
+                return;
+            }
+
+            cleanTagSelected();
+            cleanCategorySelected();
+            li.classList.add(selectedClassName);
+            searchInput.value = exp + ' ' + searchInput.value;
+            focusAndQs();
+        }
+
+        function multiSelectEnabled(event) {
+            return multipleSelectionEnabled || event.metaKey || event.ctrlKey;
+        }
+
+        function focusAndQs() {
+            searchInput.focus();
+            qs();
+        }
+
+        function cleanTagSelected() {
+            cleanSelected(tagList, TagMatcher);
+        }
+
+        function cleanCategorySelected() {
+            cleanSelected(categoryList, CategoryMatcher);
+        }
+
+        function cleanSelected(parent, matcherType) {
+            removeSelectedClass(parent);
+            searchInput.value = sRemoveMatcherType(searchInput.value, matcherType);
+        }
+
+        function removeSelectedClass(parent) {
+            toArray(parent.getElementsByClassName(selectedClassName)).forEach(function (el) {
+                el.classList.remove(selectedClassName);
+            });
         }
 
         function bindCategoryAndTagsToggle() {
             categoryAndTagsToggle.addEventListener('click', function () {
                 var show = categoryAndTags.classList.toggle('show');
-                categoryAndTagsToggle.innerHTML = show ? unfoldedString : foldedString;
+                categoryAndTagsToggle.classList.toggle('unfolded', show);
+                if (show) {
+                    syncS();
+                }
+                if (qsOpened) {
+                    searchInput.focus();
+                }
             });
-            // 初始状态
-            categoryAndTagsToggle.innerHTML = foldedString;
-            categoryAndTagsToggleEnabled = true;
         }
-    }
 
-    function openCategoryAndTags() {
-        if (!categoryAndTagsToggleEnabled && !categoryAndTags.classList.contains('show')) {
-            categoryAndTags.classList.toggle('show', true);
-            categoryAndTagsToggle.innerHTML = unfoldedString;
-        }
-    }
-
-    function closeCategoryAndTags() {
-        if (categoryAndTags.classList.contains('show')) {
-            categoryAndTags.classList.toggle('show', false);
-            categoryAndTagsToggle.innerHTML = foldedString;
+        function syncS() {
+            var cSelected = {};
+            var tSelected = {};
+            parseS(searchInput.value).forEach(function (matcher) {
+                if (matcher instanceof CategoryMatcher) {
+                    cSelected[matcher.searchStr] = true;
+                }
+                if (matcher instanceof TagMatcher) {
+                    tSelected[matcher.searchStr] = true;
+                }
+            });
+            removeSelectedClass(categoryList);
+            Array.prototype.forEach.call(categoryList.getElementsByClassName('category'), function (el) {
+                if (cSelected[el.innerText]) {
+                    el.parentNode.classList.add(selectedClassName);
+                }
+            });
+            removeSelectedClass(tagList);
+            Array.prototype.forEach.call(tagList.getElementsByClassName('tag'), function (el) {
+                if (tSelected[el.innerText]) {
+                    el.parentNode.classList.add(selectedClassName);
+                }
+            });
         }
     }
 }

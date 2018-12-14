@@ -9,6 +9,7 @@ var recentlyVisitPages;
 var logoutCookieName = 'logout';
 var isMobi = /Mobi/.test(navigator.userAgent);
 var alwaysUnfoldRoot = false;
+var multipleSelectionEnabled = false;
 window.addEventListener('load', function () {
     bindSidebarToggle();
     bindTocToggle();
@@ -51,7 +52,7 @@ autumn.ajax = function (method, url, success, error) {
 
 // Safari 不支持 classList.replace
 autumn.replaceClass = function (dom, cls, replacement) {
-    dom.className = dom.className.replace(new RegExp('\\b' + cls + '\\b', 'g'), replacement);
+    dom.className = dom.className.replace(new RegExp('\\b' + escapeRegExp(cls) + '\\b', 'g'), replacement);
 };
 
 autumn.getCookie = function (name) {
@@ -68,6 +69,10 @@ autumn.setCookie = function (name, value, seconds) {
 autumn.deleteCookie = function deleteCookie(name) {
     autumn.setCookie(name, '', -1);
 };
+
+function escapeRegExp(str) {
+    return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+}
 
 function detectClient() {
     document.body.classList.add('js');
