@@ -16,7 +16,7 @@ function setupQuickSearch(root) {
     var categoryAndTagsToggleEnabled = false;
     var qsOpened = false;
     var allPages;
-    var pathToPage; // path -> page
+    var pathToPage;
     var lastS;
     var pendingQs = 0;
     var qsTimeoutId;
@@ -528,7 +528,7 @@ function setupQuickSearch(root) {
     }
 
     function showRecentlyVisit() {
-        if (!recentlyVisitPages) {
+        if (recentlyVisitPages == null) {
             var currentPath = autumn.pathname();
             var pages = [];
             getVisitList().forEach(function (path) {
@@ -566,7 +566,7 @@ function setupQuickSearch(root) {
         var queryString = path.substr(questionMarkIndex);
         var s = parseQueryString(queryString).s;
         if (s) {
-            return '搜索：' + s;
+            return 'Search: ' + s;
         }
         return path;
     }
@@ -605,14 +605,18 @@ function setupQuickSearch(root) {
         for (; i < len; i++) {
             var page = pages[i];
             html += '<li>';
+            html += '<div class="qsr__list__link_line">';
             html += createResultLink(page.path, page.searching.titlePreview, page.searching.pathPreview);
+            html += '</div>';
             html += '</li>';
         }
 
         if (i < pages.length) {
             html += '<li class="qsr__list__show_all">';
+            html += '<div class="qsr__list__link_line">';
             html += '<span class="qsr__list__show_all__icon"></span>';
             html += '<span class="qsr__list__show_all__btn no_selection">' + (i + 1) + ' ... ' + pages.length + '</span>';
+            html += '<div class="qsr__list__link_line">';
             html += '</li>';
         }
         return html;

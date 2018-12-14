@@ -541,11 +541,11 @@ input[type='submit'] {
 
 .qsr__list__show_all {
     list-style: none;
-    margin-left: -18px;
 }
 
 .qsr__list__show_all__icon {
     cursor: pointer;
+    margin-left: -18px;
 }
 
 .qsr__list__show_all__icon:before {
@@ -557,7 +557,7 @@ input[type='submit'] {
     cursor: pointer;
 }
 
-.qsr_activation {
+.qsr_activation .qsr__list__link_line {
     background: bisque;
 }
 
