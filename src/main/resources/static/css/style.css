@@ -1,5 +1,5 @@
 body {
-    margin: 0 15px 15px;
+    /*margin: 0 15px 15px;*/
     line-height: 1.6;
     color: #333;
     font-family: Arial, x-locale-body, sans-serif;
@@ -168,9 +168,17 @@ input[type='submit'] {
     white-space: nowrap;
 }
 
+.no_selection {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    /*noinspection CssUnknownProperty*/
+    -khtml-user-select: none;
+    -ms-user-select: none;
+}
+
 .container {
     min-width: 300px;
-    max-width: 1200px;
+    /*max-width: 1200px;*/
     margin: 0 auto;
 }
 
@@ -188,25 +196,21 @@ input[type='submit'] {
     width: 100%;
 }
 
+.container .header {
+    padding: 0 1em;
+}
+
+.header__toolbar {
+    box-sizing: border-box;
+    padding: 1.5em 1em 0;
+}
+
 .row .column.sidebar {
     display: none;
-    padding-bottom: 1em;
 }
 
-.row.show_sidebar .column.sidebar {
+.show_sidebar .column.sidebar {
     display: block;
-}
-
-.no_selection {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    /*noinspection CssUnknownProperty*/
-    -khtml-user-select: none;
-    -ms-user-select: none;
-}
-
-.header {
-    padding-bottom: 1em;
 }
 
 .header__row_1__heading {
@@ -221,9 +225,9 @@ input[type='submit'] {
     text-decoration: none;
 }
 
-.row .column.header__row_1__search_box {
+.header__row_1__search_box {
     padding-top: .2em;
-    max-width: 816px;
+    /*max-width: 816px;*/
 }
 
 .header__row_1__search_box .search_icon {
@@ -251,10 +255,6 @@ input[type='submit'] {
     border-width: 1px;
 }
 
-.header__toolbar {
-    margin-top: 1.5em;
-}
-
 .sidebar_toggle {
     cursor: pointer;
     display: none;
@@ -270,11 +270,16 @@ input[type='submit'] {
 }
 
 .js .sidebar_toggle {
-    display: unset;
+    display: inline-block;
 }
 
 .main {
     word-break: break-all;
+    padding: 0 1em;
+}
+
+.tree_box {
+    padding-bottom: 1em;
 }
 
 .tree_box ul {
@@ -318,6 +323,11 @@ input[type='submit'] {
 
 .tree_node_header_selected {
     background: bisque;
+}
+
+.content {
+    box-sizing: border-box;
+    padding-bottom: 1em;
 }
 
 .page .search_str {
@@ -515,7 +525,7 @@ input[type='submit'] {
 .qsr {
     padding-top: 1em;
     box-sizing: border-box;
-    min-height: 600px;
+    min-height: 360px;
     display: none;
     position: relative;
 }
@@ -593,14 +603,14 @@ ul.header__row_1__tools {
     padding-left: .5em;
 }
 
+.header__row_1 {
+    position: relative;
+}
+
 .header__row_1__right {
     position: absolute;
     text-align: right;
     flex: 0 0 12em;
-}
-
-.container {
-    position: relative;
 }
 
 .sitemap {
@@ -622,52 +632,121 @@ ul.header__row_1__tools {
 }
 
 @media (min-width: 640px) {
-    body {
-        margin: 0 30px 15px;
+
+    .mobi .header .row {
+        flex-direction: row;
     }
 
+}
+
+@media (min-width: 640px) {
     .toc {
         float: right;
         max-width: 16em;
         padding-left: .8em;
     }
 
-    .row {
-        flex-direction: row;
-    }
-
     .row .column.header__row_1__heading, .row .column.sidebar {
-        flex: 0 1 12em;
+        flex: 0 1 22%;
         min-width: 7em;
     }
 
     .row .column.header__row_1__right {
         position: inherit;
-        flex: 0 1 12em;
+        flex: 0 1 22%;
         min-width: 7em;
     }
 
-    .row.show_sidebar .row .column.header__row_1__search_box {
-        /* 与 .content 对齐 */
-        padding-left: 1em;
+    .mobi .header .row {
+        flex-direction: row;
     }
 
-    .row.show_sidebar .column.content {
+    .desktop .row {
+        flex-direction: row;
+    }
+
+    .desktop .header {
+        padding: 0 2em;
+    }
+
+    .desktop .fixed .header {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0;
+        background: #fff;
+    }
+
+    .desktop .header__toolbar {
+        padding: 0 0 0 2em;
+    }
+
+    .desktop .fixed .header__toolbar .sidebar_toggle {
+        position: fixed;
+        background: #fff;
+    }
+
+    .desktop .fixed .sidebar .sidebar_toggle {
+        position: fixed;
+        margin-left: 13%;
+        top: 3em;
+    }
+
+    .desktop .show_sidebar .column.content {
         box-sizing: border-box;
-        padding-left: 1em;
+        padding-left: 2em;
         /* 避免子元素 pre 不出横向滚动条，这个元素的宽度被撑大。
         width 值可以随便写，只要 <= 这个元素该有的宽度就可以。
         也可以改为 overflow-x:非visible */
         width: 75%;
     }
 
-    .header__toolbar {
-        margin-top: 0;
+    .desktop .show_sidebar .sidebar .sidebar_toggle {
+        float: right;
+        margin-right: 1.5em;
+    }
+
+    .desktop .show_sidebar .center_position {
+        margin: 0;
+    }
+
+    .desktop .fixed.qsr_more .header {
+        position: static;
+        background: transparent;
+    }
+
+    .desktop .fixed .row .column.sidebar {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 3em;
+        height: calc(100vh - 3em);
+        overflow-y: auto;
+        border-right: 1px solid rgba(0, 0, 0, .1);
+    }
+
+    .desktop .fixed .content {
+        box-sizing: border-box;
+        padding: 2em 1em 1em;
+    }
+
+    .mobi .content {
+        padding-top: 1em;
     }
 }
 
 @media (min-width: 880px) {
-    .row .column.header__row_1__heading, .row .column.header__row_1__right {
+    .desktop .row .column.header__row_1__heading, .row .column.header__row_1__right {
         min-width: 12em;
+    }
+}
+
+@media (min-width: 1000px) {
+    .desktop .fixed .sidebar .sidebar_toggle {
+        margin-left: 15%;
+    }
+}
+
+@media (min-width: 1500px) {
+    .desktop .fixed .sidebar .sidebar_toggle {
+        margin-left: 17%;
     }
 }

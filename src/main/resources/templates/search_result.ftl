@@ -1,5 +1,4 @@
 <#assign title = "Search">
-<#include "inc/head.ftl">
 <#include "inc/content_open.ftl">
     <div class="sr center_position">
         <#if (sr)??>
@@ -26,5 +25,3 @@
         </#if>
     </div>
 <#include "inc/content_close.ftl">
-<#include "inc/foot.ftl">
-

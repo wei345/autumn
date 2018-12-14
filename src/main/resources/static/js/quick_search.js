@@ -164,12 +164,13 @@ function setupQuickSearch(root) {
             clearResult();
             lastS = null;
             qsOpened = false;
-            document.body.classList.remove('qs_opened');
+            container.classList.remove('qs_opened');
+            container.classList.remove('qsr_more');
             return;
         }
 
         qsOpened = true;
-        document.body.classList.add('qs_opened');
+        container.classList.add('qs_opened');
 
         s = s.trim();
         if (lastS === s) {
@@ -521,6 +522,8 @@ function setupQuickSearch(root) {
     function showMoreResult() {
         renderPages(qsrAllPages);
         select();
+        container.classList.add('qsr_more');
+        scroll(0, 0);
     }
 
     function renderPages(pages, maxLines) {

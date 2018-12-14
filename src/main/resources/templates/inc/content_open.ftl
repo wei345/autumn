@@ -1,3 +1,4 @@
+<#include "head.ftl">
 <div class="header">
     <div class="header__row_1 row">
         <div class="header__row_1__heading column">
@@ -24,8 +25,7 @@
         </div>
         <div class="header__row_1__right column">
             <ul class="header__row_1__tools no_selection">
-            <#--<span class="sidebar_toggle">Sidebar</span>-->
-                <li><span class="sitemap_toggle action_toggle">Sitemap</span></li>
+            <#--<li><span class="sitemap_toggle action_toggle">Sitemap</span></li>-->
                 <li><a href="${ctx!}/help">Help</a></li>
             <#if logged == true>
                 <li><a class="header__row_1__right__logout" href="${ctx!}/logout">Logout</a></li>
@@ -34,7 +34,13 @@
         </div>
     </div>
 </div>
-<div class="sitemap tree_box center_position"></div>
+<div class="header__toolbar">
+    <span class="sidebar_toggle no_selection">Sidebar</span>
+</div>
+<#--<div class="sitemap center_position"></div>-->
 <div class="main row">
-    <div class="sidebar column"></div>
+    <div class="sidebar column">
+        <div class="tree_box">
+        </div>
+    </div>
     <div class="content column">

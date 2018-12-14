@@ -10,6 +10,7 @@ var logoutCookieName = 'logout';
 var isMobi = /Mobi/.test(navigator.userAgent);
 var alwaysUnfoldRoot = false;
 var multipleSelectionEnabled = false;
+var container = document.getElementsByClassName('container')[0];
 window.addEventListener('load', function () {
     bindSidebarToggle();
     bindTocToggle();
@@ -76,15 +77,14 @@ function escapeRegExp(str) {
 
 function detectClient() {
     document.body.classList.add('js');
-    if (isMobi) {
-        document.body.classList.add('mobi');
-    }
+    document.body.classList.add(isMobi ? 'mobi' : 'desktop');
 }
 
 function bindSidebarToggle() {
     var toggle = document.getElementsByClassName('sidebar_toggle')[0];
-    var target = document.getElementsByClassName('sidebar')[0];
-    if (!toggle || !target) {
+    var sidebar = document.getElementsByClassName('sidebar')[0];
+    var toolbar = document.getElementsByClassName('header__toolbar')[0];
+    if (!toggle || !sidebar) {
         return;
     }
     var lsKey;
@@ -99,14 +99,23 @@ function bindSidebarToggle() {
             lsKey = 'autumn.sidebar.display';
             break;
     }
-    var main = document.getElementsByClassName('main')[0];
     // 默认不显示 Sidebar，除了 '/' 和 '/search'
     if (lsKey !== 'autumn.sidebar.display') {
-        main.classList.toggle('show_sidebar', localStorage.getItem(lsKey) !== '0');
+        var show = container.classList.toggle('show_sidebar', localStorage.getItem(lsKey) !== '0');
+        if (show) {
+            sidebar.prepend(toggle);
+        } else {
+            toolbar.prepend(toggle);
+        }
     }
     toggle.addEventListener('click', function () {
-        var val = main.classList.toggle('show_sidebar') ? '1' : '0';
+        var val = container.classList.toggle('show_sidebar') ? '1' : '0';
         localStorage.setItem(lsKey, val);
+        if (val === '1') {
+            sidebar.prepend(toggle);
+        } else {
+            toolbar.prepend(toggle);
+        }
     });
 }
 
