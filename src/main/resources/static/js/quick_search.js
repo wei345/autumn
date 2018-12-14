@@ -2,9 +2,8 @@
 
 function setupQuickSearch(root) {
     var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
-    var cat = document.getElementsByClassName('search_box__category_and_tags')[0];
-    var catToggle = document.getElementsByClassName('header__row_1__search_form__category_and_tags_toggle')[0];
-    var qsr = document.getElementsByClassName('qsr')[0];
+    var categoryAndTags = document.getElementsByClassName('search_box__category_and_tags')[0];
+    var categoryAndTagsToggle = document.getElementsByClassName('header__row_1__search_form__category_and_tags_toggle')[0];
     var qsrClose = document.getElementsByClassName('qsr__close')[0];
     var qsrList = document.getElementsByClassName('qsr__list')[0];
     var qsrAllPages;
@@ -14,115 +13,100 @@ function setupQuickSearch(root) {
     var tagPrefix = 't:';
     var foldedString = '+';
     var unfoldedString = '−';
-    var catToggleEnabled = false;
+    var categoryAndTagsToggleEnabled = false;
     var qsOpened = false;
-    var pathToPage; // path -> page
     var allPages;
+    var pathToPage; // path -> page
     var lastS;
     var pendingQs = 0;
     var qsTimeoutId;
 
     getAllPages(root);
     setUpCategoryAndTags();
+    bindSearchInputEvent();
+    bindQuickSearchCloseEvent();
 
-    // 如果用 blur 关闭 qs，则无法用鼠标点击搜索结果，因为在鼠标点到链接之前 QuickSearch 就关闭了
+    function bindSearchInputEvent() {
+        searchInput.addEventListener('focus', function () {
+            openCategoryAndTags();
+            qs(true);
+        });
 
-    searchInput.addEventListener('focus', function () {
-        openCat();
-        qs(true);
-    });
+        searchInput.addEventListener('keydown', function (event) {
 
-    searchInput.addEventListener('keydown', function (event) {
-
-        // 上下移动
-        var down = (event.key === 'ArrowDown');
-        var up = (event.key === 'ArrowUp');
-        if (down || up) {
-            if (qsrSelectedIndexInBound()) {
-                unSelect();
-                qsrSelectedIndex += (down ? 1 : -1);
-            } else {
-                qsrSelectedIndex = (down ? 0 : (qsrList.children.length - 1));
-            }
-            select();
-            event.preventDefault();
-            return;
-        }
-
-        // 回车跳转到链接或显示全部结果
-        if (event.key === 'Enter') {
-            if (!qsrSelectedIndexInBound()) {
-                return;
-            }
-            event.preventDefault();
-
-            var selected = qsrList.children[qsrSelectedIndex];
-            if (selected.classList.contains('qsr__list__show_all')) {
-                showMoreResult();
-                return;
-            }
-
-            var href = selected.getElementsByTagName('a')[0].href;
-            if (href) {
-                location.href = href;
-            }
-            return;
-        }
-
-        // ESC 取消选中，或清空输入框，或关闭 QuickSearch
-        if (event.key === 'Escape') {
-            if (qsrSelectedIndexInBound()) {
-                resetSelect();
+            // 上下移动
+            var down = (event.key === 'ArrowDown');
+            var up = (event.key === 'ArrowUp');
+            if (down || up) {
+                if (qsrSelectedIndexInBound()) {
+                    unSelect();
+                    qsrSelectedIndex += (down ? 1 : -1);
+                } else {
+                    qsrSelectedIndex = (down ? 0 : (qsrList.children.length - 1));
+                }
+                select();
                 event.preventDefault();
                 return;
             }
 
-            if (searchInput.value.length > 0) {
-                searchInput.value = ''; // 之后 keyup 会触发 qs()
+            // 回车跳转到链接或显示全部结果
+            if (event.key === 'Enter') {
+                if (!qsrSelectedIndexInBound()) {
+                    return;
+                }
+                event.preventDefault();
+
+                var selected = qsrList.children[qsrSelectedIndex];
+                if (selected.classList.contains('qsr__list__show_all')) {
+                    showMoreResult();
+                    return;
+                }
+
+                var href = selected.getElementsByTagName('a')[0].href;
+                if (href) {
+                    location.href = href;
+                }
                 return;
             }
 
-            searchInput.blur();
+            // ESC 取消选中，或清空输入框，或关闭 QuickSearch
+            if (event.key === 'Escape') {
+                if (qsrSelectedIndexInBound()) {
+                    resetSelect();
+                    event.preventDefault();
+                    return;
+                }
+
+                if (searchInput.value.length > 0) {
+                    searchInput.value = ''; // 之后 keyup 会触发 qs()
+                    return;
+                }
+
+                searchInput.blur();
+                qs();
+            }
+        });
+
+        searchInput.addEventListener('keyup', function () {
             qs();
-        }
-    });
-
-    searchInput.addEventListener('keyup', function () {
-        qs();
-    });
-
-    document.addEventListener('click', function () {
-        if (qsOpened) {
-            qs();
-        }
-    });
-
-    qsrClose.addEventListener('click', closeQs);
-
-    document.getElementsByClassName('header__row_1__search_form')[0].addEventListener('click', function (evt) {
-        // 避免搜索框为空时，点击搜索结果（最近访问），qs 关闭
-        evt.stopPropagation();
-    });
-
-    function resetSelect() {
-        unSelect();
-        qsrSelectedIndex = -1;
+        });
     }
 
-    function select() {
-        if (qsrSelectedIndexInBound()) {
-            qsrList.children[qsrSelectedIndex].classList.add('qsr_activation');
-        }
-    }
+    function bindQuickSearchCloseEvent() {
+        // 不用 blur 关闭 QuickSearch，因为会导致无法用鼠标点击搜索结果，在鼠标点到链接之前 QuickSearch 就关闭了
 
-    function unSelect() {
-        if (qsrSelectedIndexInBound()) {
-            qsrList.children[qsrSelectedIndex].classList.remove('qsr_activation');
-        }
-    }
+        qsrClose.addEventListener('click', closeQs);
 
-    function qsrSelectedIndexInBound() {
-        return qsrSelectedIndex >= 0 && qsrSelectedIndex < qsrList.children.length;
+        document.addEventListener('click', function () {
+            if (qsOpened) {
+                qs();
+            }
+        });
+
+        document.getElementsByClassName('header__row_1__search_form')[0].addEventListener('click', function (evt) {
+            // 避免搜索框为空时，点击搜索结果（最近访问），qs 关闭
+            evt.stopPropagation();
+        });
     }
 
     function getAllPages(root) {
@@ -145,152 +129,6 @@ function setupQuickSearch(root) {
             page.archived = page.path.startsWith('/archive/');
         });
         allPages = pages;
-    }
-
-    function openCat() {
-        if (!catToggleEnabled && !cat.classList.contains('show')) {
-            cat.classList.toggle('show', true);
-            catToggle.innerHTML = unfoldedString;
-        }
-    }
-
-    function closeCat() {
-        if (cat.classList.contains('show')) {
-            cat.classList.toggle('show', false);
-            catToggle.innerHTML = foldedString;
-        }
-    }
-
-    function setUpCategoryAndTags() {
-        var categoryFieldOfPage = 'category';
-        var tagFieldOfPage = 'tags';
-        var html = mr(allPages, categoryFieldOfPage, '分类');
-        html += mr(allPages, tagFieldOfPage, '标签');
-        cat.innerHTML = html;
-        bindClick(categoryFieldOfPage);
-        bindClick(tagFieldOfPage);
-        bindCatToggle();
-
-        function mr(arr, field, title) {
-            var a = [];
-            arr.filter(function (page) {
-                var v = page[field];
-                return v instanceof Array ? v.length > 0 : v;
-            }).map(function (page) {
-                var v = page[field];
-                return v instanceof Array ? v : [v];
-            }).reduce(function (result, v) {
-                v.forEach(function (vitem) {
-                    if (!result[vitem]) {
-                        var obj = {count: 1};
-                        obj[field] = vitem;
-                        result[vitem] = obj;
-                        a.push(obj);
-                    } else {
-                        result[vitem].count++;
-                    }
-                });
-                return result;
-            }, {});
-
-            a.sort(function (o1, o2) {
-                var v = o2.count - o1.count;
-                if (v !== 0) {
-                    return v;
-                }
-                return compareStringIgnoreCase(o1[field], o2[field]);
-            });
-
-            var html = '<div class="' + field + '_box">';
-            html += '<span class="search_box__' + field + '_list_title">' + title + '</span>';
-            html += '<ul class="search_box__' + field + '_list">';
-            a.forEach(function (item) {
-                html += '<li class="action_toggle"><span class="' + (field === 'tags' ? 'tag' : field) + '">' + item[field] + '</span>';
-                html += '<span class="count"> (' + item.count + ') </span>';
-                html += '</li>';
-            });
-            html += '</ul></div>';
-            return html;
-        }
-
-        function bindClick(field) {
-            var categoryOrTag = field === 'category' ? 'category' : 'tag';
-            var selectedCategory;
-
-            // 点击 "分类" 或 "标签" 清空选择
-            document.getElementsByClassName('search_box__' + field + '_list_title')[0].addEventListener('click', cleanCategoryOrTag);
-
-            Array.prototype.forEach.call(document.getElementsByClassName('search_box__' + field + '_list')[0].getElementsByTagName('li'), function (li) {
-                li.addEventListener('click', function (evt) {
-                    toggleCategoryOrTag(evt, categoryOrTag);
-                });
-            });
-
-            function cleanCategoryOrTag(evt) {
-                // 利用 map 把 getElementsByClassName 结果放到数组里，否则 classList.remove 使 getElementsByClassName 结果 length -1
-                Array.prototype.map.call(evt.currentTarget.parentNode.getElementsByClassName('cat_selected'), function (el) {
-                    return el;
-                }).forEach(function (el) {
-                    el.classList.remove('cat_selected');
-                });
-
-                var newValueBuilder = [];
-                var prefix = categoryOrTag === 'tag' ? tagPrefix : categoryPrefix;
-                parseS(searchInput.value).forEach(function (token) {
-                    if (!token.startsWith(prefix)) {
-                        newValueBuilder.push(token);
-                    }
-                });
-                searchInput.value = newValueBuilder.join(' ');
-                searchInput.focus();
-                qs();
-            }
-
-            function toggleCategoryOrTag(event, categoryOrTag) {
-                var isTag = categoryOrTag === 'tag';
-                var li = event.currentTarget;
-                var prefix = isTag ? tagPrefix : categoryPrefix;
-                var v = li.getElementsByClassName(categoryOrTag)[0].innerText;
-                var t = prefix + v;
-                var add = true;
-                var newValueBuilder = [];
-                parseS(searchInput.value).forEach(function (token) {
-                    if (token === t) {
-                        add = false;
-                        return;
-                    }
-                    if (isTag) {
-                        newValueBuilder.push(token);
-                    } else if (!token.startsWith(prefix)) {
-                        newValueBuilder.push(token);
-                    }
-                });
-                var newValue = newValueBuilder.join(' ');
-                if (add) {
-                    newValue = t + ' ' + newValue;
-                    if (!isTag) {
-                        if (selectedCategory) {
-                            selectedCategory.classList.remove('cat_selected');
-                        }
-                        selectedCategory = li;
-                    }
-                }
-                li.classList.toggle('cat_selected', add);
-                searchInput.value = newValue;
-                searchInput.focus();
-                qs();
-            }
-        }
-
-        function bindCatToggle() {
-            catToggle.addEventListener('click', function () {
-                var show = cat.classList.toggle('show');
-                catToggle.innerHTML = show ? unfoldedString : foldedString;
-            });
-            // 初始状态
-            catToggle.innerHTML = foldedString;
-            catToggleEnabled = true;
-        }
     }
 
     function qs(immediately) {
@@ -614,7 +452,6 @@ function setupQuickSearch(root) {
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
         }
-
     }
 
     function isEmpty(str) {
@@ -792,6 +629,27 @@ function setupQuickSearch(root) {
         return html;
     }
 
+    function qsrSelectedIndexInBound() {
+        return qsrSelectedIndex >= 0 && qsrSelectedIndex < qsrList.children.length;
+    }
+
+    function select() {
+        if (qsrSelectedIndexInBound()) {
+            qsrList.children[qsrSelectedIndex].classList.add('qsr_activation');
+        }
+    }
+
+    function unSelect() {
+        if (qsrSelectedIndexInBound()) {
+            qsrList.children[qsrSelectedIndex].classList.remove('qsr_activation');
+        }
+    }
+
+    function resetSelect() {
+        unSelect();
+        qsrSelectedIndex = -1;
+    }
+
     function clearResult() {
         qsrList.innerHTML = '';
         qsrAllPages = null;
@@ -803,6 +661,149 @@ function setupQuickSearch(root) {
         if (qsOpened) {
             searchInput.value = '';
             qs();
+        }
+    }
+
+    function setUpCategoryAndTags() {
+        var categoryField = 'category';
+        var tagField = 'tags';
+        var html = buildHtml(allPages, categoryField, '分类');
+        html += buildHtml(allPages, tagField, '标签');
+        categoryAndTags.innerHTML = html;
+        bindClick(categoryField);
+        bindClick(tagField);
+        bindCategoryAndTagsToggle();
+
+        function buildHtml(pages, field, title) {
+            var counters = [];
+            pages.filter(function (page) {
+                var items = page[field];
+                return items instanceof Array ? items.length > 0 : items;
+            }).map(function (page) {
+                var items = page[field];
+                return items instanceof Array ? items : [items];
+            }).reduce(function (itemToCounter, items) {
+                items.forEach(function (item) {
+                    if (!itemToCounter[item]) {
+                        var counter = {count: 1};
+                        counter[field] = item;
+                        itemToCounter[item] = counter;
+                        counters.push(counter);
+                    } else {
+                        itemToCounter[item].count++;
+                    }
+                });
+                return itemToCounter;
+            }, {});
+
+            counters.sort(function (counter1, counter2) {
+                var v = counter2.count - counter1.count;
+                if (v !== 0) {
+                    return v;
+                }
+                return compareStringIgnoreCase(counter1[field], counter2[field]);
+            });
+
+            var html = '<div class="' + field + '_box">';
+            html += '<span class="search_box__' + field + '_list_title">' + title + '</span>';
+            html += '<ul class="search_box__' + field + '_list">';
+            counters.forEach(function (item) {
+                html += '<li class="action_toggle"><span class="' + (field === 'tags' ? 'tag' : 'category') + '">' + item[field] + '</span>';
+                html += '<span class="count"> (' + item.count + ') </span>';
+                html += '</li>';
+            });
+            html += '</ul></div>';
+            return html;
+        }
+
+        function bindClick(field) {
+            var isTag = (field === 'tags');
+            var tokenPrefix = (isTag ? tagPrefix : categoryPrefix);
+            var selectedClassName = 'cat_selected';
+            var selectedCategory;
+
+            // 点击 "分类" 或 "标签" 清空选择
+            document.getElementsByClassName('search_box__' + field + '_list_title')[0].addEventListener('click', cleanSelected);
+
+            Array.prototype.forEach.call(document.getElementsByClassName('search_box__' + field + '_list')[0].getElementsByTagName('li'), function (li) {
+                li.addEventListener('click', toggleSelected);
+            });
+
+            function cleanSelected(evt) {
+                // 利用 map 把 getElementsByClassName 结果放到数组里，否则 classList.remove 使 getElementsByClassName 结果 length -1
+                Array.prototype.map.call(evt.currentTarget.parentNode.getElementsByClassName(selectedClassName), function (el) {
+                    return el;
+                }).forEach(function (el) {
+                    el.classList.remove(selectedClassName);
+                });
+
+                var newValueBuilder = [];
+                parseS(searchInput.value).forEach(function (token) {
+                    if (!token.startsWith(tokenPrefix)) {
+                        newValueBuilder.push(token);
+                    }
+                });
+                searchInput.value = newValueBuilder.join(' ');
+                searchInput.focus();
+                qs();
+            }
+
+            function toggleSelected(event) {
+                var li = event.currentTarget;
+                var item = li.getElementsByClassName(isTag ? 'tag' : 'category')[0].innerText;
+                var itemToken = tokenPrefix + item;
+                var isAdd = true;
+                var newValueBuilder = [];
+                parseS(searchInput.value).forEach(function (token) {
+                    if (token === itemToken) {
+                        isAdd = false;
+                        return;
+                    }
+                    if (isTag) {
+                        newValueBuilder.push(token);
+                    } else if (!token.startsWith(tokenPrefix)) {
+                        newValueBuilder.push(token);
+                    }
+                });
+                var newValue = newValueBuilder.join(' ');
+                if (isAdd) {
+                    newValue = itemToken + ' ' + newValue;
+                    if (!isTag) {
+                        if (selectedCategory) {
+                            selectedCategory.classList.remove(selectedClassName);
+                        }
+                        selectedCategory = li;
+                    }
+                }
+                li.classList.toggle(selectedClassName, isAdd);
+                searchInput.value = newValue;
+                searchInput.focus();
+                qs();
+            }
+        }
+
+        function bindCategoryAndTagsToggle() {
+            categoryAndTagsToggle.addEventListener('click', function () {
+                var show = categoryAndTags.classList.toggle('show');
+                categoryAndTagsToggle.innerHTML = show ? unfoldedString : foldedString;
+            });
+            // 初始状态
+            categoryAndTagsToggle.innerHTML = foldedString;
+            categoryAndTagsToggleEnabled = true;
+        }
+    }
+
+    function openCategoryAndTags() {
+        if (!categoryAndTagsToggleEnabled && !categoryAndTags.classList.contains('show')) {
+            categoryAndTags.classList.toggle('show', true);
+            categoryAndTagsToggle.innerHTML = unfoldedString;
+        }
+    }
+
+    function closeCategoryAndTags() {
+        if (categoryAndTags.classList.contains('show')) {
+            categoryAndTags.classList.toggle('show', false);
+            categoryAndTagsToggle.innerHTML = foldedString;
         }
     }
 }
