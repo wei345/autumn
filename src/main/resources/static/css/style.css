@@ -683,6 +683,7 @@ ul.header__row_1__tools {
     .desktop .fixed .header__toolbar .sidebar_toggle {
         position: fixed;
         background: #fff;
+        padding: 0.5em 1em;
     }
 
     .desktop .fixed .sidebar .sidebar_toggle {
@@ -730,6 +731,35 @@ ul.header__row_1__tools {
 
     .mobi .content {
         padding-top: 1em;
+    }
+
+    .desktop .fixed .toc {
+        background: #fff;
+    }
+
+    .desktop .fixed .show_toc .toc {
+        position: sticky;
+        top: 3em;
+        margin-right: -18em;
+    }
+
+    .desktop .fixed .show_toc .toc > ul {
+        box-sizing: border-box;
+        overflow: auto;
+        height: calc(100vh - 7em);
+        padding-bottom: 5em;
+        padding-right: 1em;
+        max-width: 17em;
+        padding-left: 0;
+    }
+
+    .desktop .fixed .content.show_toc {
+        padding-right: 18em;
+    }
+
+    .desktop .fixed .hide_toc .toc {
+        position: sticky;
+        top: 5em;
     }
 }
 

@@ -35,7 +35,7 @@
     </div>
 </div>
 <div class="header__toolbar">
-    <span class="sidebar_toggle no_selection">Sidebar</span>
+    <span class="sidebar_toggle no_selection action_toggle">Sidebar</span>
 </div>
 <#--<div class="sitemap center_position"></div>-->
 <div class="main row">

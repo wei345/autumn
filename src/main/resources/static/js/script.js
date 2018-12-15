@@ -11,6 +11,7 @@ var isMobi = /Mobi/.test(navigator.userAgent);
 var alwaysUnfoldRoot = false;
 var multipleSelectionEnabled = false;
 var container = document.getElementsByClassName('container')[0];
+var content = document.getElementsByClassName('content')[0];
 window.addEventListener('load', function () {
     bindSidebarToggle();
     bindTocToggle();
@@ -135,9 +136,24 @@ function bindTocToggle() {
     }
     toggle.classList.add('no_selection', 'action_toggle');
     var lsKey = 'autumn.toc.display';
-    body.classList.toggle('show', localStorage.getItem(lsKey) !== '0');
+    var show = body.classList.toggle('show', localStorage.getItem(lsKey) !== '0');
+    if (show) {
+        content.classList.add('show_toc');
+        content.classList.remove('hide_toc');
+    } else {
+        content.classList.add('hide_toc');
+        content.classList.remove('show_toc');
+    }
     toggle.addEventListener('click', function () {
-        localStorage.setItem(lsKey, body.classList.toggle('show') ? '1' : '0');
+        var show = body.classList.toggle('show');
+        if (show) {
+            content.classList.add('show_toc');
+            content.classList.remove('hide_toc');
+        } else {
+            content.classList.add('hide_toc');
+            content.classList.remove('show_toc');
+        }
+        localStorage.setItem(lsKey, show ? '1' : '0');
     });
 }
 
