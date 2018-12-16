@@ -686,10 +686,12 @@ ul.header__row_1__tools {
         padding: 0.5em 1em 0.5em 0;
     }
 
-    .desktop .fixed .sidebar .sidebar_toggle {
+    .desktop .fixed.show_sidebar .sidebar .sidebar_toggle {
         position: fixed;
         margin-left: 13%;
         top: 3em;
+        padding: 0.5em;
+        background: #fff;
     }
 
     .desktop .show_sidebar .column.content {

@@ -20,7 +20,7 @@ public class UserServiceTest {
     @Test
     public void generateUser() {
         // generate
-        String username = RandomUtil.randomStringFixLength(4);
+        String username = "Username";
         String salt = UUID.randomUUID().toString();
         String plainPassword = RandomUtil.randomStringFixLength(14);
         String s = plainPassword + salt;

@@ -40,9 +40,23 @@ public class PageParser {
         }
         Page page = parse(text);
         page.setLastModified(file.lastModified());
+
         int dotIndex = file.getName().lastIndexOf('.');
         String name = (dotIndex == -1) ? "" : file.getName().substring(0, dotIndex);
         page.setName(name);
+
+        if (page.getCreated() == null) {
+            page.setCreated(new Date(page.getLastModified()));
+        }
+
+        if (page.getModified() == null) {
+            page.setModified(new Date(page.getLastModified()));
+        }
+
+        if (page.getTags() == null) {
+            page.setTags(Collections.emptySet());
+        }
+
         return page;
     }
 

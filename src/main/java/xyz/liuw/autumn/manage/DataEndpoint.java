@@ -40,6 +40,7 @@ public class DataEndpoint {
         return new DataStat(allStat, publishedStat);
     }
 
+    // curl --silent -X POST http://localhost:8001/manage/data
     @WriteOperation
     public String reload() {
         long start = System.currentTimeMillis();
