@@ -683,7 +683,7 @@ ul.header__row_1__tools {
     .desktop .fixed .header__toolbar .sidebar_toggle {
         position: fixed;
         background: #fff;
-        padding: 0.5em 1em;
+        padding: 0.5em 1em 0.5em 0;
     }
 
     .desktop .fixed .sidebar .sidebar_toggle {
@@ -719,7 +719,7 @@ ul.header__row_1__tools {
         position: -webkit-sticky;
         position: sticky;
         top: 3em;
-        height: calc(100vh - 3em);
+        height: calc(100vh - 3em - 3px);
         overflow-y: auto;
         border-right: 1px solid rgba(0, 0, 0, .1);
     }
@@ -746,7 +746,7 @@ ul.header__row_1__tools {
     .desktop .fixed .show_toc .toc > ul {
         box-sizing: border-box;
         overflow: auto;
-        height: calc(100vh - 7em);
+        max-height: calc(100vh - 7em);
         padding-bottom: 5em;
         padding-right: 1em;
         max-width: 17em;

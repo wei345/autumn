@@ -11,8 +11,12 @@ var isMobi = /Mobi/.test(navigator.userAgent);
 var alwaysUnfoldRoot = false;
 var multipleSelectionEnabled = false;
 var container = document.getElementsByClassName('container')[0];
+var main = document.getElementsByClassName('main')[0];
 var content = document.getElementsByClassName('content')[0];
+var treeReady = false;
+var treeFirstShow = true;
 window.addEventListener('load', function () {
+    detectClient();
     bindSidebarToggle();
     bindTocToggle();
     bindShortcut();
@@ -21,7 +25,6 @@ window.addEventListener('load', function () {
     checkLogout();
     updateVisitList();
     bindToggle('sitemap');
-    detectClient();
 });
 
 /**
@@ -100,24 +103,30 @@ function bindSidebarToggle() {
             lsKey = 'autumn.sidebar.display';
             break;
     }
-    // 默认不显示 Sidebar，除了 '/' 和 '/search'
-    if (lsKey !== 'autumn.sidebar.display') {
-        var show = container.classList.toggle('show_sidebar', localStorage.getItem(lsKey) !== '0');
+    if (getComputedStyle(main).getPropertyValue('flex-direction') === 'row') {
+        toggleSidebar(localStorage.getItem(lsKey) !== '0');
+    }
+    toggle.addEventListener('click', function () {
+        var show = (toggleSidebar() ? '1' : '0');
+        localStorage.setItem(lsKey, show);
+        if (show) {
+            selectedNodeScrollIntoViewIfTreeFirstShow();
+        }
+    });
+
+    function toggleSidebar(show) {
+        if (show == null) {
+            show = container.classList.toggle('show_sidebar');
+        } else {
+            container.classList.toggle('show_sidebar', show);
+        }
         if (show) {
             sidebar.prepend(toggle);
         } else {
             toolbar.prepend(toggle);
         }
+        return show;
     }
-    toggle.addEventListener('click', function () {
-        var val = container.classList.toggle('show_sidebar') ? '1' : '0';
-        localStorage.setItem(lsKey, val);
-        if (val === '1') {
-            sidebar.prepend(toggle);
-        } else {
-            toolbar.prepend(toggle);
-        }
-    });
 }
 
 function bindTocToggle() {
@@ -189,8 +198,6 @@ function bindShortcut() {
 
 function buildTree(then) {
     var treeBox = document.getElementsByClassName('tree_box')[0];
-    var foldedString = '+';
-    var unfoldedString = '−';
 
     if (!treeBox) {
         return; // 可能在登录页
@@ -200,6 +207,8 @@ function buildTree(then) {
         unfoldCurrentPath(root);
         treeBox.innerHTML = buildTreeHtml([root]);
         bindNodeToggle(treeBox);
+        treeReady = true;
+        selectedNodeScrollIntoViewIfTreeFirstShow();
         if (typeof(then) === 'function') {
             then(root);
         }
@@ -263,13 +272,7 @@ function buildTree(then) {
             html += '<div class="tree_node_header' + (node.current ? ' tree_node_header_selected' : '') + '">';
 
             // icon
-            html += '<span class="tree_node_header_icon no_selection">';
-            if (node.children) {
-                //html += (node.unfolded ? unfoldedString : foldedString);
-            } else {
-                // html += '•';
-            }
-            html += '</span>';
+            html += '<span class="tree_node_header_icon no_selection"></span>';
 
             // title
             html += (node.children ? '<span class="tree_node_header_name action_toggle no_selection">' : ('<a href="' + (autumn.ctx + node.path) + '">'));
@@ -298,23 +301,54 @@ function buildTree(then) {
 
     function toggle(event) {
         var node = event.currentTarget.parentNode; // tree_node
-        var icon = node.getElementsByClassName('tree_node_header_icon')[0];
         if (node.classList.contains('tree_node_folded')) {
-            // icon.innerHTML = unfoldedString;
             autumn.replaceClass(node, 'tree_node_folded', 'tree_node_unfolded');
         } else {
-            // icon.innerHTML = foldedString;
             autumn.replaceClass(node, 'tree_node_unfolded', 'tree_node_folded');
         }
     }
 }
 
-function parentWithClass(dom, cls) {
-    var node = dom.parentNode;
-    while (node && !node.classList.contains(cls)) {
-        node = node.parentNode;
+function selectedNodeScrollIntoViewIfTreeFirstShow() {
+    if (treeFirstShow && treeReady && container.classList.contains('show_sidebar')) {
+        treeFirstShow = false;
+        var selected = document.getElementsByClassName('tree_node_header_selected')[0];
+        // 让当前页面对应的节点（selected）滚动到屏幕中间位置。
+        // 使用 scroll，不使用 selected.scrollIntoView({block: 'center'}) ，
+        // 因为如果 selected 在页面底部，scrollIntoView 会"过量滚动"，导致 body 也向上滚动一段距离，
+        // 另外，Safari 不支持 scrollIntoView 选项。
+        var scrollEl = selected.offsetParent;
+        if (scrollEl === document.body) { // body 没有滚动条
+            scrollEl = document.scrollingElement;
+        }
+        var rect = selected.getBoundingClientRect();
+        var maxScrollTop = scrollEl.scrollHeight - scrollEl.clientHeight;
+        if (maxScrollTop === 0) { // 手机 chrome 可能为 0
+            maxScrollTop = scrollEl.scrollHeight - getViewportHeight();
+        }
+        var expectRectTop = (getViewportHeight() / 2) - (selected.clientHeight / 2);
+        var expectScrollTop = scrollEl.scrollTop + (rect.top - expectRectTop);
+        var scrollTop = Math.min(maxScrollTop, expectScrollTop);
+        scrollEl.scroll(0, scrollTop);
     }
-    return node;
+}
+
+function isElementInViewport(el) {
+    var rect = el.getBoundingClientRect();
+    return (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= getViewportHeight() &&
+        rect.right <= getViewportWidth()
+    );
+}
+
+function getViewportHeight() {
+    return window.innerHeight || document.documentElement.clientHeight;
+}
+
+function getViewportWidth() {
+    return window.innerWidth || document.documentElement.clientWidth;
 }
 
 function anchorLink() {
