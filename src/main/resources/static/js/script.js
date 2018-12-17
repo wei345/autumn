@@ -15,6 +15,10 @@ var main = document.getElementsByClassName('main')[0];
 var content = document.getElementsByClassName('content')[0];
 var treeReady = false;
 var treeFirstShow = true;
+var emptyFn = function () {
+};
+autumn.toggleSidebar = emptyFn;
+autumn.toggleToc = emptyFn;
 window.addEventListener('load', function () {
     detectClient();
     bindSidebarToggle();
@@ -106,13 +110,8 @@ function bindSidebarToggle() {
     if (getComputedStyle(main).getPropertyValue('flex-direction') === 'row') {
         toggleSidebar(localStorage.getItem(lsKey) !== '0');
     }
-    toggle.addEventListener('click', function () {
-        var show = (toggleSidebar() ? '1' : '0');
-        localStorage.setItem(lsKey, show);
-        if (show) {
-            selectedNodeScrollIntoViewIfTreeFirstShow();
-        }
-    });
+    toggle.addEventListener('click', toggleSidebarAndRemember);
+    autumn.toggleSidebar = toggleSidebarAndRemember;
 
     function toggleSidebar(show) {
         if (show == null) {
@@ -127,6 +126,14 @@ function bindSidebarToggle() {
         }
         return show;
     }
+
+    function toggleSidebarAndRemember() {
+        var show = (toggleSidebar() ? '1' : '0');
+        localStorage.setItem(lsKey, show);
+        if (show) {
+            selectedNodeScrollIntoViewIfTreeFirstShow();
+        }
+    }
 }
 
 function bindTocToggle() {
@@ -136,8 +143,8 @@ function bindTocToggle() {
         return;
     }
     var toggle = toc.getElementsByTagName('h3')[0];
-    var body = toggle.nextElementSibling;
-    if (!toggle || !body || body.getElementsByTagName('li').length < 3) {
+    var tocBody = toggle.nextElementSibling;
+    if (!toggle || !tocBody || tocBody.getElementsByTagName('li').length < 3) {
         if (toggle) {
             toggle.style.display = 'none';
         }
@@ -145,39 +152,50 @@ function bindTocToggle() {
     }
     toggle.classList.add('no_selection', 'action_toggle');
     var lsKey = 'autumn.toc.display';
-    var show = body.classList.toggle('show', localStorage.getItem(lsKey) !== '0');
-    if (show) {
-        content.classList.add('show_toc');
-        content.classList.remove('hide_toc');
-    } else {
-        content.classList.add('hide_toc');
-        content.classList.remove('show_toc');
-    }
-    toggle.addEventListener('click', function () {
-        var show = body.classList.toggle('show');
+    toggleToc(localStorage.getItem(lsKey) !== '0');
+    toggle.addEventListener('click', toggleTocAndRemember);
+    autumn.toggleToc = toggleTocAndRemember;
+
+    function toggleToc(show) {
+        if (show == null) {
+            show = tocBody.classList.toggle('show');
+        } else {
+            tocBody.classList.toggle('show', show);
+        }
         if (show) {
             content.classList.add('show_toc');
             content.classList.remove('hide_toc');
+            toggle.innerText = 'Table of Contents';
         } else {
             content.classList.add('hide_toc');
             content.classList.remove('show_toc');
+            toggle.innerText = 'TOC';
         }
-        localStorage.setItem(lsKey, show ? '1' : '0');
-    });
+        return show;
+    }
+
+    function toggleTocAndRemember() {
+        localStorage.setItem(lsKey, toggleToc() ? '1' : '0');
+    }
 }
 
 function bindShortcut() {
     var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
-    if (!searchInput) {
-        return; // 可能在登录页
-    }
     document.addEventListener('keydown', function (event) {
         if (event.target === document.body) {
             switch (event.key) {
                 case '/':
-                    searchInput.focus();
-                    searchInput.select();
-                    event.preventDefault();
+                    if (searchInput) {
+                        searchInput.focus();
+                        searchInput.select();
+                        event.preventDefault();
+                    }
+                    break;
+                case 's':
+                    autumn.toggleSidebar();
+                    break;
+                case 't':
+                    autumn.toggleToc();
                     break;
                 case 'g':
                     scroll(0, 0);
@@ -313,14 +331,14 @@ function selectedNodeScrollIntoViewIfTreeFirstShow() {
     if (treeFirstShow && treeReady && container.classList.contains('show_sidebar')) {
         treeFirstShow = false;
         var selected = document.getElementsByClassName('tree_node_header_selected')[0];
+        if (!selected) {
+            return;
+        }
         // 让当前页面对应的节点（selected）滚动到屏幕中间位置。
         // 使用 scroll，不使用 selected.scrollIntoView({block: 'center'}) ，
         // 因为如果 selected 在页面底部，scrollIntoView 会"过量滚动"，导致 body 也向上滚动一段距离，
         // 另外，Safari 不支持 scrollIntoView 选项。
         var scrollEl = getScrollParent(selected);
-        if (scrollEl === document.body) { // body 没有滚动条
-            scrollEl = document.scrollingElement;
-        }
         var rect = selected.getBoundingClientRect();
         var maxScrollTop = scrollEl.scrollHeight - scrollEl.clientHeight;
         if (maxScrollTop === 0) { // 手机 chrome 可能为 0
@@ -329,11 +347,17 @@ function selectedNodeScrollIntoViewIfTreeFirstShow() {
         var expectRectTop = (getViewportHeight() / 2) - (selected.clientHeight / 2);
         var expectScrollTop = scrollEl.scrollTop + (rect.top - expectRectTop);
         var scrollTop = Math.min(maxScrollTop, expectScrollTop);
-        scrollEl.scroll(0, scrollTop);
+        if (scrollTop > 0) {
+            scrollEl.scroll(0, scrollTop);
+        }
     }
 }
 
 function getScrollParent(node) {
+    if (node === document.body) { // body 没有滚动条
+        return document.scrollingElement;
+    }
+
     let overflowY = window.getComputedStyle(node).overflowY;
     let isScrollable = overflowY !== 'visible' && overflowY !== 'hidden';
 

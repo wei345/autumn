@@ -44,7 +44,7 @@ public class FlexmarkMarkdownParser implements MarkdownParser {
                         StrikethroughExtension.create(),
                         AutolinkExtension.create(),
                         TocExtension.create()/*,
-                        CodeBlockExtension.create()*/))
+                        LineNumberCodeBlockExtension.create()*/))
                 .set(TocExtension.LEVELS, 127)
                 // @formatter:off
                 // 顶层元素 div.toc
@@ -78,10 +78,10 @@ public class FlexmarkMarkdownParser implements MarkdownParser {
         return renderer.render(document);
     }
 
-    static class CodeBlockExtension implements HtmlRenderer.HtmlRendererExtension {
+    static class LineNumberCodeBlockExtension implements HtmlRenderer.HtmlRendererExtension {
 
-        static CodeBlockExtension create() {
-            return new CodeBlockExtension();
+        static LineNumberCodeBlockExtension create() {
+            return new LineNumberCodeBlockExtension();
         }
 
         @Override
@@ -91,22 +91,22 @@ public class FlexmarkMarkdownParser implements MarkdownParser {
 
         @Override
         public void extend(final HtmlRenderer.Builder rendererBuilder, final String rendererType) {
-            rendererBuilder.nodeRendererFactory(new CodeBlockRendererFactory());
+            rendererBuilder.nodeRendererFactory(new LineNumberCodeBlockRendererFactory());
         }
     }
 
-    static class CodeBlockRendererFactory implements NodeRendererFactory {
+    static class LineNumberCodeBlockRendererFactory implements NodeRendererFactory {
 
         @Override
         public NodeRenderer create(DataHolder options) {
-            return new CodeBlockRenderer(options);
+            return new LineNumberCodeBlockRenderer(options);
         }
 
-        class CodeBlockRenderer implements NodeRenderer {
+        class LineNumberCodeBlockRenderer implements NodeRenderer {
             DataHolder options;
             private boolean codeContentBlock;
 
-            CodeBlockRenderer(DataHolder options) {
+            LineNumberCodeBlockRenderer(DataHolder options) {
                 this.options = options;
                 codeContentBlock = Parser.FENCED_CODE_CONTENT_BLOCK.getFrom(options);
             }

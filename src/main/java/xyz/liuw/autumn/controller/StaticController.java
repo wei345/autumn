@@ -37,6 +37,7 @@ public class StaticController {
         return jsCache.getContent();
     }
 
+    // 这里定义的 mapping 不起作用，会进入优先级更高的 MainController "/**"
     @RequestMapping(value = "/css/all.css", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object cssJs(WebRequest webRequest) {
         ResourceService.WebPageReferenceData cssCache = resourceService.getCssCache();

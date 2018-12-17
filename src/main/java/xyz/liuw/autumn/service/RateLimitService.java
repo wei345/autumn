@@ -12,14 +12,19 @@ import java.util.Collections;
  * @author liuwei
  * Created by liuwei on 2018/11/29.
  */
+@SuppressWarnings("ALL")
 @Component
 public class RateLimitService {
 
     private static final String PREFIX = "autumn:rate-limit";
+
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
     private String searchRateLimit = "10";
+
     private String searchRateLimitTimeWindowSeconds = "60";
+
     /* KEYS[1]=key,ARGV[1]=limit,ARGV[2]=timeWindow,return=result */
     private String redisLimitScript =
             "local key = KEYS[1] " +

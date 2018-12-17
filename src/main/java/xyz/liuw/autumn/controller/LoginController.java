@@ -68,11 +68,6 @@ public class LoginController {
         return "login";
     }
 
-    // 确保检查和更新失败次数线程安全：
-    // 每 ip 每秒只允许一次登录尝试。
-    // 或每 ip 一个 lock，lock cache 10 秒。
-    // 或用 token，初始 maxFailures 个 token，进入时获取 token，登录成功归还 token。（当前采用）
-    // 或者用 synchronized，最简单的方式，粒度有点粗。
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public String loginSubmit(String username, String password, String ret, Map<String, Object> model,
                               HttpServletRequest request, HttpServletResponse response) {

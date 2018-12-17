@@ -3,7 +3,6 @@ package xyz.liuw.autumn.service;
 import com.vip.vjtools.vjkit.number.RandomUtil;
 import org.junit.Test;
 import org.springframework.util.DigestUtils;
-import xyz.liuw.autumn.domain.User;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -35,7 +34,7 @@ public class UserServiceTest {
         UserService userService = new UserService();
         userService.setUsers(userString);
         assertThat(userService.getUser(username)).isNotNull();
-        User user = userService.checkPassword(username, plainPassword);
+        UserService.User user = userService.checkPassword(username, plainPassword);
         assertThat(user.getUsername()).isEqualTo(username);
     }
 }

@@ -17,6 +17,7 @@
         <java.version>1.8</java.version>
         <flexmark.version>0.34.48</flexmark.version>
         <skipTests>true</skipTests>
+        <mainClass>xyz.liuw.autumn.Application</mainClass>
     </properties>
 
     <dependencies>
@@ -111,73 +112,13 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.6.0</version>
                 <configuration>
-                    <mainClass>xyz.liuw.autumn.Application</mainClass>
+                    <mainClass>${mainClass}</mainClass>
                 </configuration>
             </plugin>
-            <!-- package with dependencies -->
-            <!-- spring boot 生成的 jar 无法运行非 spring boot main class -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-            <!-- maven-dependency-plugin + maven-jar-plugin，依赖包在 jar 外部
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-dependencies</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                            <includeScope>runtime</includeScope>
-                            <excludeArtifactIds>spring-boot-devtools</excludeArtifactIds>
-                            <overWriteReleases>false</overWriteReleases>
-                            <overWriteSnapshots>false</overWriteSnapshots>
-                            <overWriteIfNewer>true</overWriteIfNewer>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>xyz.liuw.autumn.Application</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>-->
-            <!-- assembly plugin 会展开依赖包
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>xyz.liuw.autumn.Application</mainClass>
-                        </manifest>
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>-->
         </plugins>
     </build>
 

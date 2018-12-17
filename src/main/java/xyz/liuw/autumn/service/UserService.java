@@ -4,7 +4,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
-import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import com.vip.vjtools.vjkit.security.CryptoUtil;
 import com.vip.vjtools.vjkit.text.EncodeUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -16,7 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.util.CookieGenerator;
-import xyz.liuw.autumn.domain.User;
 import xyz.liuw.autumn.util.WebUtil;
 
 import javax.servlet.http.Cookie;
@@ -42,10 +40,6 @@ public class UserService {
 
     private static final String SEPARATOR = "|";
 
-    private static final String SESSION_USER_KEY = "user";
-
-    private static final User NULL_USER = new User();
-
     private static final User USER_REMEMBER_ME_PARSE_ERROR = new User();
 
     private static final User USER_NOT_EXIST_OR_PASSWORD_ERROR = new User();
@@ -64,15 +58,7 @@ public class UserService {
     private Map<Long, User> idToUser;
 
     @Autowired
-    private JsonMapper jsonMapper;
-
-    @Autowired
     private WebUtil webUtil;
-
-    /*private Cache<String, User> sessionUserCache = CacheBuilder.newBuilder()
-            .expireAfterWrite(30, TimeUnit.SECONDS)
-            .maximumSize(1_000_000)
-            .build();*/
 
     private Cache<String, User> rememberMeToUserCache = CacheBuilder.newBuilder()
             .expireAfterWrite(30, TimeUnit.SECONDS)
@@ -110,55 +96,6 @@ public class UserService {
         cg.setCookiePath(webUtil.getContextPath() + "/");
         cg.addCookie(response, String.valueOf(System.currentTimeMillis()));
     }
-
-    /*private User getRequestUser(HttpServletRequest request, HttpServletResponse response) {
-        User user = getSessionUser(request.getSession());
-        if (user == null) {
-            user = getRememberMeUser(request, response);
-            if (user != null) {
-                setSessionUser(user, request.getSession());
-            }
-        }
-        return user;
-    }
-
-    private void setSessionUser(User user, HttpSession session) {
-        User u = new User();
-        u.setId(user.getId());
-        u.setUsername(user.getUsername());
-        String uJson = jsonMapper.toJson(u);
-
-        sessionUserCache.put(session.getId(), u);
-        session.setAttribute(SESSION_USER_KEY, uJson);
-    }
-
-    private User getSessionUser(HttpSession session) {
-        User user;
-        try {
-            user = sessionUserCache.get(session.getId(), () -> {
-                String json = (String) session.getAttribute(SESSION_USER_KEY);
-                if (StringUtils.isBlank(json)) {
-                    return NULL_USER;
-                }
-                User u = jsonMapper.fromJson(json, User.class);
-                if (u == null || u.getId() == null || StringUtils.isBlank(u.getUsername())) {
-                    logger.info("delete invalid session user '{}'", json);
-                    session.removeAttribute(SESSION_USER_KEY);
-                    return NULL_USER;
-                }
-                return u;
-            });
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        }
-        return user == NULL_USER ? null : user;
-    }
-
-    private void removeSessionUser(HttpSession session) {
-        sessionUserCache.invalidate(session.getId());
-        session.removeAttribute(SESSION_USER_KEY);
-    }
-    */
 
     private void setRememberMe(User user, String plainPassword, HttpServletRequest request, HttpServletResponse response) {
         // id|password|timeOnSeconds
@@ -310,4 +247,53 @@ public class UserService {
         }
     }
 
+    static class User {
+        private Long id;
+        private String username;
+        private String password;
+        private String salt;
+
+        // used by Jackson deserialize
+        public User() {
+        }
+
+        public User(long id, String username, String password, String salt) {
+            this.id = id;
+            this.username = username;
+            this.password = password;
+            this.salt = salt;
+        }
+
+        Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        String getSalt() {
+            return salt;
+        }
+
+        public void setSalt(String salt) {
+            this.salt = salt;
+        }
+    }
 }

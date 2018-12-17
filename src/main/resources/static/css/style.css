@@ -9,7 +9,9 @@ body {
 h1, h2, h3, h4, h5, h6 {
     margin: 0;
     padding: 0;
-    font-weight: 300;
+    color: #000;
+    cursor: text;
+    font-weight: 700;
 }
 
 h2, h3, h4, h5, h6 {
@@ -166,6 +168,10 @@ input[type='submit'] {
     text-decoration: none;
     text-transform: uppercase;
     white-space: nowrap;
+}
+
+img {
+    max-width: 100%;
 }
 
 .no_selection {
@@ -373,9 +379,11 @@ input[type='submit'] {
 
 .toc h3 {
     display: inline-block;
-    margin-bottom: .5em;
+    margin: .5em 0;
     font-size: 1em;
     cursor: pointer;
+    font-weight: unset;
+    color: unset;
 }
 
 .toc > ul {
@@ -632,11 +640,14 @@ ul.header__row_1__tools {
     margin: 0 auto;
 }
 
+/*
+只对 desktop 启用左边 Sidebar，中间内容，右边 TOC 的布局，因为在手机上即使横屏宽度够大，但 Sidebar 和 TOC 滚动不流畅。
+*/
 @media (min-width: 640px) {
     .toc {
         float: right;
-        max-width: 16em;
-        padding-left: .8em;
+        max-width: 17em;
+        padding-left: 1em;
         box-sizing: border-box;
     }
 
@@ -701,8 +712,9 @@ ul.header__row_1__tools {
         margin-right: 1.5em;
     }
 
-    .desktop .show_sidebar .center_position {
-        margin: 0;
+    .desktop .show_sidebar .center_position, .desktop .show_toc .center_position {
+        margin: unset;
+        max-width: unset;
     }
 
     .desktop .fixed.qsr_more .header {
@@ -730,7 +742,6 @@ ul.header__row_1__tools {
 
     .desktop .fixed .toc {
         background: #fff;
-        padding-left: 0;
     }
 
     .desktop .fixed .toc {
@@ -742,12 +753,15 @@ ul.header__row_1__tools {
         margin-right: -17em;
     }
 
+    .desktop .fixed .show_toc .toc h3 {
+        padding-right: 1em;
+    }
+
     .desktop .fixed .show_toc .toc > ul {
         box-sizing: border-box;
-        overflow: auto;
+        overflow-y: auto;
         max-height: calc(100vh - 7em);
         padding: 0 1em 5em 0;
-        max-width: 16em;
     }
 
     .desktop .fixed .content.show_toc {

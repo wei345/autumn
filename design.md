@@ -120,6 +120,68 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 
 * 添加 ctx。nginx 映射到子路径时，不需要调整 Autumn 输出的 url 和跳转路径。
 
+```text
+<!-- package with dependencies -->
+<!-- maven-dependency-plugin + maven-jar-plugin，依赖包在 jar 外部
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>copy-dependencies</id>
+            <phase>prepare-package</phase>
+            <goals>
+                <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+                <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                <includeScope>runtime</includeScope>
+                <excludeArtifactIds>spring-boot-devtools</excludeArtifactIds>
+                <overWriteReleases>false</overWriteReleases>
+                <overWriteSnapshots>false</overWriteSnapshots>
+                <overWriteIfNewer>true</overWriteIfNewer>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-jar-plugin</artifactId>
+    <configuration>
+        <archive>
+            <manifest>
+                <addClasspath>true</addClasspath>
+                <classpathPrefix>lib/</classpathPrefix>
+                <mainClass>xyz.liuw.autumn.Application</mainClass>
+            </manifest>
+        </archive>
+    </configuration>
+</plugin>-->
+<!-- assembly plugin 会展开依赖包
+<plugin>
+    <artifactId>maven-assembly-plugin</artifactId>
+    <configuration>
+        <archive>
+            <manifest>
+                <mainClass>xyz.liuw.autumn.Application</mainClass>
+            </manifest>
+        </archive>
+        <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+        </descriptorRefs>
+    </configuration>
+    <executions>
+        <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+                <goal>single</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>-->
+```
+
 ### View
 
 * Controller 设置 model 时确保 HTML 安全，FreeMarker 不用转义，只是原样输出。
@@ -137,6 +199,8 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 * 合并 css，并在路径中添加版本号。
 * 合并 js，并在路径中添加版本号。
 
+[milligram.css](https://github.com/milligram/milligram/blob/master/dist/milligram.css) font-size 一改样式全乱，列表 font-size 居然递减，别的还好。
+
 ### Java 10
 
 TODO 现在无法在 Java 9 以上运行，报错找不到类 javax/activation/MimetypesFileTypeMap
@@ -148,6 +212,12 @@ java --add-modules java.se.ee -jar myapp.jar
 --add-modules ALL-MODULE-PATH
 
 ### 安全
+
+// 确保检查和更新失败次数线程安全：
+// 每 ip 每秒只允许一次登录尝试。
+// 或每 ip 一个 lock，lock cache 10 秒。
+// 或用 token，初始 maxFailures 个 token，进入时获取 token，登录成功归还 token。
+// 或者用 synchronized，最简单的方式，粒度有点粗。
 
 TODO
 
