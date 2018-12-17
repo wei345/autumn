@@ -317,7 +317,7 @@ function selectedNodeScrollIntoViewIfTreeFirstShow() {
         // 使用 scroll，不使用 selected.scrollIntoView({block: 'center'}) ，
         // 因为如果 selected 在页面底部，scrollIntoView 会"过量滚动"，导致 body 也向上滚动一段距离，
         // 另外，Safari 不支持 scrollIntoView 选项。
-        var scrollEl = selected.offsetParent;
+        var scrollEl = getScrollParent(selected);
         if (scrollEl === document.body) { // body 没有滚动条
             scrollEl = document.scrollingElement;
         }
@@ -330,6 +330,17 @@ function selectedNodeScrollIntoViewIfTreeFirstShow() {
         var expectScrollTop = scrollEl.scrollTop + (rect.top - expectRectTop);
         var scrollTop = Math.min(maxScrollTop, expectScrollTop);
         scrollEl.scroll(0, scrollTop);
+    }
+}
+
+function getScrollParent(node) {
+    let overflowY = window.getComputedStyle(node).overflowY;
+    let isScrollable = overflowY !== 'visible' && overflowY !== 'hidden';
+
+    if (isScrollable && node.scrollHeight > node.clientHeight) {
+        return node;
+    } else {
+        return getScrollParent(node.parentNode);
     }
 }
 

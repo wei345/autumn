@@ -16,6 +16,7 @@
     <properties>
         <java.version>1.8</java.version>
         <flexmark.version>0.34.48</flexmark.version>
+        <skipTests>true</skipTests>
     </properties>
 
     <dependencies>
@@ -102,7 +103,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <skipTests>true</skipTests>
+                    <skipTests>${skipTests}</skipTests>
                 </configuration>
             </plugin>
             <plugin>
@@ -114,7 +115,13 @@
                 </configuration>
             </plugin>
             <!-- package with dependencies -->
-            <!--<plugin>
+            <!-- spring boot 生成的 jar 无法运行非 spring boot main class -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <!-- maven-dependency-plugin + maven-jar-plugin，依赖包在 jar 外部
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
@@ -148,7 +155,7 @@
                     </archive>
                 </configuration>
             </plugin>-->
-            <!-- assembly plugin 会展开 jar
+            <!-- assembly plugin 会展开依赖包
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
@@ -171,11 +178,6 @@
                     </execution>
                 </executions>
             </plugin>-->
-            <!-- spring boot 生成的 jar 无法运行非 spring boot main class -->
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
         </plugins>
     </build>
 
