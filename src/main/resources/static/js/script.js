@@ -411,10 +411,3 @@ function bindToggle(targetClass) {
         target.classList.toggle('show');
     });
 }
-
-
-
-
-
-
-

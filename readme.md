@@ -1,6 +1,6 @@
 # Autumn
 
-将 Markdown 文件目录映射为网站，自己可以看到全部内容，访客只能看到指定内容，以及好用的全文搜索。
+将 Markdown 文件目录映射为网站，有简单的访问控制，有好用的搜索功能。
 
 ## 环境
 
@@ -8,7 +8,6 @@ Build 环境
 
 * Maven 3.5
 * Java 8
-* Redis 4
 
 运行环境
 
@@ -23,13 +22,13 @@ IDE 运行 main class
 xyz.liuw,autumn.Application
 ```
 
-或命令行从源码运行
+或 命令行从源码运行
 
 ```bash
 mvn clean compile exec:java
 ```
 
-或命令行打包运行
+或 命令行打包运行
 
 ```bash
 mvn clean package
@@ -61,7 +60,7 @@ published: true
 ...
 ```
 
-如果不是以上格式，系统自动设置默认值。`created` 和 `modified` 默认值是文件修改时间，`published` 默认值是 `false`。
+如果不符合以上格式，系统自动设置默认值。`created` 和 `modified` 默认值是文件修改时间，`published` 默认值是 `false`。
 
 ## 功能
 
@@ -88,6 +87,7 @@ published: true
 
 权限
 
+* 已登录用户可以看到全部页面，未登录只能看到 published 设为 true 的页面。
 * 未登录状态，树形菜单里不会显示无权限页面。
 * 未登录状态访问无权限页面，会跳转到登录页面，登录成功后回到之前的页面。
 * 已登录状态，左侧树形菜单显示所有页面。
@@ -127,8 +127,6 @@ published: true
 两个都试了，commonmark-java 生成 TOC 有点麻烦，最终选择了 flexmark-java。
 
 ### 权限
-
-已登录用户可以看到全部页面，未登录只能看到 published 设为 true 的页面。
 
 若要支持更多用户，不同的用户有不同的可见范围，可以在页面增加 allow_role 属性，
 值为 1 个或多个角色，还可增加一个权限配置文件指定角色与目录或文件的对应关系，

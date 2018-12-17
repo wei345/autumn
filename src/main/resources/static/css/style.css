@@ -384,7 +384,7 @@ input[type='submit'] {
 
 .toc ul {
     margin: 0;
-    padding: 0 0 0 1em;
+    padding: 0 0 0 1.5em;
 }
 
 .toc ul li {
@@ -633,28 +633,21 @@ ul.header__row_1__tools {
 }
 
 @media (min-width: 640px) {
-
-    .mobi .header .row {
-        flex-direction: row;
-    }
-
-}
-
-@media (min-width: 640px) {
     .toc {
         float: right;
         max-width: 16em;
         padding-left: .8em;
+        box-sizing: border-box;
     }
 
     .row .column.header__row_1__heading, .row .column.sidebar {
-        flex: 0 1 22%;
+        flex: 0 1 16em;
         min-width: 7em;
     }
 
     .row .column.header__row_1__right {
         position: inherit;
-        flex: 0 1 22%;
+        flex: 0 1 16em;
         min-width: 7em;
     }
 
@@ -737,6 +730,7 @@ ul.header__row_1__tools {
 
     .desktop .fixed .toc {
         background: #fff;
+        padding-left: 0;
     }
 
     .desktop .fixed .toc {
@@ -752,14 +746,12 @@ ul.header__row_1__tools {
         box-sizing: border-box;
         overflow: auto;
         max-height: calc(100vh - 7em);
-        padding-bottom: 5em;
-        padding-right: 1em;
-        max-width: 17em;
-        padding-left: 0;
+        padding: 0 1em 5em 0;
+        max-width: 16em;
     }
 
     .desktop .fixed .content.show_toc {
-        padding-right: 18em;
+        padding-right: 17em;
     }
 
     .desktop .fixed .tree_box {

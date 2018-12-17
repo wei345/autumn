@@ -2,7 +2,6 @@
 
 function setupQuickSearch(root) {
     var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
-    var categoryAndTags = document.getElementsByClassName('search_box__category_and_tags')[0];
     var categoryAndTagsToggle = document.getElementsByClassName('search_box__category_and_tags_toggle')[0];
     var qsrClose = document.getElementsByClassName('qsr__close')[0];
     var qsrList = document.getElementsByClassName('qsr__list')[0];
@@ -17,6 +16,8 @@ function setupQuickSearch(root) {
     var lastS;
     var pendingQs = 0;
     var qsTimeoutId;
+    var onQsOpen;
+    var onQsClose;
 
     getAllPages(root);
     setUpCategoryAndTags();
@@ -92,7 +93,10 @@ function setupQuickSearch(root) {
         // 不用 blur 关闭 QuickSearch，因为会导致无法用鼠标点击搜索结果，在鼠标点到链接之前 QuickSearch 就关闭了
 
         qsrClose.addEventListener('click', function (event) {
-            closeQs();
+            if (qsOpened) {
+                searchInput.value = '';
+                qs();
+            }
             event.stopPropagation();
         });
 
@@ -104,7 +108,6 @@ function setupQuickSearch(root) {
 
         document.getElementsByClassName('header__row_1__search_form')[0].addEventListener('click', function (event) {
             // 避免搜索框为空时，点击搜索结果（最近访问），qs 关闭
-            event.stopPropagation();
             if (qsOpened && document.activeElement !== searchInput) {
                 searchInput.focus();
             }
@@ -160,17 +163,27 @@ function setupQuickSearch(root) {
     function quickSearch() {
         var s = searchInput.value;
 
-        if (qsOpened && s === '' && document.activeElement !== searchInput) {
-            clearResult();
-            lastS = null;
-            qsOpened = false;
-            container.classList.remove('qs_opened');
-            container.classList.remove('qsr_more');
-            return;
+        if (s === '' && document.activeElement !== searchInput) {
+            if (qsOpened) {
+                clearResult();
+                lastS = null;
+                qsOpened = false;
+                container.classList.remove('qs_opened');
+                container.classList.remove('qsr_more');
+                if (onQsClose) {
+                    onQsClose();
+                }
+                return;
+            }
         }
 
-        qsOpened = true;
-        container.classList.add('qs_opened');
+        if (!qsOpened) {
+            qsOpened = true;
+            container.classList.add('qs_opened');
+            if (onQsOpen) {
+                onQsOpen();
+            }
+        }
 
         s = s.trim();
         if (lastS === s) {
@@ -635,7 +648,7 @@ function setupQuickSearch(root) {
             html += '<li class="qsr__list__show_all">';
             html += '<div class="qsr__list__link_line">';
             html += '<span class="qsr__list__show_all__icon"></span>';
-            html += '<span class="qsr__list__show_all__btn no_selection">' + (i + 1) + ' ... ' + pages.length + '</span>';
+            html += '<span class="qsr__list__show_all__btn no_selection">' + (pages.length - i) + ' more results</span>';
             html += '<div class="qsr__list__link_line">';
             html += '</li>';
         }
@@ -681,42 +694,80 @@ function setupQuickSearch(root) {
         qsrClose.classList.toggle('show', false);
     }
 
-    function closeQs() {
-        if (qsOpened) {
-            searchInput.value = '';
-            qs();
-        }
-    }
-
     function setUpCategoryAndTags() {
         var categoryField = 'category';
         var tagField = 'tags';
         var selectedClassName = 'cat_selected';
+        var categoryAndTags = document.getElementsByClassName('search_box__category_and_tags')[0];
         categoryAndTags.innerHTML = buildHtml(allPages, categoryField, '分类') + buildHtml(allPages, tagField, '标签');
         var categoryList = document.getElementsByClassName('search_box__' + categoryField + '_list')[0];
         var tagList = document.getElementsByClassName('search_box__' + tagField + '_list')[0];
         const categoryTitle = document.getElementsByClassName('search_box__' + categoryField + '_list_title')[0];
         const tagTitle = document.getElementsByClassName('search_box__' + tagField + '_list_title')[0];
+        var lastSyncS;
+        var ctOpened = false;
+        const unSelectedExpressionToOption = {};
+        const selectedExpressionToOption = {};
 
-        Array.prototype.forEach.call(categoryList.getElementsByTagName('li'), function (li) {
-            li.addEventListener('click', toggleCategorySelected);
-        });
+        class Option {
+            constructor(dom, value, expressionPrefix) {
+                this.dom = dom;
+                this.value = value;
+                this.selected = false;
+                this.expression = expressionPrefix + value;
+            }
 
-        Array.prototype.forEach.call(tagList.getElementsByTagName('li'), function (li) {
-            li.addEventListener('click', toggleTagSelected);
-        });
+            select() {
+                if (this.selected) {
+                    return;
+                }
+                this.dom.classList.add(selectedClassName);
+                this.selected = true;
+            }
 
-        categoryTitle.addEventListener('click', function () {
-            cleanSelected(categoryList, CategoryMatcher);
-            focusAndQs();
-        });
+            unSelect() {
+                if (!this.selected) {
+                    return;
+                }
+                this.dom.classList.remove(selectedClassName);
+                this.selected = false;
+            }
+        }
 
-        tagTitle.addEventListener('click', function () {
-            cleanSelected(tagList, TagMatcher);
-            focusAndQs();
-        });
+        class CategoryOption extends Option {
+            constructor(dom, value) {
+                super(dom, value, categoryPrefix);
+            }
+        }
 
+        class TagOption extends Option {
+            constructor(dom, value) {
+                super(dom, value, tagPrefix);
+            }
+        }
+
+        buildOptions();
         bindCategoryAndTagsToggle();
+        autoSyncS();
+        bindCtEvents();
+
+        function bindCtEvents() {
+            Array.prototype.forEach.call(categoryList.getElementsByTagName('li'), function (li) {
+                li.addEventListener('click', toggleSelected);
+            });
+
+            Array.prototype.forEach.call(tagList.getElementsByTagName('li'), function (li) {
+                li.addEventListener('click', toggleSelected);
+            });
+
+            categoryTitle.addEventListener('click', function () {
+                cleanSelected(CategoryOption);
+            });
+
+            tagTitle.addEventListener('click', function () {
+                cleanSelected(TagOption);
+            });
+        }
 
         function buildHtml(pages, field, title) {
             var counters = [];
@@ -760,25 +811,161 @@ function setupQuickSearch(root) {
             return html;
         }
 
-        function sContains(s, exp) {
-            const matchers = parseS(s);
-            for (let i = 0; i < matchers.length; i++) {
-                if (matchers[i].expression === exp) {
-                    return true;
-                }
-            }
-            return false;
-        }
+        function buildOptions() {
+            toArray(categoryList.getElementsByTagName('li')).forEach(function (dom) {
+                var value = dom.getElementsByClassName('category')[0].innerText;
+                var option = new CategoryOption(dom, value);
+                dom.ctOption = option;
+                unSelectedExpressionToOption[option.expression] = option;
+            });
 
-        function sRemove(s, exp) {
-            return sFilter(s, function (matcher) {
-                return matcher.expression !== exp;
+            toArray(tagList.getElementsByTagName('li')).forEach(function (dom) {
+                var value = dom.getElementsByClassName('tag')[0].innerText;
+                var option = new TagOption(dom, value);
+                dom.ctOption = option;
+                unSelectedExpressionToOption[option.expression] = option;
             });
         }
 
-        function sRemoveMatcherType(s, matcherFn) {
-            return sFilter(s, function (matcher) {
-                return matcher.constructor.name !== matcherFn.name;
+        function toggleSelected(event) {
+            const option = event.currentTarget.ctOption;
+
+            // 取消选中
+            if (option.selected) {
+                moveToUnSelected(option);
+                syncToInput();
+                focusAndQs();
+                return;
+            }
+
+            // 选中
+            const multiEnabled = multiSelectEnabled(event);
+            forEach(selectedExpressionToOption, function (k, v) {
+                if (multiEnabled) {
+                    if (v instanceof TagOption) {
+                        return;
+                    }
+                    if (v instanceof CategoryOption && option instanceof TagOption) {
+                        return;
+                    }
+                }
+                moveToUnSelected(v);
+            });
+
+            moveToSelected(option);
+            syncToInput();
+            focusAndQs();
+        }
+
+        function multiSelectEnabled(event) {
+            return multipleSelectionEnabled || event.metaKey || event.ctrlKey;
+        }
+
+        function focusAndQs() {
+            searchInput.focus();
+            qs();
+        }
+
+        function cleanSelected(optionFn) {
+            let changed = false;
+            forEach(selectedExpressionToOption, function (k, v) {
+                if (v instanceof optionFn) {
+                    moveToUnSelected(v);
+                    changed = true;
+                }
+            });
+            if (changed) {
+                syncToInput();
+                focusAndQs();
+            }
+        }
+
+        function moveToSelected(option) {
+            delete unSelectedExpressionToOption[option.expression];
+            selectedExpressionToOption[option.expression] = option;
+            option.select();
+        }
+
+        function moveToUnSelected(option) {
+            delete selectedExpressionToOption[option.expression];
+            unSelectedExpressionToOption[option.expression] = option;
+            option.unSelect();
+        }
+
+        function bindCategoryAndTagsToggle() {
+            categoryAndTagsToggle.addEventListener('click', function () {
+                if (ctOpened) {
+                    closeCt();
+                } else {
+                    openCt();
+                }
+            });
+        }
+
+        function openCt() {
+            ctOpened = true;
+            categoryAndTags.classList.add('show');
+            categoryAndTagsToggle.classList.add('unfolded');
+            syncFromInput();
+            if (qsOpened) {
+                searchInput.focus();
+            }
+        }
+
+        function closeCt() {
+            if (!ctOpened) {
+                return;
+            }
+            ctOpened = false;
+            categoryAndTags.classList.remove('show');
+            categoryAndTagsToggle.classList.remove('unfolded');
+            if (qsOpened) {
+                searchInput.focus();
+            }
+        }
+
+        function syncToInput() {
+            let s = searchInput.value;
+
+            // 把没选中的和选中的全去掉
+            s = sFilter(s, function (matcher) {
+                return !unSelectedExpressionToOption[matcher.expression]
+                    && !selectedExpressionToOption[matcher.expression];
+            });
+
+            // 把选中的全加上
+            forEach(selectedExpressionToOption, function (k) {
+                s = k + ' ' + s;
+            });
+
+            searchInput.value = s;
+            lastSyncS = s;
+        }
+
+        function syncFromInput() {
+            const s = searchInput.value.trim();
+            if (lastSyncS === s) {
+                return;
+            }
+            lastSyncS = s;
+
+            // 把选中的移到未选中
+            forEach(selectedExpressionToOption, function (k, v) {
+                unSelectedExpressionToOption[k] = v;
+                delete selectedExpressionToOption[k];
+            });
+
+            // 把 input 里出现的移到选中，并执行 select
+            parseS(s).forEach(function (matcher) {
+                const exp = matcher.expression;
+                if (unSelectedExpressionToOption[exp]) {
+                    moveToSelected(unSelectedExpressionToOption[exp]);
+                }
+            });
+
+            // 执行 unSelect
+            forEach(unSelectedExpressionToOption, function (k, v) {
+                v.unSelect();
             });
         }
 
@@ -793,12 +980,12 @@ function setupQuickSearch(root) {
             return stringBuilder.join(' ');
         }
 
-        function getTag(li) {
-            return li.getElementsByClassName('tag')[0].innerText;
-        }
-
-        function getCategory(li) {
-            return li.getElementsByClassName('category')[0].innerText;
+        function forEach(map, fn) {
+            for (const k in map) {
+                if (map.hasOwnProperty(k)) {
+                    fn(k, map[k]);
+                }
+            }
         }
 
         function toArray(elements) {
@@ -810,120 +997,13 @@ function setupQuickSearch(root) {
             });
         }
 
-        function toggleCategorySelected(event) {
-            var li = event.currentTarget;
-            var category = getCategory(li);
-            var exp = categoryPrefix + category;
-            var s = searchInput.value;
-            var selected = li.classList.toggle(selectedClassName);
-
-            if (!selected) {
-                searchInput.value = sRemove(s, exp);
-                focusAndQs();
-                return;
-            }
-
-            if (!multiSelectEnabled(event)) {
-                cleanTagSelected();
-            }
-            cleanCategorySelected();
-            li.classList.add(selectedClassName);
-            searchInput.value = exp + ' ' + searchInput.value;
-            focusAndQs();
-        }
-
-        function toggleTagSelected(event) {
-            var li = event.currentTarget;
-            var tag = getTag(li);
-            var exp = tagPrefix + tag;
-            var s = searchInput.value;
-            var selected = li.classList.toggle(selectedClassName);
-
-            if (!selected) {
-                searchInput.value = sRemove(s, exp);
-                focusAndQs();
-                return;
-            }
-
-            if (multiSelectEnabled(event)) {
-                if (!sContains(s, exp)) {
-                    searchInput.value = exp + ' ' + s;
-                }
-                focusAndQs();
-                return;
-            }
-
-            cleanTagSelected();
-            cleanCategorySelected();
-            li.classList.add(selectedClassName);
-            searchInput.value = exp + ' ' + searchInput.value;
-            focusAndQs();
-        }
-
-        function multiSelectEnabled(event) {
-            return multipleSelectionEnabled || event.metaKey || event.ctrlKey;
-        }
-
-        function focusAndQs() {
-            searchInput.focus();
-            qs();
-        }
-
-        function cleanTagSelected() {
-            cleanSelected(tagList, TagMatcher);
-        }
-
-        function cleanCategorySelected() {
-            cleanSelected(categoryList, CategoryMatcher);
-        }
-
-        function cleanSelected(parent, matcherType) {
-            removeSelectedClass(parent);
-            searchInput.value = sRemoveMatcherType(searchInput.value, matcherType);
-        }
-
-        function removeSelectedClass(parent) {
-            toArray(parent.getElementsByClassName(selectedClassName)).forEach(function (el) {
-                el.classList.remove(selectedClassName);
-            });
-        }
-
-        function bindCategoryAndTagsToggle() {
-            categoryAndTagsToggle.addEventListener('click', function () {
-                var show = categoryAndTags.classList.toggle('show');
-                categoryAndTagsToggle.classList.toggle('unfolded', show);
-                if (show) {
-                    syncS();
-                }
-                if (qsOpened) {
-                    searchInput.focus();
+        function autoSyncS() {
+            searchInput.addEventListener('keyup', function () {
+                if (ctOpened) {
+                    syncFromInput();
                 }
             });
-        }
-
-        function syncS() {
-            var cSelected = {};
-            var tSelected = {};
-            parseS(searchInput.value).forEach(function (matcher) {
-                if (matcher instanceof CategoryMatcher) {
-                    cSelected[matcher.searchStr] = true;
-                }
-                if (matcher instanceof TagMatcher) {
-                    tSelected[matcher.searchStr] = true;
-                }
-            });
-            removeSelectedClass(categoryList);
-            Array.prototype.forEach.call(categoryList.getElementsByClassName('category'), function (el) {
-                if (cSelected[el.innerText]) {
-                    el.parentNode.classList.add(selectedClassName);
-                }
-            });
-            removeSelectedClass(tagList);
-            Array.prototype.forEach.call(tagList.getElementsByClassName('tag'), function (el) {
-                if (tSelected[el.innerText]) {
-                    el.parentNode.classList.add(selectedClassName);
-                }
-            });
+            onQsClose = closeCt;
         }
     }
 }
