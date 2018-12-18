@@ -31,20 +31,31 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
 public class DataLoader {
 
     private static final String ARCHIVE_PATH_PREFIX = "/archive/";
+
     private static final String HELP_MD = "/static/help.md";
+
     private static Logger logger = LoggerFactory.getLogger(DataLoader.class);
+
     private final DataSource dataSource;
+
     private final JsonMapper jsonMapper;
+
     @Value("${autumn.data-dir}")
     private String dataDir;
+
     @Value("${autumn.data.reload-interval-seconds:10}")
     private long reloadIntervalSeconds;
+
     private int reloadContinuousFailures; // default 0
+
     @Autowired
     private WebUtil webUtil;
+
     private List<DataChangedListener> listeners = new ArrayList<>(1);
+
     @Autowired
     private ResourceLoader resourceLoader;
+
     private volatile Page helpPage;
 
     @Autowired
@@ -137,7 +148,10 @@ public class DataLoader {
 
             //noinspection ConstantConditions
             for (File file : dir.listFiles()) {
-                if (file.isHidden() || file.getAbsolutePath().startsWith(".")) {
+                if (file.isHidden() || file.getName().startsWith(".")) {
+                    continue;
+                }
+                if (file.isDirectory() && file.getName().endsWith(".mindnode")) {
                     continue;
                 }
 

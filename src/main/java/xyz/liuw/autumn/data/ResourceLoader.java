@@ -136,14 +136,11 @@ public class ResourceLoader {
         void onChanged();
     }
 
-    static class LastModifiedVisitor extends SimpleFileVisitor<Path> {
+    static class LastModifiedVisitor extends ResourceWalker.SkipHiddenFileVisitor {
         private long lastModified;
 
         @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-            if (file.getFileName().toString().startsWith(".")) {
-                return CONTINUE;
-            }
+        public FileVisitResult visitNonHiddenFile(Path file, BasicFileAttributes attrs) {
             long time = attrs.lastModifiedTime().toMillis();
             if (time > lastModified) {
                 lastModified = time;
@@ -175,12 +172,15 @@ public class ResourceLoader {
             if (root == null) {
                 root = dir;
             }
+            if (ResourceWalker.isHidden(dir)) {
+                return FileVisitResult.SKIP_SUBTREE;
+            }
             return super.preVisitDirectory(dir, attrs);
         }
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-            if (file.getFileName().toString().startsWith(".")) {
+            if (ResourceWalker.isHidden(file)) {
                 return CONTINUE;
             }
 

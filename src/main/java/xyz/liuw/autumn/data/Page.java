@@ -31,6 +31,11 @@ public class Page {
     private volatile ConcurrentHashMap<String, PageHit> searchHitCache;
     private volatile String sourceMd5;
 
+    private boolean blog; // if file name like yyyy-MM-dd-xxx
+    private String blogName; // blog file name without date and extension
+    private String blogPath; // e.g. /2018/11/12/xxx
+    private Date blogDate; // 从路径里解析出来的日期，如 /path/to/2018-11-12-xxx 会得到 2018-11-12
+
     public static class ViewCache {
         private byte[] content;
         private String etag;
@@ -189,5 +194,37 @@ public class Page {
 
     public void setArchived(boolean archived) {
         this.archived = archived;
+    }
+
+    public boolean isBlog() {
+        return blog;
+    }
+
+    public void setBlog(boolean blog) {
+        this.blog = blog;
+    }
+
+    public String getBlogPath() {
+        return blogPath;
+    }
+
+    public void setBlogPath(String blogPath) {
+        this.blogPath = blogPath;
+    }
+
+    public Date getBlogDate() {
+        return blogDate;
+    }
+
+    public void setBlogDate(Date blogDate) {
+        this.blogDate = blogDate;
+    }
+
+    public String getBlogName() {
+        return blogName;
+    }
+
+    public void setBlogName(String blogName) {
+        this.blogName = blogName;
     }
 }

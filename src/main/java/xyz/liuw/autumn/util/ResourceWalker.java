@@ -4,9 +4,13 @@ import com.vip.vjtools.vjkit.io.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
+
+import static java.nio.file.FileVisitResult.CONTINUE;
 
 public class ResourceWalker {
     public static final String SPRING_BOOT_CLASSES = "/BOOT-INF/classes";
@@ -56,5 +60,31 @@ public class ResourceWalker {
                 IOUtil.closeQuietly(fileSystem);
             }
         }
+    }
+
+    public static abstract class SkipHiddenFileVisitor extends SimpleFileVisitor<Path> {
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            if (isHidden(dir)) {
+                return FileVisitResult.SKIP_SUBTREE;
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            if (isHidden(file)) {
+                return CONTINUE;
+            }
+
+            return visitNonHiddenFile(file, attrs);
+        }
+
+        abstract public FileVisitResult visitNonHiddenFile(Path file, BasicFileAttributes attrs);
+    }
+
+    public static boolean isHidden(Path file){
+        return file.getFileName().toString().startsWith(".");
     }
 }

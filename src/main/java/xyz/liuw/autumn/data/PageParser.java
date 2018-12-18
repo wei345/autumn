@@ -3,7 +3,6 @@ package xyz.liuw.autumn.data;
 
 import com.vip.vjtools.vjkit.io.FileUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateParser;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +11,8 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author liuwei
@@ -19,16 +20,18 @@ import java.util.*;
  */
 public class PageParser {
 
-    private static final DateParser DATE_PARSER_ON_SECOND = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
-    private static final DateParser DATE_PARSER_ON_MINUTE = FastDateFormat.getInstance("yyyy-MM-dd HH:mm");
-    private static final String HEADER_BOUNDARY = "---";
-    private static final String HEADER_CREATED = "created:";
-    private static final String HEADER_MODIFIED = "modified:";
-    private static final String HEADER_CATEGORY = "category:";
-    private static final String HEADER_TAGS = "tags:";
-    private static final String HEADER_PUBLISHED = "published:";
-    private static final String TITLE_START_WITH = "# ";
-    private static Logger logger = LoggerFactory.getLogger(PageParser.class);
+    static final FastDateFormat DATE_PARSER_ON_SECOND = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
+    static final String HEADER_BOUNDARY = "---";
+    static final String HEADER_CREATED = "created:";
+    static final String HEADER_MODIFIED = "modified:";
+    static final String HEADER_CATEGORY = "category:";
+    static final String HEADER_TAGS = "tags:";
+    static final String HEADER_PUBLISHED = "published:";
+    static final String TITLE_START_WITH = "# ";
+    private static final FastDateFormat DATE_PARSER_ON_DAY = FastDateFormat.getInstance("yyyy-MM-dd");
+    private static final FastDateFormat DATE_PARSER_ON_MINUTE = FastDateFormat.getInstance("yyyy-MM-dd HH:mm");
+    static Logger logger = LoggerFactory.getLogger(PageParser.class);
+    private static Pattern BLOG_FILE_NAME_PATTERN = Pattern.compile("^(\\d{4}-\\d{2}-\\d{2})-(.+)\\.md$");
 
     public static Page parse(File file) {
         logger.info("Parsing {}", file.getAbsolutePath());
@@ -40,6 +43,7 @@ public class PageParser {
         }
         Page page = parse(text);
         page.setLastModified(file.lastModified());
+        parsePathIfBlog(file, page);
 
         int dotIndex = file.getName().lastIndexOf('.');
         String name = (dotIndex == -1) ? "" : file.getName().substring(0, dotIndex);
@@ -68,6 +72,23 @@ public class PageParser {
         parseBody(source, page);
         page.setSource(text);
         return page;
+    }
+
+    private static void parsePathIfBlog(File file, Page page) {
+        Matcher matcher = BLOG_FILE_NAME_PATTERN.matcher(file.getName());
+        if (!matcher.find()) {
+            return;
+        }
+        String dateStr = matcher.group(1);
+        try {
+            page.setBlogDate(DATE_PARSER_ON_DAY.parse(dateStr));
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+        String blogName = matcher.group(2);
+        String blogPath = "/" + dateStr.replace('-', '/') + "/" + blogName;
+        page.setBlogPath(blogPath);
+        page.setBlog(true);
     }
 
     private static void parseHeader(TextSource source, Page page) {
