@@ -19,7 +19,9 @@ import static xyz.liuw.autumn.service.UserService.isLogged;
 @Component
 public class DataService {
 
-    public static final Page PAGE_NEED_LOGIN = new Page();
+    public static final Page LOGIN_REQUIRED_PAGE = new Page();
+
+    public static final Media LOGIN_REQUIRED_MEDIA = new Media();
 
     @Autowired
     private DataSource dataSource;
@@ -31,9 +33,19 @@ public class DataService {
     }
 
     public Media getMedia(String path) {
-        return isLogged() ?
-                dataSource.getAllData().getMediaMap().get(path) :
-                dataSource.getPublishedData().getMediaMap().get(path);
+        if (isLogged()) {
+            return dataSource.getAllData().getMediaMap().get(path);
+        }
+
+        Media media = dataSource.getPublishedData().getMediaMap().get(path);
+        if (media != null) {
+            return media;
+        }
+
+        if (dataSource.getAllData().getMediaMap().containsKey(path)) {
+            return LOGIN_REQUIRED_MEDIA;
+        }
+        return null;
     }
 
     Page.ViewCache getViewCache(Page page) {
@@ -58,7 +70,7 @@ public class DataService {
 
     /**
      * @param path 首页 /，其他 /xxx
-     * @return null 未找到, PAGE_NEED_LOGIN 找到了但登录后才能看, Page 找到
+     * @return null 未找到, LOGIN_REQUIRED_PAGE 找到了但登录后才能看, Page 找到
      */
     public Page getPage(String path) {
         Page page;
@@ -89,7 +101,7 @@ public class DataService {
         }
 
         if (dataSource.getAllData().getPageMap().containsKey(path)) {
-            return PAGE_NEED_LOGIN;
+            return LOGIN_REQUIRED_PAGE;
         }
 
         return null;

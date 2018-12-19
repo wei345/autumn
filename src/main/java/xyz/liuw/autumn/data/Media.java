@@ -13,6 +13,9 @@ public class Media {
     private volatile String mimeType;
     private long lastModified; // file last modified
 
+    public Media() {
+
+    }
 
     public Media(File file) {
         this.file = file;

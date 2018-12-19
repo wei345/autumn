@@ -12,10 +12,12 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.view.RedirectView;
 import xyz.liuw.autumn.data.Media;
 import xyz.liuw.autumn.data.Page;
-import xyz.liuw.autumn.service.*;
+import xyz.liuw.autumn.service.DataService;
+import xyz.liuw.autumn.service.MediaService;
+import xyz.liuw.autumn.service.PageService;
+import xyz.liuw.autumn.service.ResourceService;
 import xyz.liuw.autumn.util.WebUtil;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
@@ -26,8 +28,8 @@ import java.util.Map;
 
 import static xyz.liuw.autumn.controller.StaticController.ALL_CSS;
 import static xyz.liuw.autumn.controller.StaticController.ALL_JS;
-import static xyz.liuw.autumn.service.DataService.PAGE_NEED_LOGIN;
-import static xyz.liuw.autumn.service.UserService.isLogged;
+import static xyz.liuw.autumn.service.DataService.LOGIN_REQUIRED_MEDIA;
+import static xyz.liuw.autumn.service.DataService.LOGIN_REQUIRED_PAGE;
 
 @RestController
 public class MainController {
@@ -57,7 +59,7 @@ public class MainController {
                         WebRequest webRequest,
                         HttpServletRequest request,
                         HttpServletResponse response,
-                        Map<String, Object> model) throws ServletException, IOException {
+                        Map<String, Object> model) throws IOException {
 
         String path = WebUtil.getRelativePath(request);
 
@@ -78,6 +80,9 @@ public class MainController {
         // Media
         Media media = dataService.getMedia(path);
         if (media != null) {
+            if (media == LOGIN_REQUIRED_MEDIA) {
+                return redirectLoginView(path);
+            }
             return mediaService.output(media, webRequest, request, response);
         }
 
@@ -86,7 +91,7 @@ public class MainController {
         }
 
         if (ALL_CSS.equals(path)) {
-            return staticController.cssJs(webRequest);
+            return staticController.allCss(webRequest);
         }
 
         // 静态文件，也可以用 ResourceHttpRequestHandler
@@ -99,16 +104,11 @@ public class MainController {
                               String[] h,
                               WebRequest webRequest,
                               HttpServletResponse response,
-                              Map<String, Object> model) throws IOException {
+                              Map<String, Object> model) {
         Validate.notNull(page);
 
-        if (page == PAGE_NEED_LOGIN) {
-            if (!isLogged()) {
-                return new RedirectView("/login?ret=" + path, true, false);
-            } else {
-                response.sendError(403);
-                return null;
-            }
+        if (page == LOGIN_REQUIRED_PAGE) {
+            return redirectLoginView(path);
         }
 
         String view = pathToView.get(path);
@@ -146,5 +146,9 @@ public class MainController {
         });
 
         this.pathToView = pathToView;
+    }
+
+    private RedirectView redirectLoginView(String ret) {
+        return new RedirectView("/login?ret=" + ret, true, false);
     }
 }

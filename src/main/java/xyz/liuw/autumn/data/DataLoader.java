@@ -46,6 +46,9 @@ public class DataLoader {
     @Value("${autumn.data.reload-interval-seconds:10}")
     private long reloadIntervalSeconds;
 
+    @Value("${autumn.data.publish-all-media:true}")
+    private boolean publishAllMedia;
+
     private int reloadContinuousFailures; // default 0
 
     @Autowired
@@ -309,9 +312,13 @@ public class DataLoader {
         // published media
         Map<String, Media> publishedMedia = Maps.newHashMapWithExpectedSize(mediaMap.size());
         for (Map.Entry<String, Media> entry : mediaMap.entrySet()) {
-            String path = entry.getKey();
-            if (path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".ico")) {
+            if (publishAllMedia) {
                 publishedMedia.put(entry.getKey(), entry.getValue());
+            } else {
+                String path = entry.getKey();
+                if (path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".ico")) {
+                    publishedMedia.put(entry.getKey(), entry.getValue());
+                }
             }
         }
 

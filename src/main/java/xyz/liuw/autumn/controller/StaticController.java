@@ -43,7 +43,7 @@ public class StaticController {
 
     // 这里定义的 mapping 不起作用，会进入优先级更高的 MainController "/**"
     @RequestMapping(value = ALL_CSS, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Object cssJs(WebRequest webRequest) {
+    public Object allCss(WebRequest webRequest) {
         ResourceService.WebPageReferenceData cssCache = resourceService.getCssCache();
         if (webRequest.checkNotModified(cssCache.getEtag())) {
             return null;

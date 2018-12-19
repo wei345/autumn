@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
@@ -29,7 +30,7 @@ public class MediaService {
     private static Logger logger = LoggerFactory.getLogger(MediaService.class);
 
     @SuppressWarnings("FieldCanBeLocal")
-    private int cacheFileMaxLength = 1024 * 1024;
+    private int cacheFileMaxLength = 1024 * 1024; // 1 MB
 
     @Value("${server.compression.mime-types}")
     private List<String> compressionMimeTypes;
@@ -48,32 +49,22 @@ public class MediaService {
             return null;
         }
 
-        response.setContentType(mimeType);
-
-        // 设置弹出下载文件请求窗口的 Header
         if (request.getParameter("download") != null) {
-            setFileDownloadHeader(response, filename);
-            return ResponseEntity.status(HttpStatus.OK)
-                    .contentType(MimeTypeUtil.getMediaTypeByMimeType("application/x-msdownload"))
-                    .body(content);
+            mimeType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
         }
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .contentType(MimeTypeUtil.getMediaTypeByMimeType(mimeType))
-                .body(content);
+        MediaType mediaType = MimeTypeUtil.getMediaTypeByMimeType(mimeType);
+        ResponseEntity.BodyBuilder builder = ResponseEntity.status(HttpStatus.OK).contentType(mediaType);
+        if (MediaType.APPLICATION_OCTET_STREAM_VALUE.equals(mimeType)) {
+            builder.header(HttpHeaders.CONTENT_DISPOSITION, getContentDisposition(filename));
+        }
+        return builder.body(content);
     }
 
-    /**
-     * 设置让浏览器弹出下载对话框的 Header.
-     *
-     * @param fileName 下载后的文件名.
-     */
-    private static void setFileDownloadHeader(HttpServletResponse response, String fileName) {
+    private static String getContentDisposition(String filename) {
         // 中文文件名支持
-        String encodedfileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
-        response.setContentType("application/x-msdownload");
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedfileName + "\"");
+        String encodedFileName = new String(filename.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
+        return "attachment; filename=\"" + encodedFileName + "\"";
     }
 
     public Object output(Media media, WebRequest webRequest,
@@ -139,19 +130,19 @@ public class MediaService {
             return;
         }
 
-        response.setContentType(mimeType);
-
-        // 设置弹出下载文件请求窗口的 Header
         if (request.getParameter("download") != null) {
-            setFileDownloadHeader(response, filename);
+            mimeType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
         }
-
+        response.setContentType(mimeType);
+        if (mimeType.equals(MediaType.APPLICATION_OCTET_STREAM_VALUE)) {
+            response.addHeader(HttpHeaders.CONTENT_DISPOSITION, getContentDisposition(filename));
+        }
         if (!compressionMimeTypes.contains(mimeType)) {
             response.setContentLength(length);
         }
+
         // 已经启用 Spring Boot gzip，这里不要再 gzip，否则二者冲突 response body 无内容
         OutputStream output = response.getOutputStream();
-
         InputStream in = null;
         try {
             in = inputStreamSupplier.get();
@@ -161,6 +152,5 @@ public class MediaService {
             IOUtil.closeQuietly(in);
         }
     }
-
 
 }
