@@ -15,7 +15,7 @@ import xyz.liuw.autumn.data.Page;
 import xyz.liuw.autumn.service.DataService;
 import xyz.liuw.autumn.service.MediaService;
 import xyz.liuw.autumn.service.PageService;
-import xyz.liuw.autumn.service.ResourceService;
+import xyz.liuw.autumn.service.StaticService;
 import xyz.liuw.autumn.util.WebUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -50,7 +50,7 @@ public class MainController {
     private StaticController staticController;
 
     @Autowired
-    private ResourceService resourceService;
+    private StaticService staticService;
 
     private Map<String, String> pathToView;
 
@@ -95,7 +95,7 @@ public class MainController {
         }
 
         // 静态文件，也可以用 ResourceHttpRequestHandler
-        return resourceService.handleStaticRequest(path, webRequest, request, response);
+        return staticService.handleStaticRequest(path, webRequest, request, response);
     }
 
     private Object handlePage(@NotNull Page page,

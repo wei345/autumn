@@ -1,8 +1,4 @@
 "use strict";
-var autumn = {
-    ctx: '',
-    treeVersion: ''
-};
 var lsRecentVisitKey = 'autumn.recently_visit';
 var recentlyVisitMaxCount = 100;
 var recentlyVisitPages;

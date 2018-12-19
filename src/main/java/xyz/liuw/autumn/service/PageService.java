@@ -33,9 +33,6 @@ public class PageService {
     private MarkdownParser markdownParser;
 
     @Autowired
-    private ResourceService resourceService;
-
-    @Autowired
     private TemplateService templateService;
 
     @Autowired
@@ -46,18 +43,19 @@ public class PageService {
 
     public byte[] getPageContent(@NotNull Page page, Map<String, Object> model, String view, WebRequest webRequest) {
         Page.ViewCache viewCache = dataService.getViewCache(page);
-        long viewLastModified = resourceService.getTemplateLastModified();
-        if (viewCache == null || viewCache.getTemplateLastModified() < viewLastModified) {
+        long templateLastModified = templateService.getTemplateLastModified();
+        if (viewCache == null || viewCache.getTemplateLastModified() < templateLastModified) {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (page) {
                 viewCache = dataService.getViewCache(page);
-                if (viewCache == null || viewCache.getTemplateLastModified() < viewLastModified) {
+                if (viewCache == null || viewCache.getTemplateLastModified() < templateLastModified) {
                     logger.info("Building cache path={}", page.getPath());
                     model.put(TITLE, htmlEscape(page.getTitle()));
                     model.put(PAGE_HTML, getPageHtml(page));
                     byte[] content = templateService.merge(model, view).getBytes(StandardCharsets.UTF_8);
                     String md5 = DigestUtils.md5DigestAsHex(content);
-                    dataService.setViewCache(page, new Page.ViewCache(content, webUtil.getEtag(md5), viewLastModified));
+                    String etag = webUtil.getEtag(md5);
+                    dataService.setViewCache(page, new Page.ViewCache(content, etag, templateLastModified));
                 }
             }
             viewCache = dataService.getViewCache(page);

@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author liuwei
  * Created by liuwei on 2018/11/19.
  */
-public class ResourceServiceTest {
+public class StaticServiceTest {
 
     @Test
     public void getTemplateLastModified() {

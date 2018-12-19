@@ -109,9 +109,9 @@ public class ResourceLoader {
     private void refreshTemplateLastModified() {
         LastModifiedVisitor visitor = new LastModifiedVisitor();
         ResourceWalker.walk(TEMPLATE_ROOT, visitor);
-        if (visitor.getLastModified() > this.templateLastModified) {
-            this.templateLastModified = visitor.getLastModified();
-            logger.info("templateLastModified updated");
+        if (visitor.getLastModified() > templateLastModified) {
+            templateLastModified = visitor.getLastModified();
+            logger.info("Updated templateLastModified {}", templateLastModified);
             templateLastChangedListeners.forEach(TemplateLastChangedListener::onChanged);
         }
     }
@@ -192,7 +192,7 @@ public class ResourceLoader {
                     relativePath = path.substring(ResourceWalker.SPRING_BOOT_CLASSES.length());
                 }
 
-                ResourceCache old = oldMap.get(path);
+                ResourceCache old = oldMap.get(relativePath);
                 long lastModified = attrs.lastModifiedTime().toMillis();
                 if (old != null && old.getLastModified() >= lastModified) {
                     pathToResourceCache.put(relativePath, old);
@@ -222,7 +222,7 @@ public class ResourceLoader {
 
             // file in file system
             String relativePath = classpathOfRoot + "/" + root.relativize(file).toString();
-            ResourceCache old = oldMap.get(path);
+            ResourceCache old = oldMap.get(relativePath);
             long lastModified = attrs.lastModifiedTime().toMillis();
             if (old != null && old.getLastModified() >= lastModified) {
                 pathToResourceCache.put(relativePath, old);
@@ -248,11 +248,11 @@ public class ResourceLoader {
             return CONTINUE;
         }
 
-        public Map<String, ResourceCache> getPathToResourceCache() {
+        Map<String, ResourceCache> getPathToResourceCache() {
             return pathToResourceCache;
         }
 
-        public boolean isChanged() {
+        boolean isChanged() {
             return addOrModifiedCount > 0 || pathToResourceCache.size() != oldMap.size();
         }
     }

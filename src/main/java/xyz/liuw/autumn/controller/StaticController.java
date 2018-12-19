@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import xyz.liuw.autumn.data.TreeJson;
 import xyz.liuw.autumn.service.DataService;
-import xyz.liuw.autumn.service.ResourceService;
+import xyz.liuw.autumn.service.StaticService;
 import xyz.liuw.autumn.util.WebUtil;
 
 /**
@@ -26,7 +26,7 @@ public class StaticController {
     private DataService dataService;
 
     @Autowired
-    private ResourceService resourceService;
+    private StaticService staticService;
 
     @Autowired
     private WebUtil webUtil;
@@ -34,7 +34,7 @@ public class StaticController {
     // 这里定义的 mapping 不起作用，会进入优先级更高的 MainController "/**"
     @RequestMapping(value = ALL_JS, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object allJs(WebRequest webRequest) {
-        ResourceService.WebPageReferenceData jsCache = resourceService.getJsCache();
+        StaticService.WebPageReferenceData jsCache = staticService.getJsCache();
         if (webRequest.checkNotModified(jsCache.getEtag())) {
             return null;
         }
@@ -44,7 +44,7 @@ public class StaticController {
     // 这里定义的 mapping 不起作用，会进入优先级更高的 MainController "/**"
     @RequestMapping(value = ALL_CSS, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object allCss(WebRequest webRequest) {
-        ResourceService.WebPageReferenceData cssCache = resourceService.getCssCache();
+        StaticService.WebPageReferenceData cssCache = staticService.getCssCache();
         if (webRequest.checkNotModified(cssCache.getEtag())) {
             return null;
         }

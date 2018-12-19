@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
-import xyz.liuw.autumn.data.DataLoader;
 import xyz.liuw.autumn.data.DataSource;
 import xyz.liuw.autumn.data.ResourceLoader;
 import xyz.liuw.autumn.util.WebUtil;
@@ -18,6 +17,8 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static xyz.liuw.autumn.data.ResourceLoader.STATIC_ROOT;
@@ -28,9 +29,10 @@ import static xyz.liuw.autumn.service.UserService.isLogged;
  * Created by liuwei on 2018/11/19.
  */
 @Component
-public class ResourceService {
-    private static Logger logger = LoggerFactory.getLogger(ResourceService.class);
+public class StaticService {
+    private static Logger logger = LoggerFactory.getLogger(StaticService.class);
 
+    // 如果 js 中包含 tree.js 或 treeVersion，那么 userJsCache 与 guestJsCache 不一样，否则二者一样。
     private volatile JsCache userJsCache;
 
     private volatile JsCache guestJsCache;
@@ -41,33 +43,21 @@ public class ResourceService {
     private WebUtil webUtil;
 
     @Autowired
-    private DataLoader dataLoader;
-
-    @Autowired
     private DataSource dataSource;
 
     @Autowired
     private ResourceLoader resourceLoader;
 
-    private volatile long templateLastModified;
+    private List<ResourceLoader.StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
 
     @PostConstruct
     private void init() {
-        templateLastModified = resourceLoader.getTemplateLastModified();
         refreshJsCache();
         refreshCssCache();
 
-        dataLoader.addListener(this::refreshJsCache);
         resourceLoader.addStaticChangedListener(() -> {
-            refreshJsCache();
-            refreshCssCache();
-        });
-        resourceLoader.addTemplateLastChangedListener(() -> {
-            synchronized (this) {
-                long v = resourceLoader.getTemplateLastModified();
-                if (v > templateLastModified) {
-                    templateLastModified = v;
-                }
+            if (refreshJsCache() || refreshCssCache()) {
+                staticChangedListeners.forEach(ResourceLoader.StaticChangedListener::onChanged);
             }
         });
     }
@@ -94,10 +84,6 @@ public class ResourceService {
                 response);
     }
 
-    long getTemplateLastModified() {
-        return templateLastModified;
-    }
-
     public JsCache getJsCache() {
         return isLogged() ? userJsCache : guestJsCache;
     }
@@ -106,31 +92,35 @@ public class ResourceService {
         return cssCache;
     }
 
-    private synchronized void refreshJsCache() {
+    private boolean refreshJsCache() {
+        boolean changed = false;
         ResourceLoader.ResourceCache scriptJs = resourceLoader.getResourceCache(STATIC_ROOT + "/js/script.js");
         ResourceLoader.ResourceCache quickSearchJs = resourceLoader.getResourceCache(STATIC_ROOT + "/js/quick_search.js");
 
         String userTreeJsonMd5 = dataSource.getAllData().getTreeJson().getMd5();
         if (userJsCache == null || !userJsCache.checkNotModified(userTreeJsonMd5, scriptJs.getMd5(), quickSearchJs.getMd5())) {
             userJsCache = createJsCache(userTreeJsonMd5, scriptJs, quickSearchJs);
-            templateLastModified = System.currentTimeMillis();
             logger.info("userJsCache updated");
+            changed = true;
         }
 
         String guestTreeJsonMd5 = dataSource.getPublishedData().getTreeJson().getMd5();
         if (guestJsCache == null || !guestJsCache.checkNotModified(guestTreeJsonMd5, scriptJs.getMd5(), quickSearchJs.getMd5())) {
             guestJsCache = createJsCache(guestTreeJsonMd5, scriptJs, quickSearchJs);
-            templateLastModified = System.currentTimeMillis();
             logger.info("guestJsCache updated");
+            changed = true;
         }
+        return changed;
     }
 
     private JsCache createJsCache(String treeJsonMd5, ResourceLoader.ResourceCache scriptJs, ResourceLoader.ResourceCache quickSearchJs) {
 
+        // 如果把 tree.js 也加进来：
+        // 每次浏览器打开页面少发一个请求
+        // 如果 tree.js 更新，那么其余 js 也跟着重新加载。tree.js 更新相对频繁，大约一周 2 次
+
         String scriptJsContent = new String(scriptJs.getContent(), UTF_8)
                 .replaceFirst("\"use strict\";\n", "")
-                .replaceFirst("ctx: ''", "ctx: '" + webUtil.getContextPath() + "'")
-                .replaceFirst("treeVersion: ''", "treeVersion: '" + treeJsonMd5.substring(0, 7) + "'")
                 .trim();
 
         String quickSearchJsContent = new String(quickSearchJs.getContent(), UTF_8)
@@ -160,11 +150,11 @@ public class ResourceService {
         return jsCache;
     }
 
-    private synchronized void refreshCssCache() {
+    private boolean refreshCssCache() {
         ResourceLoader.ResourceCache normalizeCss = resourceLoader.getResourceCache(STATIC_ROOT + "/css/normalize.css");
         ResourceLoader.ResourceCache styleCss = resourceLoader.getResourceCache(STATIC_ROOT + "/css/style.css");
         if (cssCache != null && cssCache.checkNotModified(normalizeCss.getMd5(), styleCss.getMd5())) {
-            return;
+            return false;
         }
 
         String cssText = new String(normalizeCss.getContent(), UTF_8) + new String(styleCss.getContent(), UTF_8);
@@ -178,8 +168,12 @@ public class ResourceService {
         cssCache.setNormalizeCssMd5(normalizeCss.getMd5());
         cssCache.setStyleCssMd5(styleCss.getMd5());
         this.cssCache = cssCache;
-        this.templateLastModified = System.currentTimeMillis();
         logger.info("cssCache updated");
+        return true;
+    }
+
+    void addStaticChangedListener(ResourceLoader.StaticChangedListener listener) {
+        this.staticChangedListeners.add(listener);
     }
 
     static class CssCache extends WebPageReferenceData {

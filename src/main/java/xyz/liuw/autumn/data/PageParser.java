@@ -20,18 +20,29 @@ import java.util.regex.Pattern;
  */
 public class PageParser {
 
-    static final FastDateFormat DATE_PARSER_ON_SECOND = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
     static final String HEADER_BOUNDARY = "---";
+
     static final String HEADER_CREATED = "created:";
+
     static final String HEADER_MODIFIED = "modified:";
+
     static final String HEADER_CATEGORY = "category:";
+
     static final String HEADER_TAGS = "tags:";
+
     static final String HEADER_PUBLISHED = "published:";
+
     static final String TITLE_START_WITH = "# ";
-    private static final FastDateFormat DATE_PARSER_ON_DAY = FastDateFormat.getInstance("yyyy-MM-dd");
+
+    static final FastDateFormat DATE_PARSER_ON_SECOND = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
+
     private static final FastDateFormat DATE_PARSER_ON_MINUTE = FastDateFormat.getInstance("yyyy-MM-dd HH:mm");
-    static Logger logger = LoggerFactory.getLogger(PageParser.class);
+
+    private static final FastDateFormat DATE_PARSER_ON_DAY = FastDateFormat.getInstance("yyyy-MM-dd");
+
     private static Pattern BLOG_FILE_NAME_PATTERN = Pattern.compile("^(\\d{4}-\\d{2}-\\d{2})-(.+)\\.md$");
+
+    private static Logger logger = LoggerFactory.getLogger(PageParser.class);
 
     public static Page parse(File file) {
         logger.info("Parsing {}", file.getAbsolutePath());
