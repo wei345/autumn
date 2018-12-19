@@ -92,6 +92,10 @@ public class TemplateService {
         model.put(LOGGED, isLogged());
     }
 
+    /**
+     * 设置 error template 需要的变量。
+     * error template 收不到 model 属性，可以收到 request 属性。
+     */
     public void setCtx(HttpServletRequest request) {
         request.setAttribute(CTX, webUtil.getContextPath());
         request.setAttribute(CSS_CACHE_VERSION, staticService.getCssCache().getVersion());

@@ -1,7 +1,7 @@
-<#assign title = status>
+<#assign title = (status!) + " " + (error!)>
 <#include "inc/content_open.ftl">
 <div class="error_page center_position">
-    <h1>${status}</h1>
-    <p>${message}</p>
+    <h1>${title!}</h1>
+    <#if (message!) != (error!)><p>${message!}</p></#if>
 </div>
 <#include "inc/content_close.ftl">

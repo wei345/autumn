@@ -45,17 +45,18 @@ public class SearchController {
             return new RedirectView("/", true, false);
         }
 
-        if (rateLimitService.acquireSearch(WebUtil.getClientIpAddress(request))) {
-            if (s.length() > maxSearchStrLength) {
-                s = s.substring(0, maxSearchStrLength);
-            }
-            SearchResult sr = searchService.search(s);
-            model.put("sr", sr);
-        } else {
-            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            model.put("message", "稍后再试");
+        if (s.length() > maxSearchStrLength) {
+            s = s.substring(0, maxSearchStrLength);
         }
-        model.put("s", htmlEscape(s));
-        return templateService.merge(model, "search_result");
+
+        if (rateLimitService.acquireSearch(WebUtil.getClientIpAddress(request))) {
+            SearchResult sr = searchService.search(s);
+            model.put("s", htmlEscape(s));
+            model.put("sr", sr);
+            return templateService.merge(model, "search_result");
+        }
+        request.setAttribute("s", htmlEscape(s));
+        response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(), "稍后再试");
+        return null;
     }
 }
