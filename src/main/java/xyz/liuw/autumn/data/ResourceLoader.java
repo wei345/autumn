@@ -74,7 +74,6 @@ public class ResourceLoader {
 
     private void timingRefreshCache() {
         if (isJar()) {
-            logger.info("static 和 templates 在 jar 中，不启动定时刷新");
             return;
         }
 

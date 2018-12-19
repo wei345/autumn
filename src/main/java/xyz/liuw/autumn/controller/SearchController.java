@@ -41,7 +41,6 @@ public class SearchController {
 
     @RequestMapping(value = "/search", method = RequestMethod.GET)
     public Object search(String s, Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        templateService.setLogged(model);
         if (StringUtils.isBlank(s)) {
             return new RedirectView("/", true, false);
         }

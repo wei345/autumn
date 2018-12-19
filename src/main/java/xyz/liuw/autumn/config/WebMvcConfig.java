@@ -8,13 +8,13 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver;
-import xyz.liuw.autumn.interceptor.UserInterceptor;
+import xyz.liuw.autumn.interceptor.ContextInterceptor;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Autowired
-    private UserInterceptor userInterceptor;
+    private ContextInterceptor contextInterceptor;
 
     @Autowired
     public void setViewResolver(FreeMarkerViewResolver viewResolver) {
@@ -26,9 +26,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(userInterceptor).excludePathPatterns("/error");
+        registry.addInterceptor(contextInterceptor);
     }
 
+    // 我要自己处理 favicon.ico，但 FaviconConfiguration 优先级太高，我只能禁用它，但我又想要它创建的 ResourceHttpRequestHandler，所以 extends 它。
     @Configuration
     public static class ResourceHttpRequestConfiguration extends WebMvcAutoConfiguration.WebMvcAutoConfigurationAdapter.FaviconConfiguration {
 

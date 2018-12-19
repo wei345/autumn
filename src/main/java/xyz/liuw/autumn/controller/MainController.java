@@ -9,14 +9,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 import org.springframework.web.servlet.view.RedirectView;
 import xyz.liuw.autumn.data.Media;
 import xyz.liuw.autumn.data.Page;
-import xyz.liuw.autumn.service.DataService;
-import xyz.liuw.autumn.service.MediaService;
-import xyz.liuw.autumn.service.PageService;
-import xyz.liuw.autumn.service.TemplateService;
+import xyz.liuw.autumn.service.*;
 import xyz.liuw.autumn.util.WebUtil;
 
 import javax.servlet.ServletException;
@@ -28,6 +24,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
+import static xyz.liuw.autumn.controller.StaticController.ALL_CSS;
+import static xyz.liuw.autumn.controller.StaticController.ALL_JS;
 import static xyz.liuw.autumn.service.DataService.PAGE_NEED_LOGIN;
 import static xyz.liuw.autumn.service.UserService.isLogged;
 
@@ -35,13 +33,10 @@ import static xyz.liuw.autumn.service.UserService.isLogged;
 public class MainController {
 
     private static final String DOT_MD = ".md";
-    private static final String PAGE_VIEW_NAME = "page";
+    private static final String DEFAULT_PAGE_VIEW = "page";
 
     @Autowired
     private DataService dataService;
-
-    @Autowired
-    private ResourceHttpRequestHandler resourceHttpRequestHandler;
 
     @Autowired
     private MediaService mediaService;
@@ -53,7 +48,7 @@ public class MainController {
     private StaticController staticController;
 
     @Autowired
-    private TemplateService templateService;
+    private ResourceService resourceService;
 
     private Map<String, String> pathToView;
 
@@ -65,7 +60,6 @@ public class MainController {
                         Map<String, Object> model) throws ServletException, IOException {
 
         String path = WebUtil.getRelativePath(request);
-        templateService.setLogged(model);
 
         // Page
         Page page = dataService.getPage(path);
@@ -87,17 +81,16 @@ public class MainController {
             return mediaService.output(media, webRequest, request, response);
         }
 
-        if ("/js/all.js".equals(path)) {
+        if (ALL_JS.equals(path)) {
             return staticController.allJs(webRequest);
         }
 
-        if ("/css/all.css".equals(path)) {
+        if (ALL_CSS.equals(path)) {
             return staticController.cssJs(webRequest);
         }
 
-        // 静态文件
-        resourceHttpRequestHandler.handleRequest(request, response);
-        return null;
+        // 静态文件，也可以用 ResourceHttpRequestHandler
+        return resourceService.handleStaticRequest(path, webRequest, request, response);
     }
 
     private Object handlePage(@NotNull Page page,
@@ -120,7 +113,7 @@ public class MainController {
 
         String view = pathToView.get(path);
         if (view == null) {
-            view = PAGE_VIEW_NAME;
+            view = DEFAULT_PAGE_VIEW;
         }
 
         if (source) {

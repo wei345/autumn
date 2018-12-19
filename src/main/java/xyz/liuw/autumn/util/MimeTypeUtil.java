@@ -65,7 +65,7 @@ public class MimeTypeUtil {
         try (InputStream is = MediaTypeFactory.class.getResourceAsStream(MIME_TYPES_FILE_NAME)) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.US_ASCII));
             // 2/984 一个 fileExtension 对应 2 个 mediaType
-            Map<String, String> result = Maps.newHashMapWithExpectedSize(1024);
+            Map<String, String> extToMimeType = Maps.newHashMapWithExpectedSize(1024);
 
             String line;
             while ((line = reader.readLine()) != null) {
@@ -76,16 +76,14 @@ public class MimeTypeUtil {
                 MediaType mediaType = MediaType.parseMediaType(tokens[0]);
                 for (int i = 1; i < tokens.length; i++) {
                     String fileExtension = tokens[i].toLowerCase(Locale.ENGLISH);
-                    if (result.containsKey(fileExtension)) {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("%s 已存在，值 '%s'，正在 put '%s'", fileExtension, result.get(fileExtension), mediaType.toString());
-                        }
+                    if (extToMimeType.containsKey(fileExtension)) {
+                        logger.debug("{} 已存在，旧值 '{}'，替换为新值 '{}'", fileExtension, extToMimeType.get(fileExtension), mediaType.toString());
                     }
-                    result.put(fileExtension, mediaType.toString());
+                    extToMimeType.put(fileExtension, mediaType.toString());
                 }
             }
 
-            return result;
+            return extToMimeType;
         } catch (IOException ex) {
             throw new IllegalStateException("Could not load '" + MIME_TYPES_FILE_NAME + "'", ex);
         }

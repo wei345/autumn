@@ -37,6 +37,45 @@ public class MediaService {
     @Autowired
     private WebUtil webUtil;
 
+    static Object output(byte[] content,
+                         String etag,
+                         String filename,
+                         String mimeType,
+                         WebRequest webRequest,
+                         HttpServletRequest request,
+                         HttpServletResponse response) {
+        if (webRequest.checkNotModified(etag)) {
+            return null;
+        }
+
+        response.setContentType(mimeType);
+
+        // 设置弹出下载文件请求窗口的 Header
+        if (request.getParameter("download") != null) {
+            setFileDownloadHeader(response, filename);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .contentType(MimeTypeUtil.getMediaTypeByMimeType("application/x-msdownload"))
+                    .body(content);
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .contentType(MimeTypeUtil.getMediaTypeByMimeType(mimeType))
+                .body(content);
+    }
+
+    /**
+     * 设置让浏览器弹出下载对话框的 Header.
+     *
+     * @param fileName 下载后的文件名.
+     */
+    private static void setFileDownloadHeader(HttpServletResponse response, String fileName) {
+        // 中文文件名支持
+        String encodedfileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
+        response.setContentType("application/x-msdownload");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedfileName + "\"");
+    }
+
     public Object output(Media media, WebRequest webRequest,
                          HttpServletRequest request, HttpServletResponse response) throws IOException {
         File file = media.getFile();
@@ -65,8 +104,7 @@ public class MediaService {
 
         if (media.getContent() != null) {
             return output(media.getContent(),
-                    media.getContent().length,
-                    media.getMd5(),
+                    webUtil.getEtag(media.getMd5()),
                     media.getFile().getName(),
                     media.getMimeType(),
                     webRequest, request, response);
@@ -86,35 +124,6 @@ public class MediaService {
                     webRequest, request, response);
         }
         return null;
-    }
-
-    private Object output(byte[] content,
-                          int length,
-                          String md5,
-                          String filename,
-                          String mimeType,
-                          WebRequest webRequest,
-                          HttpServletRequest request,
-                          HttpServletResponse response) {
-        String etag = webUtil.getEtag(md5);
-        if (webRequest.checkNotModified(etag)) {
-            return null;
-        }
-
-        response.setContentType(mimeType);
-
-        // 设置弹出下载文件请求窗口的 Header
-        if (request.getParameter("download") != null) {
-            setFileDownloadHeader(response, filename);
-            return ResponseEntity.status(HttpStatus.OK)
-                    .contentType(MimeTypeUtil.getMediaTypeByMimeType("application/x-msdownload"))
-                    .body(content);
-        }
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .contentType(MimeTypeUtil.getMediaTypeByMimeType(mimeType))
-                .body(content);
     }
 
     private void output(Supplier<InputStream> inputStreamSupplier,
@@ -151,18 +160,6 @@ public class MediaService {
         } finally {
             IOUtil.closeQuietly(in);
         }
-    }
-
-    /**
-     * 设置让浏览器弹出下载对话框的 Header.
-     *
-     * @param fileName 下载后的文件名.
-     */
-    private void setFileDownloadHeader(HttpServletResponse response, String fileName) {
-        // 中文文件名支持
-        String encodedfileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
-        response.setContentType("application/x-msdownload");
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedfileName + "\"");
     }
 
 

@@ -18,6 +18,10 @@ import xyz.liuw.autumn.util.WebUtil;
 @RestController
 public class StaticController {
 
+    static final String ALL_JS = "/js/all.js";
+
+    static final String ALL_CSS = "/css/all.css";
+
     @Autowired
     private DataService dataService;
 
@@ -28,7 +32,7 @@ public class StaticController {
     private WebUtil webUtil;
 
     // 这里定义的 mapping 不起作用，会进入优先级更高的 MainController "/**"
-    @RequestMapping(value = "/js/all.js", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = ALL_JS, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object allJs(WebRequest webRequest) {
         ResourceService.WebPageReferenceData jsCache = resourceService.getJsCache();
         if (webRequest.checkNotModified(jsCache.getEtag())) {
@@ -38,7 +42,7 @@ public class StaticController {
     }
 
     // 这里定义的 mapping 不起作用，会进入优先级更高的 MainController "/**"
-    @RequestMapping(value = "/css/all.css", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = ALL_CSS, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object cssJs(WebRequest webRequest) {
         ResourceService.WebPageReferenceData cssCache = resourceService.getCssCache();
         if (webRequest.checkNotModified(cssCache.getEtag())) {

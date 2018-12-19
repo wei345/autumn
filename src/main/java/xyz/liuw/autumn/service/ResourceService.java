@@ -1,17 +1,23 @@
 package xyz.liuw.autumn.service;
 
+import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
+import org.springframework.web.context.request.WebRequest;
 import xyz.liuw.autumn.data.DataLoader;
 import xyz.liuw.autumn.data.DataSource;
 import xyz.liuw.autumn.data.ResourceLoader;
 import xyz.liuw.autumn.util.WebUtil;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static xyz.liuw.autumn.data.ResourceLoader.STATIC_ROOT;
@@ -66,6 +72,28 @@ public class ResourceService {
         });
     }
 
+    public Object handleStaticRequest(String path,
+                                      WebRequest webRequest,
+                                      HttpServletRequest request,
+                                      HttpServletResponse response) throws IOException {
+
+        ResourceLoader.ResourceCache cache = resourceLoader.getResourceCache(STATIC_ROOT + path);
+
+        if (cache == null) {
+            response.sendError(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND.getReasonPhrase());
+            return null;
+        }
+
+        return MediaService.output(
+                cache.getContent(),
+                webUtil.getEtag(cache.getMd5()),
+                FileUtil.getFileName(path),
+                cache.getMimeType(),
+                webRequest,
+                request,
+                response);
+    }
+
     long getTemplateLastModified() {
         return templateLastModified;
     }
@@ -77,7 +105,6 @@ public class ResourceService {
     public CssCache getCssCache() {
         return cssCache;
     }
-
 
     private synchronized void refreshJsCache() {
         ResourceLoader.ResourceCache scriptJs = resourceLoader.getResourceCache(STATIC_ROOT + "/js/script.js");
@@ -155,7 +182,6 @@ public class ResourceService {
         logger.info("cssCache updated");
     }
 
-
     static class CssCache extends WebPageReferenceData {
         private String normalizeCssMd5;
         private String styleCssMd5;
@@ -180,7 +206,6 @@ public class ResourceService {
             this.styleCssMd5 = styleCssMd5;
         }
     }
-
 
     static class JsCache extends WebPageReferenceData {
 

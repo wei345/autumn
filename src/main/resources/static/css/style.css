@@ -601,6 +601,10 @@ img {
     cursor: pointer;
 }
 
+.qsr__close:before {
+    content: 'X';
+}
+
 ul.header__row_1__tools {
     list-style: none;
     margin: 0;

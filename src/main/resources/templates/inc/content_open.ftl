@@ -18,7 +18,7 @@
                        placeholder="Search"/>
                 <div class="search_box__category_and_tags no_selection"></div>
                 <div class="qsr">
-                    <span class="qsr__close no_selection">X</span>
+                    <span class="qsr__close no_selection"></span>
                     <ul class="qsr__list"></ul>
                 </div>
             </form>
