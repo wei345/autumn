@@ -30,7 +30,7 @@ a:hover {
 code {
     background: #f4f5f6;
     border-radius: 4px;
-    font-size: 15px;
+    font-size: 86%;
     margin: 0 2px;
     padding: 2px 5px;
     white-space: nowrap;
@@ -233,13 +233,13 @@ img {
 
 .header__row_1__search_box {
     padding-top: .2em;
-    /*max-width: 816px;*/
 }
 
 .header__row_1__search_box .search_icon {
     position: absolute;
     margin: 11px 0 0 14px;
     opacity: .54;
+    cursor: pointer;
 }
 
 .header__row_1__search_form {
@@ -647,14 +647,22 @@ ul.header__row_1__tools {
 只对 desktop 启用左边 Sidebar，中间内容，右边 TOC 的布局，因为在手机上即使横屏宽度够大，但 Sidebar 和 TOC 滚动不流畅。
 */
 @media (min-width: 640px) {
-    .toc {
-        float: right;
-        max-width: 17em;
-        padding-left: 1em;
-        box-sizing: border-box;
+    /* layout */
+    .desktop .row {
+        flex-direction: row;
     }
 
-    .row .column.header__row_1__heading, .row .column.sidebar {
+    .desktop .show_sidebar .center_position, .desktop .show_toc .center_position {
+        margin: unset;
+        max-width: unset;
+    }
+
+    /* header */
+    .mobi .header .row {
+        flex-direction: row;
+    }
+
+    .row .column.header__row_1__heading {
         flex: 0 1 16em;
         min-width: 7em;
     }
@@ -663,14 +671,6 @@ ul.header__row_1__tools {
         position: inherit;
         flex: 0 1 16em;
         min-width: 7em;
-    }
-
-    .mobi .header .row {
-        flex-direction: row;
-    }
-
-    .desktop .row {
-        flex-direction: row;
     }
 
     .desktop .header {
@@ -684,33 +684,21 @@ ul.header__row_1__tools {
         background: #fff;
     }
 
+    .desktop .fixed.qsr_more .header {
+        position: static;
+        background: transparent;
+    }
+
+    /* toolbar */
     .desktop .header__toolbar {
         padding: 0 0 0 2em;
-    }
-
-    .desktop .fixed .header__toolbar .sidebar_toggle {
-        position: fixed;
-        background: #fff;
-        padding-right: 0.5em;
-        padding-bottom: 0.5em;
         line-height: 1;
     }
 
-    .desktop .fixed.show_sidebar .sidebar .sidebar_toggle {
-        position: sticky;
-        margin-left: 14%;
-        padding-left: 0.5em;
-        background: #fff;
-        line-height: 1;
-    }
-
-    .desktop .show_sidebar .column.content {
-        box-sizing: border-box;
-        padding-left: 2em;
-        /* 避免子元素 pre 不出横向滚动条，这个元素的宽度被撑大。
-        width 值可以随便写，只要 <= 这个元素该有的宽度就可以。
-        也可以改为 overflow-x:非visible */
-        width: 75%;
+    /* sidebar */
+    .row .column.sidebar {
+        flex: 0 1 16em;
+        min-width: 7em;
     }
 
     .desktop .show_sidebar .sidebar .sidebar_toggle {
@@ -718,14 +706,30 @@ ul.header__row_1__tools {
         margin-right: 1.5em;
     }
 
-    .desktop .show_sidebar .center_position, .desktop .show_toc .center_position {
-        margin: unset;
-        max-width: unset;
+    .desktop .sidebar_toggle {
+        line-height: 1;
     }
 
-    .desktop .fixed.qsr_more .header {
-        position: static;
-        background: transparent;
+    .desktop .fixed .header__toolbar .sidebar_toggle {
+        position: fixed;
+        padding-right: 0.5em;
+        padding-bottom: 0.5em;
+        background: #fff;
+    }
+
+    .desktop .fixed.show_sidebar .sidebar .sidebar_toggle {
+        position: sticky;
+        margin-left: 14%;
+        padding-left: 0.5em;
+        background: #fff;
+    }
+
+    .desktop .fixed .tree_box {
+        height: calc(100vh - 4em);
+        overflow-y: auto;
+        width: 100%;
+        padding: 0 1em 1em 0;
+        box-sizing: border-box;
     }
 
     .desktop .fixed .row .column.sidebar {
@@ -736,20 +740,16 @@ ul.header__row_1__tools {
         border-right: 1px solid rgba(0, 0, 0, .1);
     }
 
-    .desktop .fixed .content {
+    /* toc */
+    .toc {
+        float: right;
+        max-width: 17em;
+        padding-left: 1em;
         box-sizing: border-box;
-        padding: 2em 1em 1em;
-    }
-
-    .mobi .content {
-        padding-top: 1em;
     }
 
     .desktop .fixed .toc {
         background: #fff;
-    }
-
-    .desktop .fixed .toc {
         position: sticky;
         top: 5em;
     }
@@ -766,19 +766,35 @@ ul.header__row_1__tools {
         box-sizing: border-box;
         overflow-y: auto;
         max-height: calc(100vh - 8em);
-        padding: 0 1em 1em 0;
+        padding-right: 1em;
+        padding-bottom: 1em;
     }
 
     .desktop .fixed .content.show_toc {
         padding-right: 17em;
     }
 
-    .desktop .fixed .tree_box {
-        height: calc(100vh - 4em);
-        overflow-y: auto;
-        width: 100%;
-        padding: 0 1em 1em 0;
+    /* content */
+    .desktop .content {
         box-sizing: border-box;
+        padding: 1em 1em 1em;
+    }
+
+    .desktop .fixed .content {
+        padding-top: 2em;
+    }
+
+    .desktop .show_sidebar .column.content {
+        padding-left: 2em;
+        padding-top: 2em;
+        /* 避免子元素 pre 不出横向滚动条，这个元素的宽度被撑大。
+        width 值可以随便写，只要 <= 这个元素该有的宽度就可以。
+        也可以改为 overflow-x:非visible */
+        width: 75%;
+    }
+
+    .mobi .content {
+        padding-top: 1em;
     }
 }
 

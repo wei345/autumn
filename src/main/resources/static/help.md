@@ -3,6 +3,7 @@
 ## 快捷键
 
 * `/` - 搜索框获得焦点。
+* `f` - 切换 fixed CSS 样式。
 * `s` - 打开/关闭 Sidebar。
 * `t` - 打开/关闭 Table of Contents。
 * `g` - 页首。

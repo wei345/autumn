@@ -8,4 +8,4 @@
     <link rel="stylesheet" href="${ctx!}/css/all.css?${cssCacheVersion!}"/>
 </head>
 <body>
-<div class="container fixed">
+<div class="container">

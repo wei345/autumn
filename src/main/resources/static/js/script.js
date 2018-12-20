@@ -11,12 +11,16 @@ var main = document.getElementsByClassName('main')[0];
 var content = document.getElementsByClassName('content')[0];
 var treeReady = false;
 var treeFirstShow = true;
+var isFixed = false;
+var fixedClassName = 'fixed';
+const lsFixedKey = 'autumn.fixed';
 var emptyFn = function () {
 };
 autumn.toggleSidebar = emptyFn;
 autumn.toggleToc = emptyFn;
 window.addEventListener('load', function () {
     detectClient();
+    bindFixedToggle();
     bindSidebarToggle();
     bindTocToggle();
     bindShortcut();
@@ -187,6 +191,9 @@ function bindShortcut() {
                         event.preventDefault();
                     }
                     break;
+                case 'f':
+                    toggleFixed();
+                    break;
                 case 's':
                     autumn.toggleSidebar();
                     break;
@@ -326,6 +333,9 @@ function buildTree(then) {
 function selectedNodeScrollIntoViewIfTreeFirstShow() {
     if (treeFirstShow && treeReady && container.classList.contains('show_sidebar')) {
         treeFirstShow = false;
+        if (getComputedStyle(main).getPropertyValue('flex-direction') === 'row' && !isFixed) {
+            return;
+        }
         var selected = document.getElementsByClassName('tree_node_header_selected')[0];
         if (!selected) {
             return;
@@ -441,4 +451,19 @@ function bindToggle(targetClass) {
     toggle.addEventListener('click', function () {
         target.classList.toggle('show');
     });
+}
+
+function bindFixedToggle() {
+    toggleFixed(localStorage.getItem(lsFixedKey) === '1');
+    document.getElementsByClassName('search_icon')[0].addEventListener('click', toggleFixed);
+}
+
+function toggleFixed(flag) {
+    if (flag == null) {
+        flag = container.classList.toggle(fixedClassName);
+    } else {
+        container.classList.toggle(fixedClassName, flag);
+    }
+    localStorage.setItem(lsFixedKey, flag ? '1' : '0');
+    isFixed = flag;
 }
