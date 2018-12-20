@@ -64,7 +64,7 @@ public class TemplateService {
 
     @PostConstruct
     private void init() {
-        dataLoader.addListener(this::refreshTemplateLastModified);
+        dataLoader.addTreeJsonChangedListener(this::refreshTemplateLastModified);
         resourceLoader.addTemplateLastChangedListener(this::refreshTemplateLastModified);
         staticService.addStaticChangedListener(this::refreshTemplateLastModified);
         refreshTemplateLastModified();
@@ -106,7 +106,7 @@ public class TemplateService {
 
     private void refreshTemplateLastModified() {
         templateLastModified = System.currentTimeMillis();
-        logger.info("Refreshed templateLastModified {}", templateLastModified);
+        logger.info("Refreshed templateLastModified");
     }
 
     long getTemplateLastModified() {

@@ -2,6 +2,7 @@ package xyz.liuw.autumn.data;
 
 import ch.qos.logback.classic.Level;
 import com.google.common.collect.Maps;
+import com.vip.vjtools.vjkit.concurrent.ThreadUtil;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import com.vip.vjtools.vjkit.number.MathUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
@@ -51,7 +52,7 @@ public class DataLoader {
     @Autowired
     private WebUtil webUtil;
 
-    private List<DataChangedListener> listeners = new ArrayList<>(1);
+    private List<TreeJsonChangedListener> treeJsonChangedListeners = new ArrayList<>(1);
 
     @Autowired
     public DataLoader(DataSource dataSource, JsonMapper jsonMapper) {
@@ -61,23 +62,19 @@ public class DataLoader {
 
     @PostConstruct
     void start() {
-
-        // load
+        // 为避免每次启动输出 1000 多条解析日志，将 PageParser 日志级别设为 WARN，初始加载完成后会恢复
         ch.qos.logback.classic.Logger parserLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(PageParser.class);
         Level oldLevel = parserLogger.getLevel();
         if (oldLevel == null || oldLevel == Level.INFO) {
-            logger.debug("已将 PageParser 日志级别设为 WARN，初始加载完成后会恢复，这是为避免每次启动输出 1000 多条解析日志");
-            logger.debug("可设置 logging.level.{}=DEBUG 来阻止这个自动修改日志级别的行为", PageParser.class.getName());
             parserLogger.setLevel(Level.WARN);
         }
         logger.info("Data loading: {}", dataDir);
         long start = System.currentTimeMillis();
+
         load();
+
         logger.info("Data loaded in {} ms", System.currentTimeMillis() - start);
-        if (oldLevel == null || oldLevel == Level.INFO) {
-            parserLogger.setLevel(oldLevel);
-            logger.debug("已恢复 PageParser 日志级别 {}", oldLevel);
-        }
+        parserLogger.setLevel(oldLevel);
 
         timingReload();
     }
@@ -90,12 +87,8 @@ public class DataLoader {
         String threadName = getClass().getSimpleName() + ".timingReload";
         Thread thread = new Thread(() -> {
             logger.info("Started thread '{}'", threadName);
-            while (reloadIntervalSeconds > 0) {
-                try {
-                    long t = reloadIntervalSeconds * 1000 * MathUtil.pow(2, reloadContinuousFailures);
-                    Thread.sleep(t);
-                } catch (InterruptedException ignore) {
-                }
+            while (!Thread.interrupted()) {
+                ThreadUtil.sleep(reloadIntervalSeconds * 1000 * MathUtil.pow(2, reloadContinuousFailures));
                 try {
                     load();
                     reloadContinuousFailures = 0;
@@ -204,6 +197,9 @@ public class DataLoader {
             return;
         }
 
+        TreeJson oldAllTreeJson = dataSource.getAllData().getTreeJson();
+        TreeJson oldPublishedTreeJson = dataSource.getPublishedData().getTreeJson();
+
         logger.info("Page added or modified: {}, Media added or modified: {}", pageAddedOrModified, mediaAddedOrModified);
         sortAndRemoveEmptyNode(root);
         String json = jsonMapper.toJson(root);
@@ -214,9 +210,15 @@ public class DataLoader {
                 pageMap,
                 mediaMap);
         dataSource.setAllData(data);
+
         setPublishedData(root, mediaMap);
         logger.info("dataSource: {}", dataSource);
-        listeners.forEach(DataChangedListener::onChanged);
+
+        if (!oldAllTreeJson.getMd5().equals(dataSource.getAllData().getTreeJson().getMd5())
+                || !oldPublishedTreeJson.getMd5().equals(dataSource.getPublishedData().getTreeJson().getMd5())) {
+            logger.info("TreeJson changed");
+            treeJsonChangedListeners.forEach(TreeJsonChangedListener::onChanged);
+        }
     }
 
     private String filename(File f) {
@@ -390,11 +392,11 @@ public class DataLoader {
         return list;
     }
 
-    public void addListener(DataChangedListener listener) {
-        this.listeners.add(listener);
+    public void addTreeJsonChangedListener(TreeJsonChangedListener listener) {
+        this.treeJsonChangedListeners.add(listener);
     }
 
-    public interface DataChangedListener {
+    public interface TreeJsonChangedListener {
         void onChanged();
     }
 }

@@ -1,6 +1,7 @@
 package xyz.liuw.autumn.data;
 
 import com.google.common.collect.Maps;
+import com.vip.vjtools.vjkit.concurrent.ThreadUtil;
 import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.io.IOUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -73,19 +74,15 @@ public class ResourceLoader {
     }
 
     private void timingRefreshCache() {
-        if (isJar()) {
+        if (isJar() || reloadIntervalSeconds <= 0) {
             return;
         }
 
         String threadName = getClass().getSimpleName() + ".timingRefreshCache";
         Thread thread = new Thread(() -> {
             logger.info("Started '{}' thread", threadName);
-            while (reloadIntervalSeconds > 0) {
-                try {
-                    long t = reloadIntervalSeconds * 1000;
-                    Thread.sleep(t);
-                } catch (InterruptedException ignore) {
-                }
+            while (!Thread.interrupted()) {
+                ThreadUtil.sleep(reloadIntervalSeconds * 1000);
                 refreshCache();
             }
         }, threadName);

@@ -2,16 +2,15 @@ package xyz.liuw.autumn.service;
 
 import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
-import xyz.liuw.autumn.data.DataSource;
-import xyz.liuw.autumn.data.Page;
-import xyz.liuw.autumn.data.PageParser;
-import xyz.liuw.autumn.data.ResourceLoader;
+import xyz.liuw.autumn.data.*;
 import xyz.liuw.autumn.util.WebUtil;
 
 import javax.annotation.PostConstruct;
@@ -131,23 +130,24 @@ public class StaticService {
         ResourceLoader.ResourceCache scriptJs = getResourceCache("/js/script.js");
         ResourceLoader.ResourceCache quickSearchJs = getResourceCache("/js/quick_search.js");
 
-        String userTreeJsonMd5 = dataSource.getAllData().getTreeJson().getMd5();
-        if (userJsCache == null || userJsCache.hasChanged(userTreeJsonMd5, scriptJs.getMd5(), quickSearchJs.getMd5())) {
-            userJsCache = createJsCache(userTreeJsonMd5, scriptJs, quickSearchJs);
+        if (userJsCache == null || userJsCache.hasChanged(null, scriptJs.getMd5(), quickSearchJs.getMd5())) {
+            userJsCache = createJsCache(null, scriptJs, quickSearchJs);
             logger.info("userJsCache updated");
             changed = true;
         }
 
-        String guestTreeJsonMd5 = dataSource.getPublishedData().getTreeJson().getMd5();
-        if (guestJsCache == null || guestJsCache.hasChanged(guestTreeJsonMd5, scriptJs.getMd5(), quickSearchJs.getMd5())) {
-            guestJsCache = createJsCache(guestTreeJsonMd5, scriptJs, quickSearchJs);
+        if (guestJsCache == null || guestJsCache.hasChanged(null, scriptJs.getMd5(), quickSearchJs.getMd5())) {
+            guestJsCache = createJsCache(null, scriptJs, quickSearchJs);
             logger.info("guestJsCache updated");
             changed = true;
         }
         return changed;
     }
 
-    private JsCache createJsCache(String treeJsonMd5, ResourceLoader.ResourceCache scriptJs, ResourceLoader.ResourceCache quickSearchJs) {
+    @SuppressWarnings("SameParameterValue")
+    private JsCache createJsCache(@Nullable TreeJson treeJson,
+                                  ResourceLoader.ResourceCache scriptJs,
+                                  ResourceLoader.ResourceCache quickSearchJs) {
 
         // 如果把 tree.js 也加进来：
         // 每次浏览器打开页面少发一个请求
@@ -178,9 +178,11 @@ public class StaticService {
         jsCache.setContent(jsBytes);
         jsCache.setEtag(etag);
         jsCache.setVersion(version);
-        jsCache.setTreeJsonMd5(treeJsonMd5);
         jsCache.setScriptJsMd5(scriptJs.getMd5());
         jsCache.setQuickSearchJsMd5(quickSearchJs.getMd5());
+        if (treeJson != null) {
+            jsCache.setTreeJsonMd5(treeJson.getMd5());
+        }
         return jsCache;
     }
 
@@ -236,9 +238,9 @@ public class StaticService {
         private String treeJsonMd5;
 
         boolean hasChanged(String treeJsonMd5, String scriptJsMd5, String quickSearchJsMd5) {
-            return !this.treeJsonMd5.equals(treeJsonMd5)
-                    || !this.scriptJsMd5.equals(scriptJsMd5)
-                    || !this.quickSearchJsMd5.equals(quickSearchJsMd5);
+            return !StringUtils.equals(this.treeJsonMd5, treeJsonMd5)
+                    || !StringUtils.equals(this.scriptJsMd5, scriptJsMd5)
+                    || !StringUtils.equals(this.quickSearchJsMd5, quickSearchJsMd5);
         }
 
         void setQuickSearchJsMd5(String quickSearchJsMd5) {
