@@ -26,6 +26,9 @@ public class DataService {
     @Autowired
     private DataSource dataSource;
 
+    @Autowired
+    private StaticService staticService;
+
     public TreeJson getTreeJson() {
         return isLogged() ?
                 dataSource.getAllData().getTreeJson() :
@@ -84,11 +87,7 @@ public class DataService {
         }
 
         if ("/help".equals(path)) {
-            if (isLogged()) {
-                return dataSource.getAllData().getHelpPage();
-            } else {
-                return dataSource.getPublishedData().getHelpPage();
-            }
+            return staticService.getHelpPage();
         }
 
         if (isLogged()) {

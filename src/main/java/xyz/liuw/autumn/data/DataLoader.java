@@ -18,7 +18,6 @@ import xyz.liuw.autumn.util.WebUtil;
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.springframework.web.util.HtmlUtils.htmlEscape;
@@ -31,8 +30,6 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
 public class DataLoader {
 
     private static final String ARCHIVE_PATH_PREFIX = "/archive/";
-
-    private static final String HELP_MD = "/static/help.md";
 
     private static Logger logger = LoggerFactory.getLogger(DataLoader.class);
 
@@ -57,11 +54,6 @@ public class DataLoader {
     private List<DataChangedListener> listeners = new ArrayList<>(1);
 
     @Autowired
-    private ResourceLoader resourceLoader;
-
-    private volatile Page helpPage;
-
-    @Autowired
     public DataLoader(DataSource dataSource, JsonMapper jsonMapper) {
         this.dataSource = dataSource;
         this.jsonMapper = jsonMapper;
@@ -69,7 +61,6 @@ public class DataLoader {
 
     @PostConstruct
     void start() {
-        initHelpPage();
 
         // load
         ch.qos.logback.classic.Logger parserLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(PageParser.class);
@@ -222,7 +213,6 @@ public class DataLoader {
                 newHomepage(pageMap, false),
                 pageMap,
                 mediaMap);
-        data.setHelpPage(helpPage);
         dataSource.setAllData(data);
         setPublishedData(root, mediaMap);
         logger.info("dataSource: {}", dataSource);
@@ -327,7 +317,6 @@ public class DataLoader {
                 newHomepage(pageMap, true),
                 pageMap,
                 publishedMedia);
-        data.setHelpPage(helpPage);
         dataSource.setPublishedData(data);
     }
 
@@ -403,36 +392,6 @@ public class DataLoader {
 
     public void addListener(DataChangedListener listener) {
         this.listeners.add(listener);
-    }
-
-    private void initHelpPage() {
-        setHelpPage(resourceLoader.getResourceCache(HELP_MD));
-
-        resourceLoader.addStaticChangedListener(() -> {
-            ResourceLoader.ResourceCache h = resourceLoader.getResourceCache(HELP_MD);
-            if (h.getLastModified() > helpPage.getLastModified()) {
-                setHelpPage(h);
-            }
-        });
-    }
-
-    private void setHelpPage(ResourceLoader.ResourceCache resourceCache) {
-        Page page = newPageOf(resourceCache);
-        page.setPath("/help");
-        helpPage = page;
-        dataSource.getAllData().setHelpPage(helpPage);
-        dataSource.getPublishedData().setHelpPage(helpPage);
-        logger.info("/help updated");
-    }
-
-    private Page newPageOf(ResourceLoader.ResourceCache resourceCache) {
-        String content = new String(resourceCache.getContent(), StandardCharsets.UTF_8);
-        Page page = PageParser.parse(content);
-        Date date = new Date(resourceCache.getLastModified());
-        page.setCreated(date);
-        page.setModified(date);
-        page.setLastModified(date.getTime());
-        return page;
     }
 
     public interface DataChangedListener {

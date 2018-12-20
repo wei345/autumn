@@ -70,8 +70,8 @@ public class MainController {
         }
 
         if (path.endsWith(DOT_MD)) {
-            String withoutDotMd = path.substring(0, path.length() - DOT_MD.length());
-            page = dataService.getPage(withoutDotMd);
+            String pathWithoutDotMd = path.substring(0, path.length() - DOT_MD.length());
+            page = dataService.getPage(pathWithoutDotMd);
             if (page != null) {
                 return handlePage(page, path, true, h, webRequest, response, model);
             }

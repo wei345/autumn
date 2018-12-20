@@ -2,6 +2,7 @@ package xyz.liuw.autumn.data;
 
 import xyz.liuw.autumn.search.PageHit;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,6 +36,24 @@ public class Page {
     private String blogName; // blog file name without date and extension
     private String blogPath; // e.g. /2018/11/12/xxx
     private Date blogDate; // 从路径里解析出来的日期，如 /path/to/2018-11-12-xxx 会得到 2018-11-12
+
+    static Page newEmptyPage(String path) {
+        String title = "";
+        String body = "";
+        Date now = new Date(0);
+
+        Page page = new Page();
+        page.setCreated(now);
+        page.setModified(now);
+        page.setPublished(true);
+        page.setBody(body);
+        page.setSource(body);
+        page.setTitle(title);
+        page.setLastModified(now.getTime());
+        page.setTags(Collections.emptySet());
+        page.setPath(path);
+        return page;
+    }
 
     public static class ViewCache {
         private byte[] content;

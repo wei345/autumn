@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
 import xyz.liuw.autumn.data.DataSource;
+import xyz.liuw.autumn.data.Page;
+import xyz.liuw.autumn.data.PageParser;
 import xyz.liuw.autumn.data.ResourceLoader;
 import xyz.liuw.autumn.util.WebUtil;
 
@@ -17,7 +19,9 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -39,6 +43,8 @@ public class StaticService {
 
     private volatile CssCache cssCache;
 
+    private volatile Page helpPage;
+
     @Autowired
     private WebUtil webUtil;
 
@@ -54,8 +60,10 @@ public class StaticService {
     private void init() {
         refreshJsCache();
         refreshCssCache();
+        refreshHelpPage();
 
         resourceLoader.addStaticChangedListener(() -> {
+            refreshHelpPage();
             if (refreshJsCache() || refreshCssCache()) {
                 staticChangedListeners.forEach(ResourceLoader.StaticChangedListener::onChanged);
             }
@@ -90,6 +98,32 @@ public class StaticService {
 
     public CssCache getCssCache() {
         return cssCache;
+    }
+
+    Page getHelpPage() {
+        return helpPage;
+    }
+
+    private void refreshHelpPage() {
+        ResourceLoader.ResourceCache data = resourceLoader.getResourceCache(STATIC_ROOT + "/help.md");
+        if (helpPage != null && helpPage.getLastModified() >= data.getLastModified()) {
+            return;
+        }
+
+        Page page = newPageOf(data);
+        page.setPath("/help");
+        helpPage = page;
+        logger.info("Updated {}", page.getPath());
+    }
+
+    private Page newPageOf(ResourceLoader.ResourceCache resourceCache) {
+        String content = new String(resourceCache.getContent(), StandardCharsets.UTF_8);
+        Page page = PageParser.parse(content);
+        Date date = new Date(resourceCache.getLastModified());
+        page.setCreated(date);
+        page.setModified(date);
+        page.setLastModified(date.getTime());
+        return page;
     }
 
     private boolean refreshJsCache() {
