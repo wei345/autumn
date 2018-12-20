@@ -5,7 +5,6 @@ import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
@@ -18,7 +17,7 @@ import xyz.liuw.autumn.util.WebUtil;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import javax.validation.constraints.NotNull;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
@@ -70,26 +69,27 @@ public class StaticService {
         });
     }
 
-    public Object handleStaticRequest(String path,
-                                      WebRequest webRequest,
-                                      HttpServletRequest request,
-                                      HttpServletResponse response) throws IOException {
-
-        ResourceLoader.ResourceCache cache = resourceLoader.getResourceCache(STATIC_ROOT + path);
-
-        if (cache == null) {
-            response.sendError(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND.getReasonPhrase());
+    public Object handleRequest(@NotNull ResourceLoader.ResourceCache resourceCache,
+                                WebRequest webRequest,
+                                HttpServletRequest request,
+                                HttpServletResponse response) {
+        String etag = webUtil.getEtag(resourceCache.getMd5());
+        if (webRequest.checkNotModified(etag)) {
             return null;
         }
 
-        return MediaService.output(
-                cache.getContent(),
-                webUtil.getEtag(cache.getMd5()),
-                FileUtil.getFileName(path),
-                cache.getMimeType(),
+        return MediaService.handleRequest(
+                resourceCache.getContent(),
+                etag,
+                FileUtil.getFileName(resourceCache.getPath()),
+                resourceCache.getMimeType(),
                 webRequest,
-                request,
-                response);
+                request
+        );
+    }
+
+    public ResourceLoader.ResourceCache getResourceCache(String path) {
+        return resourceLoader.getResourceCache(STATIC_ROOT + path);
     }
 
     public JsCache getJsCache() {
@@ -105,7 +105,7 @@ public class StaticService {
     }
 
     private void refreshHelpPage() {
-        ResourceLoader.ResourceCache data = resourceLoader.getResourceCache(STATIC_ROOT + "/help.md");
+        ResourceLoader.ResourceCache data = getResourceCache("/help.md");
         if (helpPage != null && helpPage.getLastModified() >= data.getLastModified()) {
             return;
         }
@@ -128,18 +128,18 @@ public class StaticService {
 
     private boolean refreshJsCache() {
         boolean changed = false;
-        ResourceLoader.ResourceCache scriptJs = resourceLoader.getResourceCache(STATIC_ROOT + "/js/script.js");
-        ResourceLoader.ResourceCache quickSearchJs = resourceLoader.getResourceCache(STATIC_ROOT + "/js/quick_search.js");
+        ResourceLoader.ResourceCache scriptJs = getResourceCache("/js/script.js");
+        ResourceLoader.ResourceCache quickSearchJs = getResourceCache("/js/quick_search.js");
 
         String userTreeJsonMd5 = dataSource.getAllData().getTreeJson().getMd5();
-        if (userJsCache == null || !userJsCache.checkNotModified(userTreeJsonMd5, scriptJs.getMd5(), quickSearchJs.getMd5())) {
+        if (userJsCache == null || userJsCache.hasChanged(userTreeJsonMd5, scriptJs.getMd5(), quickSearchJs.getMd5())) {
             userJsCache = createJsCache(userTreeJsonMd5, scriptJs, quickSearchJs);
             logger.info("userJsCache updated");
             changed = true;
         }
 
         String guestTreeJsonMd5 = dataSource.getPublishedData().getTreeJson().getMd5();
-        if (guestJsCache == null || !guestJsCache.checkNotModified(guestTreeJsonMd5, scriptJs.getMd5(), quickSearchJs.getMd5())) {
+        if (guestJsCache == null || guestJsCache.hasChanged(guestTreeJsonMd5, scriptJs.getMd5(), quickSearchJs.getMd5())) {
             guestJsCache = createJsCache(guestTreeJsonMd5, scriptJs, quickSearchJs);
             logger.info("guestJsCache updated");
             changed = true;
@@ -185,8 +185,8 @@ public class StaticService {
     }
 
     private boolean refreshCssCache() {
-        ResourceLoader.ResourceCache normalizeCss = resourceLoader.getResourceCache(STATIC_ROOT + "/css/normalize.css");
-        ResourceLoader.ResourceCache styleCss = resourceLoader.getResourceCache(STATIC_ROOT + "/css/style.css");
+        ResourceLoader.ResourceCache normalizeCss = getResourceCache("/css/normalize.css");
+        ResourceLoader.ResourceCache styleCss = getResourceCache("/css/style.css");
         if (cssCache != null && cssCache.checkNotModified(normalizeCss.getMd5(), styleCss.getMd5())) {
             return false;
         }
@@ -218,19 +218,11 @@ public class StaticService {
             return this.normalizeCssMd5.equals(normalizeCssMd5) && this.styleCssMd5.equals(styleCssMd5);
         }
 
-        public String getNormalizeCssMd5() {
-            return normalizeCssMd5;
-        }
-
-        public void setNormalizeCssMd5(String normalizeCssMd5) {
+        void setNormalizeCssMd5(String normalizeCssMd5) {
             this.normalizeCssMd5 = normalizeCssMd5;
         }
 
-        public String getStyleCssMd5() {
-            return styleCssMd5;
-        }
-
-        public void setStyleCssMd5(String styleCssMd5) {
+        void setStyleCssMd5(String styleCssMd5) {
             this.styleCssMd5 = styleCssMd5;
         }
     }
@@ -243,30 +235,21 @@ public class StaticService {
 
         private String treeJsonMd5;
 
-
-        boolean checkNotModified(String treeJsonMd5, String scriptJsMd5, String quickSearchJsMd5) {
-            return this.treeJsonMd5.equals(treeJsonMd5)
-                    && this.scriptJsMd5.equals(scriptJsMd5)
-                    && this.quickSearchJsMd5.equals(quickSearchJsMd5);
+        boolean hasChanged(String treeJsonMd5, String scriptJsMd5, String quickSearchJsMd5) {
+            return !this.treeJsonMd5.equals(treeJsonMd5)
+                    || !this.scriptJsMd5.equals(scriptJsMd5)
+                    || !this.quickSearchJsMd5.equals(quickSearchJsMd5);
         }
 
-        public String getQuickSearchJsMd5() {
-            return quickSearchJsMd5;
-        }
-
-        public void setQuickSearchJsMd5(String quickSearchJsMd5) {
+        void setQuickSearchJsMd5(String quickSearchJsMd5) {
             this.quickSearchJsMd5 = quickSearchJsMd5;
         }
 
-        public String getScriptJsMd5() {
-            return scriptJsMd5;
-        }
-
-        public void setScriptJsMd5(String scriptJsMd5) {
+        void setScriptJsMd5(String scriptJsMd5) {
             this.scriptJsMd5 = scriptJsMd5;
         }
 
-        public void setTreeJsonMd5(String treeJsonMd5) {
+        void setTreeJsonMd5(String treeJsonMd5) {
             this.treeJsonMd5 = treeJsonMd5;
         }
     }
@@ -276,7 +259,7 @@ public class StaticService {
         private byte[] content;
         private String etag;
 
-        public String getVersion() {
+        String getVersion() {
             return version;
         }
 
@@ -288,7 +271,7 @@ public class StaticService {
             return etag;
         }
 
-        public void setVersion(String version) {
+        void setVersion(String version) {
             this.version = version;
         }
 
@@ -296,7 +279,7 @@ public class StaticService {
             this.content = content;
         }
 
-        public void setEtag(String etag) {
+        void setEtag(String etag) {
             this.etag = etag;
         }
     }

@@ -216,6 +216,7 @@ public class ResourceLoader {
                 resourceCache.setMd5(md5);
                 resourceCache.setMimeType(mimeType);
                 resourceCache.setLastModified(attrs.lastModifiedTime().toMillis());
+                resourceCache.setPath(relativePath);
                 pathToResourceCache.put(relativePath, resourceCache);
                 return CONTINUE;
             }
@@ -244,6 +245,7 @@ public class ResourceLoader {
             resourceCache.setMd5(md5);
             resourceCache.setMimeType(mimeType);
             resourceCache.setLastModified(lastModified);
+            resourceCache.setPath(relativePath);
             pathToResourceCache.put(relativePath, resourceCache);
             return CONTINUE;
         }
@@ -262,6 +264,7 @@ public class ResourceLoader {
         private String md5; // content md5
         private String mimeType;
         private long lastModified; // file last modified
+        private String path; // classpath
 
         public byte[] getContent() {
             return content;
@@ -293,6 +296,14 @@ public class ResourceLoader {
 
         public void setLastModified(long lastModified) {
             this.lastModified = lastModified;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
         }
     }
 }

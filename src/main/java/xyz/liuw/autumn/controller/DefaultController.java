@@ -5,6 +5,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,6 +14,8 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.view.RedirectView;
 import xyz.liuw.autumn.data.Media;
 import xyz.liuw.autumn.data.Page;
+import xyz.liuw.autumn.data.ResourceLoader;
+import xyz.liuw.autumn.data.TreeJson;
 import xyz.liuw.autumn.service.DataService;
 import xyz.liuw.autumn.service.MediaService;
 import xyz.liuw.autumn.service.PageService;
@@ -26,13 +30,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
-import static xyz.liuw.autumn.controller.StaticController.ALL_CSS;
-import static xyz.liuw.autumn.controller.StaticController.ALL_JS;
 import static xyz.liuw.autumn.service.DataService.LOGIN_REQUIRED_MEDIA;
 import static xyz.liuw.autumn.service.DataService.LOGIN_REQUIRED_PAGE;
 
 @RestController
-public class MainController {
+public class DefaultController {
 
     private static final String DOT_MD = ".md";
     private static final String DEFAULT_PAGE_VIEW = "page";
@@ -47,10 +49,10 @@ public class MainController {
     private PageService pageService;
 
     @Autowired
-    private StaticController staticController;
+    private StaticService staticService;
 
     @Autowired
-    private StaticService staticService;
+    private WebUtil webUtil;
 
     private Map<String, String> pathToView;
 
@@ -63,17 +65,25 @@ public class MainController {
 
         String path = WebUtil.getRelativePath(request);
 
+        // 静态文件
+        ResourceLoader.ResourceCache resourceCache = staticService.getResourceCache(path);
+        if (resourceCache != null) {
+            // 也可以用 ResourceHttpRequestHandler
+            return staticService.handleRequest(resourceCache, webRequest, request, response);
+        }
+
         // Page
         Page page = dataService.getPage(path);
         if (page != null) {
-            return handlePage(page, path, false, h, webRequest, response, model);
+            return handlePage(page, path, false, h, webRequest, model);
         }
 
+        // Page source
         if (path.endsWith(DOT_MD)) {
             String pathWithoutDotMd = path.substring(0, path.length() - DOT_MD.length());
             page = dataService.getPage(pathWithoutDotMd);
             if (page != null) {
-                return handlePage(page, path, true, h, webRequest, response, model);
+                return handlePage(page, path, true, h, webRequest, model);
             }
         }
 
@@ -83,19 +93,11 @@ public class MainController {
             if (media == LOGIN_REQUIRED_MEDIA) {
                 return redirectLoginView(path);
             }
-            return mediaService.output(media, webRequest, request, response);
+            return mediaService.handleRequest(media, webRequest, request, response);
         }
 
-        if (ALL_JS.equals(path)) {
-            return staticController.allJs(webRequest);
-        }
-
-        if (ALL_CSS.equals(path)) {
-            return staticController.allCss(webRequest);
-        }
-
-        // 静态文件，也可以用 ResourceHttpRequestHandler
-        return staticService.handleStaticRequest(path, webRequest, request, response);
+        response.sendError(HttpStatus.NOT_FOUND.value());
+        return null;
     }
 
     private Object handlePage(@NotNull Page page,
@@ -103,7 +105,6 @@ public class MainController {
                               boolean source,
                               String[] h,
                               WebRequest webRequest,
-                              HttpServletResponse response,
                               Map<String, Object> model) {
         Validate.notNull(page);
 
@@ -117,22 +118,46 @@ public class MainController {
         }
 
         if (source) {
-            return pageService.getPageSource(page, webRequest);
-        } else if (h != null && h.length > 0) {
-            String[] ss = h;
-            // 太多高亮词会影响性能，正常不会太多
-            if (ss.length > 10) {
-                ss = new String[10];
-                System.arraycopy(h, 0, ss, 0, ss.length);
-            }
-            return pageService.highlightOutput(page, Arrays.asList(ss), model, view);
-        } else {
-            return pageService.getPageContent(page, model, view, webRequest);
+            return pageService.handlePageSourceRequest(page, webRequest);
         }
+
+        // highlight
+        if (h != null && h.length > 0) {
+            String[] strings = h;
+            // 太多高亮词会影响性能，正常不会太多
+            if (strings.length > 10) {
+                strings = new String[10];
+                System.arraycopy(h, 0, strings, 0, strings.length);
+            }
+            return pageService.handlePageHighlightRequest(page, Arrays.asList(strings), model, view);
+        }
+
+        return pageService.handlePageRequest(page, model, view, webRequest);
+    }
+
+    @RequestMapping(value = "/tree.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public String treeJson(WebRequest webRequest) {
+        TreeJson treeJson = dataService.getTreeJson();
+
+        String etag = treeJson.getEtag();
+        if (etag == null) {
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+            synchronized (treeJson) {
+                if (treeJson.getEtag() == null) {
+                    treeJson.setEtag(webUtil.getEtag(treeJson.getMd5()));
+                }
+            }
+            etag = treeJson.getEtag();
+        }
+
+        if (webRequest.checkNotModified(etag)) {
+            return null;
+        }
+        return treeJson.getJson();
     }
 
     @Value("${autumn.path-to-view}")
-    public void setPathToView(String str) {
+    private void setPathToView(String str) {
         if (StringUtils.isBlank(str)) {
             this.pathToView = Collections.emptyMap();
             return;

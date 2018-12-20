@@ -84,7 +84,7 @@ public class ResourceWalker {
         abstract public FileVisitResult visitNonHiddenFile(Path file, BasicFileAttributes attrs);
     }
 
-    public static boolean isHidden(Path file){
+    public static boolean isHidden(Path file) {
         return file.getFileName().toString().startsWith(".");
     }
 }

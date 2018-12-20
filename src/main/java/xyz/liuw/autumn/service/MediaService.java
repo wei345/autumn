@@ -38,13 +38,12 @@ public class MediaService {
     @Autowired
     private WebUtil webUtil;
 
-    static Object output(byte[] content,
-                         String etag,
-                         String filename,
-                         String mimeType,
-                         WebRequest webRequest,
-                         HttpServletRequest request,
-                         HttpServletResponse response) {
+    static Object handleRequest(byte[] content,
+                                String etag,
+                                String filename,
+                                String mimeType,
+                                WebRequest webRequest,
+                                HttpServletRequest request) {
         if (webRequest.checkNotModified(etag)) {
             return null;
         }
@@ -67,8 +66,10 @@ public class MediaService {
         return "attachment; filename=\"" + encodedFileName + "\"";
     }
 
-    public Object output(Media media, WebRequest webRequest,
-                         HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public Object handleRequest(Media media,
+                                WebRequest webRequest,
+                                HttpServletRequest request,
+                                HttpServletResponse response) throws IOException {
         File file = media.getFile();
         // 设置 md5 和 mimeType，如果文件不大，还会缓存内容
         if (media.getMd5() == null) {
@@ -94,38 +95,39 @@ public class MediaService {
         }
 
         if (media.getContent() != null) {
-            return output(media.getContent(),
+            return handleRequest(media.getContent(),
                     webUtil.getEtag(media.getMd5()),
                     media.getFile().getName(),
                     media.getMimeType(),
-                    webRequest, request, response);
-        } else {
-            output(() -> {
-                        try {
-                            logger.info("Reading big file for response output {}", file.getAbsolutePath());
-                            return new FileInputStream(file);
-                        } catch (FileNotFoundException e) {
-                            throw new RuntimeException(e);
-                        }
-                    },
-                    (int) file.length(),
-                    media.getMd5(),
-                    file.getName(),
-                    media.getMimeType(),
-                    webRequest, request, response);
+                    webRequest, request);
         }
+
+        Supplier<InputStream> inputStreamSupplier = () -> {
+            try {
+                logger.info("Reading big file for response output {}", file.getAbsolutePath());
+                return new FileInputStream(file);
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        };
+
+        handleRequest(inputStreamSupplier,
+                (int) file.length(),
+                webUtil.getEtag(media.getMd5()),
+                file.getName(),
+                media.getMimeType(),
+                webRequest, request, response);
         return null;
     }
 
-    private void output(Supplier<InputStream> inputStreamSupplier,
-                        int length,
-                        String md5,
-                        String filename,
-                        String mimeType,
-                        WebRequest webRequest,
-                        HttpServletRequest request,
-                        HttpServletResponse response) throws IOException {
-        String etag = webUtil.getEtag(md5);
+    private void handleRequest(Supplier<InputStream> inputStreamSupplier,
+                               int length,
+                               String etag,
+                               String filename,
+                               String mimeType,
+                               WebRequest webRequest,
+                               HttpServletRequest request,
+                               HttpServletResponse response) throws IOException {
         if (webRequest.checkNotModified(etag)) {
             return;
         }

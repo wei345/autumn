@@ -41,7 +41,7 @@ public class PageService {
     @Autowired
     private WebUtil webUtil;
 
-    public byte[] getPageContent(@NotNull Page page, Map<String, Object> model, String view, WebRequest webRequest) {
+    public byte[] handlePageRequest(@NotNull Page page, Map<String, Object> model, String view, WebRequest webRequest) {
         Page.ViewCache viewCache = dataService.getViewCache(page);
         long templateLastModified = templateService.getTemplateLastModified();
         if (viewCache == null || viewCache.getTemplateLastModified() < templateLastModified) {
@@ -68,7 +68,7 @@ public class PageService {
         return viewCache.getContent();
     }
 
-    public String highlightOutput(@NotNull Page page, List<String> searchStrList, Map<String, Object> model, String view) {
+    public String handlePageHighlightRequest(@NotNull Page page, List<String> searchStrList, Map<String, Object> model, String view) {
         String html = getPageHtml(page);
         html = searchService.highlightSearchStr(html, searchStrList);
         model.put(TITLE, htmlEscape(page.getTitle()));
@@ -76,7 +76,7 @@ public class PageService {
         return templateService.merge(model, view);
     }
 
-    public String getPageSource(@NotNull Page page, WebRequest webRequest) {
+    public String handlePageSourceRequest(@NotNull Page page, WebRequest webRequest) {
         // check ETag
         String md5 = page.getSourceMd5();
         if (md5 == null) {
