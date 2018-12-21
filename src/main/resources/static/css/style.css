@@ -468,14 +468,13 @@ img {
 }
 
 .search_box__category_and_tags {
-    padding: 0 1em 1em;
+    padding: 0 1em;
     display: none;
     font-size: 14px;
 }
 
 .search_box__category_and_tags ul {
     list-style: none;
-    display: inline-block;
     margin: 0;
     padding: 0;
 }
@@ -491,6 +490,9 @@ img {
     font-weight: bold;
     padding-right: 1em;
     cursor: pointer;
+    margin-left: -3em;
+    vertical-align: top;
+    float: left;
 }
 
 .search_box__category_and_tags ul li.cat_selected {
@@ -501,6 +503,7 @@ img {
 .category_box, .tags_box {
     margin-top: .5em;
     line-height: 1.2;
+    padding-left: 3em;
 }
 
 .search_box__category_and_tags_toggle {
@@ -540,6 +543,12 @@ img {
 
 .qs_opened .qsr {
     display: block;
+}
+
+.qsr__stats {
+    padding: 0 0 .5em 1em;
+    font-size: 14px;
+    color: #808080;
 }
 
 .qsr__list {

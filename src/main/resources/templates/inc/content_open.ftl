@@ -19,6 +19,7 @@
                 <div class="search_box__category_and_tags no_selection"></div>
                 <div class="qsr">
                     <span class="qsr__close no_selection"></span>
+                    <div class="qsr__stats"></div>
                     <ul class="qsr__list"></ul>
                 </div>
             </form>

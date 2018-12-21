@@ -6,7 +6,7 @@ function setupQuickSearch(root) {
     var qsrClose = document.getElementsByClassName('qsr__close')[0];
     var qsrList = document.getElementsByClassName('qsr__list')[0];
     var qsrAllPages;
-    var qsrMaxLines = 6;
+    var qsrDefaultLines = 6;
     var qsrSelectedIndex = -1;
     var categoryPrefix = 'c:';
     var tagPrefix = 't:';
@@ -528,7 +528,8 @@ function setupQuickSearch(root) {
 
     function showSearchResult(pages) {
         qsrAllPages = pages;
-        renderPages(pages, qsrMaxLines);
+        var lines = container.classList.contains('qsr_more') ? pages.length : qsrDefaultLines;
+        renderPages(pages, lines);
         qsrSelectedIndex = -1;
     }
 
@@ -543,6 +544,8 @@ function setupQuickSearch(root) {
         if (maxLines === undefined) {
             maxLines = pages.length;
         }
+
+        document.getElementsByClassName('qsr__stats')[0].innerHTML = pages.length + " results";
         renderQsrHtml(buildResultHtml(pages, maxLines));
 
         if (maxLines < pages.length) {
