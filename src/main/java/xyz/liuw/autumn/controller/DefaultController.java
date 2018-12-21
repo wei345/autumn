@@ -5,12 +5,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 import org.springframework.web.servlet.view.RedirectView;
 import xyz.liuw.autumn.data.Media;
 import xyz.liuw.autumn.data.Page;
@@ -22,6 +22,7 @@ import xyz.liuw.autumn.service.PageService;
 import xyz.liuw.autumn.service.StaticService;
 import xyz.liuw.autumn.util.WebUtil;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
@@ -54,6 +55,9 @@ public class DefaultController {
     @Autowired
     private WebUtil webUtil;
 
+    @Autowired
+    private ResourceHttpRequestHandler staticResourceHandler;
+
     private Map<String, String> pathToView;
 
     @RequestMapping(value = "/**", method = RequestMethod.GET)
@@ -61,14 +65,13 @@ public class DefaultController {
                         WebRequest webRequest,
                         HttpServletRequest request,
                         HttpServletResponse response,
-                        Map<String, Object> model) throws IOException {
+                        Map<String, Object> model) throws IOException, ServletException {
 
         String path = WebUtil.getRelativePath(request);
 
         // 静态文件
         ResourceLoader.ResourceCache resourceCache = staticService.getResourceCache(path);
         if (resourceCache != null) {
-            // 也可以用 ResourceHttpRequestHandler
             return staticService.handleRequest(resourceCache, webRequest, request, response);
         }
 
@@ -96,7 +99,7 @@ public class DefaultController {
             return mediaService.handleRequest(media, webRequest, request, response);
         }
 
-        response.sendError(HttpStatus.NOT_FOUND.value());
+        staticResourceHandler.handleRequest(request, response);
         return null;
     }
 
