@@ -455,7 +455,11 @@ function bindToggle(targetClass) {
 
 function bindFixedToggle() {
     toggleFixed(localStorage.getItem(lsFixedKey) === '1');
-    document.getElementsByClassName('search_icon')[0].addEventListener('click', function () {
+    const toggle = document.getElementsByClassName('search_icon')[0];
+    if (!toggle) {
+        return;
+    }
+    toggle.addEventListener('click', function () {
         toggleFixed();
     });
 }
