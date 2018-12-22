@@ -112,7 +112,7 @@ function setupQuickSearch(root) {
             if (qsOpened && document.activeElement !== searchInput) {
                 searchInput.focus();
             }
-            event.inSearchForm = true;
+            event.isFromSearchForm = true;
         });
     }
 
@@ -765,7 +765,7 @@ function setupQuickSearch(root) {
             });
 
             document.addEventListener('click', function (event) {
-                if (!event.inSearchForm && !qsOpened) {
+                if (!event.isFromSearchForm && !qsOpened) {
                     closeCt();
                 }
             });
