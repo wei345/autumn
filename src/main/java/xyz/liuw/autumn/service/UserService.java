@@ -4,6 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
+import com.google.common.hash.Hashing;
 import com.vip.vjtools.vjkit.security.CryptoUtil;
 import com.vip.vjtools.vjkit.text.EncodeUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -13,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.DigestUtils;
 import org.springframework.web.util.CookieGenerator;
 import xyz.liuw.autumn.util.WebUtil;
 
@@ -206,8 +206,8 @@ public class UserService {
             return null;
         }
         String s = password + user.getSalt();
-        String md5 = DigestUtils.md5DigestAsHex(s.getBytes(StandardCharsets.UTF_8));
-        if (md5.equals(user.getPassword())) {
+        @SuppressWarnings("UnstableApiUsage") String sha = Hashing.sha512().hashString(s, StandardCharsets.UTF_8).toString();
+        if (sha.equals(user.getPassword())) {
             return user;
         } else {
             return null;

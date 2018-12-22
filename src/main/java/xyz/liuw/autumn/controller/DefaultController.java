@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 import org.springframework.web.servlet.view.RedirectView;
 import xyz.liuw.autumn.data.Media;
 import xyz.liuw.autumn.data.Page;
@@ -22,7 +21,6 @@ import xyz.liuw.autumn.service.PageService;
 import xyz.liuw.autumn.service.StaticService;
 import xyz.liuw.autumn.util.WebUtil;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
@@ -55,17 +53,14 @@ public class DefaultController {
     @Autowired
     private WebUtil webUtil;
 
-    @Autowired
-    private ResourceHttpRequestHandler staticResourceHandler;
-
     private Map<String, String> pathToView;
 
-    @RequestMapping(value = "/**", method = RequestMethod.GET)
+    @RequestMapping(method = RequestMethod.GET)
     public Object index(String[] h, // h=a&h=b..
                         WebRequest webRequest,
                         HttpServletRequest request,
                         HttpServletResponse response,
-                        Map<String, Object> model) throws IOException, ServletException {
+                        Map<String, Object> model) throws IOException {
 
         String path = WebUtil.getRelativePath(request);
 
@@ -99,7 +94,7 @@ public class DefaultController {
             return mediaService.handleRequest(media, webRequest, request, response);
         }
 
-        staticResourceHandler.handleRequest(request, response);
+        response.sendError(404);
         return null;
     }
 

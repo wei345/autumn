@@ -1,29 +1,17 @@
 package xyz.liuw.autumn.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.web.ResourceProperties;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
-import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver;
 import xyz.liuw.autumn.interceptor.ContextInterceptor;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Autowired
     private ContextInterceptor contextInterceptor;
-
-    @Autowired
-    private ResourceProperties resourceProperties;
 
     @Autowired
     public void setViewResolver(FreeMarkerViewResolver viewResolver) {
@@ -38,14 +26,4 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(contextInterceptor);
     }
 
-    @Bean
-    public ResourceHttpRequestHandler staticResourceHandler() {
-        String[] staticLocations = resourceProperties.getStaticLocations();
-        List<String> locations = new ArrayList<>(staticLocations.length + 1);
-        locations.addAll(Arrays.asList(staticLocations));
-        locations.add("/");
-        ResourceHttpRequestHandler resourceHttpRequestHandler = new ResourceHttpRequestHandler();
-        resourceHttpRequestHandler.setLocationValues(locations);
-        return resourceHttpRequestHandler;
-    }
 }

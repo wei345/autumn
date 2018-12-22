@@ -22,10 +22,10 @@ public class UserServiceTest {
     public void generateUser() {
         // generate
         String username = "Username";
-        String salt = UUID.randomUUID().toString();
-        String plainPassword = RandomUtil.randomStringFixLength(14);
+        String salt = RandomUtil.randomStringFixLength(16);
+        String plainPassword = RandomUtil.randomStringFixLength(16);
         String s = plainPassword + salt;
-        String password = DigestUtils.md5DigestAsHex(s.getBytes(StandardCharsets.UTF_8));
+        @SuppressWarnings("UnstableApiUsage") String password = Hashing.sha512().hashString(s, StandardCharsets.UTF_8).toString();
 
         // print
         String userString = 1 + " " + username + " " + password + " " + salt + ";";
