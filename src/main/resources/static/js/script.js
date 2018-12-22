@@ -455,7 +455,9 @@ function bindToggle(targetClass) {
 
 function bindFixedToggle() {
     toggleFixed(localStorage.getItem(lsFixedKey) === '1');
-    document.getElementsByClassName('search_icon')[0].addEventListener('click', toggleFixed);
+    document.getElementsByClassName('search_icon')[0].addEventListener('click', function () {
+        toggleFixed();
+    });
 }
 
 function toggleFixed(flag) {

@@ -1,6 +1,7 @@
 "use strict";
 
 function setupQuickSearch(root) {
+    var searchForm = document.getElementsByClassName('header__row_1__search_form')[0];
     var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
     var categoryAndTagsToggle = document.getElementsByClassName('search_box__category_and_tags_toggle')[0];
     var qsrClose = document.getElementsByClassName('qsr__close')[0];
@@ -100,17 +101,18 @@ function setupQuickSearch(root) {
             event.stopPropagation();
         });
 
-        document.addEventListener('click', function () {
+        document.addEventListener('click', function (event) {
             if (qsOpened) {
                 qs();
             }
         });
 
-        document.getElementsByClassName('header__row_1__search_form')[0].addEventListener('click', function (event) {
-            // 避免搜索框为空时，点击搜索结果（最近访问），qs 关闭
+        searchForm.addEventListener('click', function () {
+            // 避免搜索框为空时点击搜索结果（最近访问）qs 关闭
             if (qsOpened && document.activeElement !== searchInput) {
                 searchInput.focus();
             }
+            event.inSearchForm = true;
         });
     }
 
@@ -750,17 +752,22 @@ function setupQuickSearch(root) {
         }
 
         buildOptions();
-        bindCategoryAndTagsToggle();
         autoSyncS();
         bindCtEvents();
 
         function bindCtEvents() {
-            Array.prototype.forEach.call(categoryList.getElementsByTagName('li'), function (li) {
-                li.addEventListener('click', toggleSelected);
+            categoryAndTagsToggle.addEventListener('click', function () {
+                if (ctOpened) {
+                    closeCt();
+                } else {
+                    openCt();
+                }
             });
 
-            Array.prototype.forEach.call(tagList.getElementsByTagName('li'), function (li) {
-                li.addEventListener('click', toggleSelected);
+            document.addEventListener('click', function (event) {
+                if (!event.inSearchForm && !qsOpened) {
+                    closeCt();
+                }
             });
 
             categoryTitle.addEventListener('click', function () {
@@ -769,6 +776,14 @@ function setupQuickSearch(root) {
 
             tagTitle.addEventListener('click', function () {
                 cleanSelected(TagOption);
+            });
+
+            Array.prototype.forEach.call(categoryList.getElementsByTagName('li'), function (li) {
+                li.addEventListener('click', toggleSelected);
+            });
+
+            Array.prototype.forEach.call(tagList.getElementsByTagName('li'), function (li) {
+                li.addEventListener('click', toggleSelected);
             });
         }
 
@@ -895,20 +910,11 @@ function setupQuickSearch(root) {
             option.unSelect();
         }
 
-        function bindCategoryAndTagsToggle() {
-            categoryAndTagsToggle.addEventListener('click', function () {
-                if (ctOpened) {
-                    closeCt();
-                } else {
-                    openCt();
-                }
-            });
-        }
-
         function openCt() {
             ctOpened = true;
             categoryAndTags.classList.add('show');
             categoryAndTagsToggle.classList.add('unfolded');
+            searchForm.classList.add('show_ct');
             syncFromInput();
             if (qsOpened) {
                 searchInput.focus();
@@ -922,6 +928,7 @@ function setupQuickSearch(root) {
             ctOpened = false;
             categoryAndTags.classList.remove('show');
             categoryAndTagsToggle.classList.remove('unfolded');
+            searchForm.classList.remove('show_ct');
             if (qsOpened) {
                 searchInput.focus();
             }

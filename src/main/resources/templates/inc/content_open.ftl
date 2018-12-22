@@ -29,7 +29,7 @@
             <#--<li><span class="sitemap_toggle action_toggle">Sitemap</span></li>-->
                 <li><a href="${ctx!}/help">Help</a></li>
                 <li><a href="https://github.com/wei345/autumn">GitHub</a></li>
-            <#if logged == true>
+            <#if logged?? && logged == true>
                 <li><a class="header__row_1__right__logout" href="${ctx!}/logout">Logout</a></li>
             </#if>
             </ul>
