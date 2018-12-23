@@ -187,7 +187,6 @@ function bindShortcut() {
                 case '/':
                     if (searchInput) {
                         searchInput.focus();
-                        searchInput.select();
                         event.preventDefault();
                     }
                     break;
@@ -340,23 +339,25 @@ function selectedNodeScrollIntoViewIfTreeFirstShow() {
         if (!selected) {
             return;
         }
-        // 让当前页面对应的节点（selected）滚动到屏幕中间位置。
-        // 使用 scroll，不使用 selected.scrollIntoView({block: 'center'}) ，
-        // 因为如果 selected 在页面底部，scrollIntoView 会"过量滚动"，导致 body 也向上滚动一段距离，
-        // 另外，Safari 不支持 scrollIntoView 选项。
-        var scrollEl = getScrollParent(selected);
-        var rect = selected.getBoundingClientRect();
-        var maxScrollTop = scrollEl.scrollHeight - scrollEl.clientHeight;
-        if (maxScrollTop === 0) { // 手机 chrome 可能为 0
-            maxScrollTop = scrollEl.scrollHeight - getViewportHeight();
-        }
-        var expectRectTop = (getViewportHeight() / 2) - (selected.clientHeight / 2);
-        var expectScrollTop = scrollEl.scrollTop + (rect.top - expectRectTop);
-        var scrollTop = Math.min(maxScrollTop, expectScrollTop);
-        if (scrollTop > 0) {
-            scrollEl.scroll(0, scrollTop);
-        }
+        scrollToCenter(selected);
     }
+}
+
+function scrollToCenter(el) {
+    // 让当前页面对应的节点（selected）滚动到屏幕中间位置。
+    // 使用 scroll，不使用 selected.scrollIntoView({block: 'center'}) ，
+    // 因为如果 selected 在页面底部，scrollIntoView 会"过量滚动"，导致 body 也向上滚动一段距离，
+    // 另外，Safari 不支持 scrollIntoView 选项。
+    var scrollEl = getScrollParent(el);
+    var rect = el.getBoundingClientRect();
+    var maxScrollTop = scrollEl.scrollHeight - scrollEl.clientHeight;
+    if (maxScrollTop === 0) { // 手机 chrome 可能为 0
+        maxScrollTop = scrollEl.scrollHeight - getViewportHeight();
+    }
+    var expectRectTop = (getViewportHeight() / 2) - (el.clientHeight / 2);
+    var expectScrollTop = scrollEl.scrollTop + (rect.top - expectRectTop);
+    var scrollTop = Math.min(maxScrollTop, expectScrollTop);
+    scrollEl.scroll(0, scrollTop);
 }
 
 function getScrollParent(node) {

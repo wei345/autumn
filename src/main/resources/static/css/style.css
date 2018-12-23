@@ -710,6 +710,8 @@ ul.header__row_1__tools {
     .desktop .header__toolbar {
         padding: 0 0 0 2em;
         line-height: 1;
+        position: sticky;
+        top: 3em;
     }
 
     /* sidebar */
@@ -727,7 +729,6 @@ ul.header__row_1__tools {
     }
 
     .desktop .fixed .header__toolbar .sidebar_toggle {
-        position: fixed;
         padding-right: 0.5em;
         padding-bottom: 0.5em;
         background: #fff;

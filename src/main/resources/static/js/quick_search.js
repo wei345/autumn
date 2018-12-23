@@ -43,7 +43,13 @@ function setupQuickSearch(root) {
                 } else {
                     qsrSelectedIndex = (down ? 0 : (qsrList.children.length - 1));
                 }
-                select();
+                if(qsrSelectedIndexInBound()){
+                    select();
+                    const selected = qsrList.children[qsrSelectedIndex];
+                    if (!isElementInViewport(selected)) {
+                        scrollToCenter(selected);
+                    }
+                }
                 event.preventDefault();
                 return;
             }
@@ -72,6 +78,8 @@ function setupQuickSearch(root) {
             if (event.key === 'Escape') {
                 if (qsrSelectedIndexInBound()) {
                     resetSelect();
+                    event.preventDefault();
+                    return;
                 }
 
                 if (searchInput.value.trim().length > 0) {
@@ -102,7 +110,7 @@ function setupQuickSearch(root) {
 
         document.addEventListener('click', function (event) {
             if (!event.isFromSearchForm) {
-                searchInput.classList.remove('header__row_1__search_input_focus');
+                // searchInput.classList.remove('header__row_1__search_input_focus');
                 if (qsOpened && searchInput.value === '') {
                     closeQs();
                 }
@@ -111,12 +119,12 @@ function setupQuickSearch(root) {
 
         searchForm.addEventListener('click', function (event) {
             event.isFromSearchForm = true;
-            if (qsOpened && document.activeElement !== searchInput && getSelectionText() === '') {
+            /*if (qsOpened && document.activeElement !== searchInput && getSelectionText() === '') {
                 searchInput.focus();
             }
             if (!searchInput.classList.contains('header__row_1__search_input_focus')) {
                 searchInput.classList.add('header__row_1__search_input_focus');
-            }
+            }*/
         });
     }
 
