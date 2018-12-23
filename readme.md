@@ -7,11 +7,11 @@
 Build 环境
 
 * Maven 3.5
-* Java 8
+* Java 8+
 
 运行环境
 
-* Java 8
+* Java 8+
 * Redis 4
 
 ## 运行
@@ -49,7 +49,7 @@ java -jar target/autumn.jar
 mvn -q -DskipTests=false -Dtest=xyz.liuw.autumn.service.UserServiceTest#generateUser test
 ```
 
-生成 aes key:
+生成 AES key:
 
 ```bash
 mvn -q -DskipTests=false -Dtest=xyz.liuw.autumn.AesTest#generateKey test
@@ -71,7 +71,7 @@ mvn -q -DskipTests=false -Dtest=xyz.liuw.autumn.AesTest#generateKey test
 ---
 created: 2018-02-20 12:59:50
 modified: 2018-12-03 20:18:42
-category: onlyOne
+category: atMostOne
 tags: one two three more
 published: true
 ---

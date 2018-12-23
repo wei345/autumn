@@ -37,7 +37,7 @@ public class WebUtil {
         return clientIp;
     }
 
-    public static String getRelativePath(HttpServletRequest request) {
+    public static String getInternalPath(HttpServletRequest request) {
         return EscapeUtil.urlDecode(request.getRequestURI())
                 .substring(request.getContextPath().length());
     }
@@ -46,7 +46,7 @@ public class WebUtil {
         return getEtag(etagVersion, md5);
     }
 
-    public static String getEtag(int etagVersion, String md5) {
+    private static String getEtag(int etagVersion, String md5) {
         return "\"" + etagVersion + "|" + md5 + "\"";
     }
 

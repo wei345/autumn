@@ -49,7 +49,7 @@ public class SearchController {
             s = s.substring(0, maxSearchStrLength);
         }
 
-        if (rateLimitService.searchAcquire(WebUtil.getClientIpAddress(request))) {
+        if (rateLimitService.acquireSearch(WebUtil.getClientIpAddress(request))) {
             SearchResult sr = searchService.search(s);
             model.put("s", htmlEscape(s));
             model.put("sr", sr);

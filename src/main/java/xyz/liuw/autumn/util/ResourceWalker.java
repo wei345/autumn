@@ -62,6 +62,10 @@ public class ResourceWalker {
         }
     }
 
+    public static boolean isHidden(Path file) {
+        return file.getFileName().toString().startsWith(".");
+    }
+
     public static abstract class SkipHiddenFileVisitor extends SimpleFileVisitor<Path> {
 
         @Override
@@ -73,7 +77,7 @@ public class ResourceWalker {
         }
 
         @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             if (isHidden(file)) {
                 return CONTINUE;
             }
@@ -82,9 +86,5 @@ public class ResourceWalker {
         }
 
         abstract public FileVisitResult visitNonHiddenFile(Path file, BasicFileAttributes attrs);
-    }
-
-    public static boolean isHidden(Path file) {
-        return file.getFileName().toString().startsWith(".");
     }
 }

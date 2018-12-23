@@ -243,8 +243,7 @@ img {
 }
 
 .header__row_1__search_form {
-    margin: 0 auto;
-    max-width: 600px;
+    max-width: 38em;
     position: relative;
 }
 
@@ -526,7 +525,7 @@ input.header__row_1__search_input {
 .qsr {
     padding: .5em 0 0 1em;
     box-sizing: border-box;
-    min-height: 360px;
+    min-height: 21em;
     display: none;
     position: relative;
 }
@@ -536,7 +535,7 @@ input.header__row_1__search_input {
 }
 
 .qsr__stats {
-    padding: 0 0 .5em 1em;
+    padding-left: 1em;
     font-size: 14px;
     color: #808080;
 }
@@ -548,7 +547,7 @@ input.header__row_1__search_input {
 
 .qsr__list li {
     line-height: 1.2;
-    padding-bottom: 10px;
+    padding-top: .5em;
 }
 
 .qsr__list li a:hover {
@@ -679,13 +678,19 @@ ul.header__row_1__tools {
     }
 
     .row .column.header__row_1__heading {
-        flex: 0 1 16em;
-        min-width: 7em;
+        flex: 10000 1 8em;
+        max-width: 15em;
+        min-width: 8em;
+    }
+
+    .row .column.header__row_1__search_box {
+        flex: 1 1 38em;
     }
 
     .row .column.header__row_1__right {
         position: inherit;
-        flex: 0 1 16em;
+        flex: 100 100 11em;
+        max-width: 15em;
         min-width: 7em;
     }
 
@@ -697,7 +702,8 @@ ul.header__row_1__tools {
     }
 
     .show_ct .header__row_1__search_input, .qs_opened .header__row_1__search_input {
-        border-radius: 0;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
     }
 
     /* toolbar */
@@ -709,7 +715,6 @@ ul.header__row_1__tools {
     /* sidebar */
     .row .column.sidebar {
         flex: 0 1 16em;
-        min-width: 7em;
     }
 
     .desktop .show_sidebar .sidebar .sidebar_toggle {
@@ -725,13 +730,6 @@ ul.header__row_1__tools {
         position: fixed;
         padding-right: 0.5em;
         padding-bottom: 0.5em;
-        background: #fff;
-    }
-
-    .desktop .fixed.show_sidebar .sidebar .sidebar_toggle {
-        position: sticky;
-        margin-left: 14%;
-        padding-left: 0.5em;
         background: #fff;
     }
 
@@ -807,23 +805,5 @@ ul.header__row_1__tools {
         width 值可以随便写，只要 <= 这个元素该有的宽度就可以。
         也可以改为 overflow-x:非visible */
         width: 75%;
-    }
-}
-
-@media (min-width: 880px) {
-    .desktop .row .column.header__row_1__heading, .row .column.header__row_1__right {
-        min-width: 12em;
-    }
-}
-
-@media (min-width: 1000px) {
-    .desktop .fixed .sidebar .sidebar_toggle {
-        margin-left: 15%;
-    }
-}
-
-@media (min-width: 1500px) {
-    .desktop .fixed .sidebar .sidebar_toggle {
-        margin-left: 17%;
     }
 }

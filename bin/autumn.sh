@@ -15,6 +15,8 @@ SHOOTING_OPTS="-XX:+PrintCommandLineFlags -XX:-OmitStackTraceInFastThrow -XX:Err
 OTHER_OPTS="-Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8"
 JAVA_OPTS="${MEM_OPTS} ${OPTIMIZE_OPTS} ${SHOOTING_OPTS} ${OTHER_OPTS}"
 
+mvn -v
+
 do_start() {
     if [[ ! -d "${LOGDIR}" ]]; then
         mkdir "${LOGDIR}" || exit 1

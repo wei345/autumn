@@ -55,6 +55,45 @@ public class DefaultController {
 
     private Map<String, String> pathToView;
 
+    @RequestMapping(value = "/js/all.js", method = RequestMethod.GET)
+    public Object allJs(WebRequest webRequest) {
+        StaticService.WebPageReferenceData jsCache = staticService.getJsCache();
+        if (webRequest.checkNotModified(jsCache.getEtag())) {
+            return null;
+        }
+        return jsCache.getContent();
+    }
+
+    @RequestMapping(value = "/css/all.css", method = RequestMethod.GET)
+    public Object allCss(WebRequest webRequest) {
+        StaticService.WebPageReferenceData cssCache = staticService.getCssCache();
+        if (webRequest.checkNotModified(cssCache.getEtag())) {
+            return null;
+        }
+        return cssCache.getContent();
+    }
+
+    @RequestMapping(value = "/tree.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public String treeJson(WebRequest webRequest) {
+        TreeJson treeJson = dataService.getTreeJson();
+
+        String etag = treeJson.getEtag();
+        if (etag == null) {
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+            synchronized (treeJson) {
+                if (treeJson.getEtag() == null) {
+                    treeJson.setEtag(webUtil.getEtag(treeJson.getMd5()));
+                }
+            }
+            etag = treeJson.getEtag();
+        }
+
+        if (webRequest.checkNotModified(etag)) {
+            return null;
+        }
+        return treeJson.getJson();
+    }
+
     @RequestMapping(method = RequestMethod.GET)
     public Object index(String[] h, // h=a&h=b..
                         WebRequest webRequest,
@@ -62,7 +101,7 @@ public class DefaultController {
                         HttpServletResponse response,
                         Map<String, Object> model) throws IOException {
 
-        String path = WebUtil.getRelativePath(request);
+        String path = WebUtil.getInternalPath(request);
 
         // 静态文件
         ResourceLoader.ResourceCache resourceCache = staticService.getResourceCache(path);
@@ -131,27 +170,6 @@ public class DefaultController {
         }
 
         return pageService.handlePageRequest(page, model, view, webRequest);
-    }
-
-    @RequestMapping(value = "/tree.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public String treeJson(WebRequest webRequest) {
-        TreeJson treeJson = dataService.getTreeJson();
-
-        String etag = treeJson.getEtag();
-        if (etag == null) {
-            //noinspection SynchronizationOnLocalVariableOrMethodParameter
-            synchronized (treeJson) {
-                if (treeJson.getEtag() == null) {
-                    treeJson.setEtag(webUtil.getEtag(treeJson.getMd5()));
-                }
-            }
-            etag = treeJson.getEtag();
-        }
-
-        if (webRequest.checkNotModified(etag)) {
-            return null;
-        }
-        return treeJson.getJson();
     }
 
     @Value("${autumn.path-to-view}")

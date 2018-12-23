@@ -184,20 +184,20 @@ public class ResourceLoader {
 
             // file in jar
             if (StringUtils.containsIgnoreCase(file.getFileSystem().getClass().getSimpleName(), "zip")) {
-                String relativePath = path;
+                String internalPath = path;
                 if (path.startsWith(ResourceWalker.SPRING_BOOT_CLASSES)) {
-                    relativePath = path.substring(ResourceWalker.SPRING_BOOT_CLASSES.length());
+                    internalPath = path.substring(ResourceWalker.SPRING_BOOT_CLASSES.length());
                 }
 
-                ResourceCache old = oldMap.get(relativePath);
+                ResourceCache old = oldMap.get(internalPath);
                 long lastModified = attrs.lastModifiedTime().toMillis();
                 if (old != null && old.getLastModified() >= lastModified) {
-                    pathToResourceCache.put(relativePath, old);
+                    pathToResourceCache.put(internalPath, old);
                     return CONTINUE;
                 }
 
                 addOrModifiedCount++;
-                InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("classpath:" + relativePath);
+                InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("classpath:" + internalPath);
                 byte[] content;
                 try {
                     content = StreamUtils.copyToByteArray(in);
@@ -207,23 +207,23 @@ public class ResourceLoader {
                     IOUtil.closeQuietly(in);
                 }
                 String md5 = DigestUtils.md5DigestAsHex(content);
-                String mimeType = MimeTypeUtil.getMimeType(relativePath);
+                String mimeType = MimeTypeUtil.getMimeType(internalPath);
                 ResourceCache resourceCache = new ResourceCache();
                 resourceCache.setContent(content);
                 resourceCache.setMd5(md5);
                 resourceCache.setMimeType(mimeType);
                 resourceCache.setLastModified(attrs.lastModifiedTime().toMillis());
-                resourceCache.setPath(relativePath);
-                pathToResourceCache.put(relativePath, resourceCache);
+                resourceCache.setPath(internalPath);
+                pathToResourceCache.put(internalPath, resourceCache);
                 return CONTINUE;
             }
 
             // file in file system
-            String relativePath = classpathOfRoot + "/" + root.relativize(file).toString();
-            ResourceCache old = oldMap.get(relativePath);
+            String internalPath = classpathOfRoot + "/" + root.relativize(file).toString();
+            ResourceCache old = oldMap.get(internalPath);
             long lastModified = attrs.lastModifiedTime().toMillis();
             if (old != null && old.getLastModified() >= lastModified) {
-                pathToResourceCache.put(relativePath, old);
+                pathToResourceCache.put(internalPath, old);
                 return CONTINUE;
             }
 
@@ -242,8 +242,8 @@ public class ResourceLoader {
             resourceCache.setMd5(md5);
             resourceCache.setMimeType(mimeType);
             resourceCache.setLastModified(lastModified);
-            resourceCache.setPath(relativePath);
-            pathToResourceCache.put(relativePath, resourceCache);
+            resourceCache.setPath(internalPath);
+            pathToResourceCache.put(internalPath, resourceCache);
             return CONTINUE;
         }
 
@@ -275,7 +275,7 @@ public class ResourceLoader {
             return md5;
         }
 
-        public void setMd5(String md5) {
+        void setMd5(String md5) {
             this.md5 = md5;
         }
 
@@ -283,7 +283,7 @@ public class ResourceLoader {
             return mimeType;
         }
 
-        public void setMimeType(String mimeType) {
+        void setMimeType(String mimeType) {
             this.mimeType = mimeType;
         }
 
@@ -291,7 +291,7 @@ public class ResourceLoader {
             return lastModified;
         }
 
-        public void setLastModified(long lastModified) {
+        void setLastModified(long lastModified) {
             this.lastModified = lastModified;
         }
 

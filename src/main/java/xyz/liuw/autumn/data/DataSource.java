@@ -13,6 +13,7 @@ import java.util.Map;
 @Component
 public class DataSource {
     private volatile Data allData = Data.EMPTY;
+
     private volatile Data publishedData = Data.EMPTY;
 
     public Data getAllData() {

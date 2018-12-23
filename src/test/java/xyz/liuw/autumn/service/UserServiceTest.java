@@ -11,11 +11,11 @@ import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/22.
  */
+@SuppressWarnings({"UnusedReturnValue", "UnstableApiUsage"})
 public class UserServiceTest {
 
     @Test
@@ -63,4 +63,56 @@ public class UserServiceTest {
         System.out.println();
         return v;
     }
+
+    /* 未用
+    interface LoginToken {
+        boolean acquire(String clientIp);
+
+        default void success(String clientIp) {
+        }
+
+        default void fail(String clientIp) {
+        }
+    }
+
+    class MemoryLoginToken implements LoginToken {
+        private int maxFailures = 10;
+
+        private int failuresRememberSeconds = 86400;
+
+        private Cache<String, Integer> cache = CacheBuilder
+                .newBuilder()
+                .maximumSize(100_000_000)
+                .expireAfterWrite(failuresRememberSeconds, TimeUnit.SECONDS)
+                .build();
+
+        @Override
+        public synchronized boolean acquire(String clientIp) {
+            Integer remaining = cache.getIfPresent(clientIp);
+            if (remaining == null) {
+                cache.put(clientIp, maxFailures - 1);
+                return true;
+            }
+            if (remaining > 0) {
+                cache.put(clientIp, remaining - 1);
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public synchronized void success(String clientIp) {
+            Integer remaining = cache.getIfPresent(clientIp);
+            if (remaining == null) {
+                return;
+            }
+            remaining++;
+            if (remaining >= maxFailures) {
+                cache.invalidate(clientIp);
+            } else {
+                cache.put(clientIp, remaining);
+            }
+        }
+    }*/
 }

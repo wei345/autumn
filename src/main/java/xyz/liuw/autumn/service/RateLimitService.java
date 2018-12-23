@@ -21,9 +21,13 @@ public class RateLimitService {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
-    private String searchLimit = "100";
+    private int searchLimit = 100;
 
-    private String searchTimeWindowSeconds = "600";
+    private int searchTimeWindowSeconds = 600;
+
+    private int loginLimit = 24;
+
+    private int loginTimeWindowSenconds = 86400;
 
     /* KEYS[1]=key,ARGV[1]=limit,ARGV[2]=timeWindow,return=result */
     private String redisLimitScript =
@@ -40,16 +44,21 @@ public class RateLimitService {
 
     private RedisScript<Boolean> redisScript = new DefaultRedisScript<>(redisLimitScript, Boolean.class);
 
-    public boolean searchAcquire(String ip) {
+    public boolean acquireSearch(String ip) {
         String key = PREFIX + ":search:" + ip;
-        return acquire(key);
+        return acquire(key, searchLimit, searchTimeWindowSeconds);
     }
 
-    private boolean acquire(String key) {
+    public boolean acquireLogin(String ip) {
+        String key = PREFIX + ":login:" + ip;
+        return acquire(key, loginLimit, loginTimeWindowSenconds);
+    }
+
+    private boolean acquire(String key, int limit, int timeWindowSeconds) {
         return Boolean.TRUE == stringRedisTemplate.execute(
                 redisScript,
                 Collections.singletonList(key),
-                searchLimit,
-                searchTimeWindowSeconds);
+                String.valueOf(limit),
+                String.valueOf(timeWindowSeconds));
     }
 }
