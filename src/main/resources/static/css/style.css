@@ -256,25 +256,10 @@ input.header__row_1__search_input {
     padding-right: 3em;
 }
 
-.show_ct .header__row_1__search_input,
-.show_ct .header__row_1__search_input:focus,
-.qs_opened .header__row_1__search_input,
-.qs_opened .header__row_1__search_input:focus {
+.qs_opened input.header__row_1__search_input_focus, input.header__row_1__search_input:focus {
+    background-color: transparent;
+    border-radius: 0;
     border-bottom: 1px solid #dfe1e5;
-    border-top-width: 0;
-    border-left-width: 0;
-    border-right-width: 0;
-    border-bottom-right-radius: 0;
-    border-bottom-left-radius: 0;
-}
-
-.qs_opened .header__row_1__search_input {
-    background-color: transparent;
-}
-
-.header__row_1__search_box input:focus {
-    background-color: transparent;
-    border-width: 1px;
 }
 
 .sidebar_toggle {
@@ -484,7 +469,7 @@ input.header__row_1__search_input {
 }
 
 .search_box__category_and_tags {
-    padding: 0 1em;
+    padding: 0.5em 1em 0;
     display: none;
     font-size: 14px;
 }
@@ -517,8 +502,6 @@ input.header__row_1__search_input {
 }
 
 .category_box, .tags_box {
-    margin-top: .5em;
-    line-height: 1.2;
     padding-left: 3em;
 }
 
@@ -540,12 +523,8 @@ input.header__row_1__search_input {
     content: '−';
 }
 
-.js .search_box__category_and_tags_toggle {
-    display: block;
-}
-
 .qsr {
-    padding: 1em 0 0 1em;
+    padding: .5em 0 0 1em;
     box-sizing: border-box;
     min-height: 360px;
     display: none;
@@ -667,6 +646,7 @@ ul.header__row_1__tools {
 只对 desktop 启用左边 Sidebar，中间内容，右边 TOC 的布局，因为在手机上即使横屏宽度够大，但 Sidebar 和 TOC 滚动不流畅。
 */
 @media (min-width: 640px) {
+
     /* layout */
     .desktop .row {
         flex-direction: row;
@@ -678,19 +658,8 @@ ul.header__row_1__tools {
     }
 
     /* header */
-    .mobi .header .row {
+    .header .row {
         flex-direction: row;
-    }
-
-    .row .column.header__row_1__heading {
-        flex: 0 1 16em;
-        min-width: 7em;
-    }
-
-    .row .column.header__row_1__right {
-        position: inherit;
-        flex: 0 1 16em;
-        min-width: 7em;
     }
 
     .desktop .header {
@@ -704,15 +673,31 @@ ul.header__row_1__tools {
         background: #fff;
     }
 
+    .desktop .fixed.qsr_more .header {
+        position: static;
+        background: transparent;
+    }
+
+    .row .column.header__row_1__heading {
+        flex: 0 1 16em;
+        min-width: 7em;
+    }
+
+    .row .column.header__row_1__right {
+        position: inherit;
+        flex: 0 1 16em;
+        min-width: 7em;
+    }
+
     .show_ct.header__row_1__search_form, .qs_opened .header__row_1__search_form {
         box-shadow: 0 4px 6px 0 rgba(32, 33, 36, 0.28);
         border-radius: .4em;
         padding-bottom: 1em;
+        margin-bottom: 5em;
     }
 
-    .desktop .fixed.qsr_more .header {
-        position: static;
-        background: transparent;
+    .show_ct .header__row_1__search_input, .qs_opened .header__row_1__search_input {
+        border-radius: 0;
     }
 
     /* toolbar */
@@ -802,6 +787,10 @@ ul.header__row_1__tools {
     }
 
     /* content */
+    .content {
+        padding-top: 1em;
+    }
+
     .desktop .content {
         box-sizing: border-box;
         padding: 1em 1em 1em;
@@ -818,10 +807,6 @@ ul.header__row_1__tools {
         width 值可以随便写，只要 <= 这个元素该有的宽度就可以。
         也可以改为 overflow-x:非visible */
         width: 75%;
-    }
-
-    .mobi .content {
-        padding-top: 1em;
     }
 }
 

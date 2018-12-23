@@ -7,6 +7,7 @@ function setupQuickSearch(root) {
     var qsrClose = document.getElementsByClassName('qsr__close')[0];
     var qsrList = document.getElementsByClassName('qsr__list')[0];
     var qsrAllPages;
+    var qsrResultName;
     var qsrDefaultLines = 6;
     var qsrSelectedIndex = -1;
     var categoryPrefix = 'c:';
@@ -67,21 +68,19 @@ function setupQuickSearch(root) {
                 return;
             }
 
-            // ESC 取消选中，或清空输入框，或关闭 QuickSearch
+            // ESC 清空输入框或关闭 QuickSearch
             if (event.key === 'Escape') {
                 if (qsrSelectedIndexInBound()) {
                     resetSelect();
-                    event.preventDefault();
-                    return;
                 }
 
-                if (searchInput.value.length > 0) {
+                if (searchInput.value.trim().length > 0) {
                     searchInput.value = ''; // 之后 keyup 会触发 qs()
                     return;
                 }
 
                 searchInput.blur();
-                qs();
+                closeQs();
             }
         });
 
@@ -96,24 +95,39 @@ function setupQuickSearch(root) {
         qsrClose.addEventListener('click', function (event) {
             if (qsOpened) {
                 searchInput.value = '';
-                qs();
+                closeQs();
             }
             event.stopPropagation();
         });
 
         document.addEventListener('click', function (event) {
-            if (qsOpened) {
-                qs();
+            if (!event.isFromSearchForm) {
+                searchInput.classList.remove('header__row_1__search_input_focus');
+                if (qsOpened && searchInput.value === '') {
+                    closeQs();
+                }
             }
         });
 
-        searchForm.addEventListener('click', function () {
-            // 避免搜索框为空时点击搜索结果（最近访问）qs 关闭
-            if (qsOpened && document.activeElement !== searchInput) {
+        searchForm.addEventListener('click', function (event) {
+            event.isFromSearchForm = true;
+            if (qsOpened && document.activeElement !== searchInput && getSelectionText() === '') {
                 searchInput.focus();
             }
-            event.isFromSearchForm = true;
+            if (!searchInput.classList.contains('header__row_1__search_input_focus')) {
+                searchInput.classList.add('header__row_1__search_input_focus');
+            }
         });
+    }
+
+    function getSelectionText() {
+        var text = '';
+        if (window.getSelection) {
+            text = window.getSelection().toString();
+        } else if (document.selection && document.selection.type !== 'Control') {
+            text = document.selection.createRange().text;
+        }
+        return text;
     }
 
     function getAllPages(root) {
@@ -166,25 +180,12 @@ function setupQuickSearch(root) {
         var s = searchInput.value;
 
         if (s === '' && document.activeElement !== searchInput) {
-            if (qsOpened) {
-                clearResult();
-                lastS = null;
-                qsOpened = false;
-                container.classList.remove('qs_opened');
-                container.classList.remove('qsr_more');
-                if (onQsClose) {
-                    onQsClose();
-                }
-                return;
-            }
+            closeQs();
+            return;
         }
 
         if (!qsOpened) {
-            qsOpened = true;
-            container.classList.add('qs_opened');
-            if (onQsOpen) {
-                onQsOpen();
-            }
+            openQs();
         }
 
         s = s.trim();
@@ -199,6 +200,28 @@ function setupQuickSearch(root) {
         }
 
         doSearch(s);
+    }
+
+    function openQs() {
+        qsOpened = true;
+        container.classList.add('qs_opened');
+        if (typeof (onQsOpen) === 'function') {
+            onQsOpen();
+        }
+    }
+
+    function closeQs() {
+        if (!qsOpened) {
+            return;
+        }
+        clearResult();
+        lastS = null;
+        qsOpened = false;
+        container.classList.remove('qs_opened');
+        container.classList.remove('qsr_more');
+        if (typeof(onQsClose) === 'function') {
+            onQsClose();
+        }
     }
 
     function doSearch(s) {
@@ -528,27 +551,24 @@ function setupQuickSearch(root) {
         return n1 - n2;
     }
 
-    function showSearchResult(pages) {
+    function showSearchResult(pages, resultName) {
         qsrAllPages = pages;
+        qsrResultName = resultName ? resultName : 'results';
         var lines = container.classList.contains('qsr_more') ? pages.length : qsrDefaultLines;
-        renderPages(pages, lines);
+        renderPages(pages, lines, qsrResultName);
         qsrSelectedIndex = -1;
     }
 
     function showMoreResult() {
-        renderPages(qsrAllPages);
+        renderPages(qsrAllPages, qsrAllPages.length, qsrResultName);
         select();
         container.classList.add('qsr_more');
         scroll(0, 0);
     }
 
-    function renderPages(pages, maxLines) {
-        if (maxLines === undefined) {
-            maxLines = pages.length;
-        }
-
-        document.getElementsByClassName('qsr__stats')[0].innerHTML = pages.length + " results";
-        renderQsrHtml(buildResultHtml(pages, maxLines));
+    function renderPages(pages, maxLines, resultName) {
+        document.getElementsByClassName('qsr__stats')[0].innerHTML = pages.length + " " + resultName;
+        renderQsrHtml(buildResultHtml(pages, maxLines, resultName));
 
         if (maxLines < pages.length) {
             var showAllIcon = qsrList.getElementsByClassName('qsr__list__show_all__icon')[0];
@@ -583,7 +603,7 @@ function setupQuickSearch(root) {
             });
             recentlyVisitPages = pages;
         }
-        showSearchResult(recentlyVisitPages);
+        showSearchResult(recentlyVisitPages, 'recently visited');
     }
 
     function getPageTitleByPath(path) {
@@ -633,7 +653,7 @@ function setupQuickSearch(root) {
         return params;
     }
 
-    function buildResultHtml(pages, maxLength) {
+    function buildResultHtml(pages, maxLength, resultName) {
         if (!pages || pages.length === 0) {
             return '';
         }
@@ -653,8 +673,8 @@ function setupQuickSearch(root) {
             html += '<li class="qsr__list__show_all">';
             html += '<div class="qsr__list__link_line">';
             html += '<span class="qsr__list__show_all__icon"></span>';
-            html += '<span class="qsr__list__show_all__btn no_selection">' + (pages.length - i) + ' more results</span>';
-            html += '<div class="qsr__list__link_line">';
+            html += '<span class="qsr__list__show_all__btn">' + (pages.length - i) + ' more ' + resultName + '</span>';
+            html += '</div>';
             html += '</li>';
         }
         return html;
@@ -752,10 +772,40 @@ function setupQuickSearch(root) {
         }
 
         buildOptions();
-        autoSyncS();
+        autoSyncFromInput();
         bindCtEvents();
 
         function bindCtEvents() {
+            if (!hasCategoriesOrTags()) {
+                return;
+            }
+
+            if (hasCategories()) {
+                categoryTitle.addEventListener('click', function () {
+                    cleanSelected(CategoryOption);
+                });
+
+                Array.prototype.forEach.call(categoryList.getElementsByTagName('li'), function (li) {
+                    li.addEventListener('click', toggleSelected);
+                });
+            }
+
+            if (hasTags()) {
+                tagTitle.addEventListener('click', function () {
+                    cleanSelected(TagOption);
+                });
+
+                Array.prototype.forEach.call(tagList.getElementsByTagName('li'), function (li) {
+                    li.addEventListener('click', toggleSelected);
+                });
+            }
+
+            document.addEventListener('click', function (event) {
+                if (!event.isFromSearchForm && !qsOpened) {
+                    closeCt();
+                }
+            });
+
             categoryAndTagsToggle.addEventListener('click', function () {
                 if (ctOpened) {
                     closeCt();
@@ -764,27 +814,19 @@ function setupQuickSearch(root) {
                 }
             });
 
-            document.addEventListener('click', function (event) {
-                if (!event.isFromSearchForm && !qsOpened) {
-                    closeCt();
-                }
-            });
+            categoryAndTagsToggle.classList.add('show');
+        }
 
-            categoryTitle.addEventListener('click', function () {
-                cleanSelected(CategoryOption);
-            });
+        function hasCategoriesOrTags() {
+            return hasCategories() || hasTags();
+        }
 
-            tagTitle.addEventListener('click', function () {
-                cleanSelected(TagOption);
-            });
+        function hasCategories() {
+            return !!categoryList;
+        }
 
-            Array.prototype.forEach.call(categoryList.getElementsByTagName('li'), function (li) {
-                li.addEventListener('click', toggleSelected);
-            });
-
-            Array.prototype.forEach.call(tagList.getElementsByTagName('li'), function (li) {
-                li.addEventListener('click', toggleSelected);
-            });
+        function hasTags() {
+            return !!tagList;
         }
 
         function buildHtml(pages, field, title) {
@@ -809,6 +851,10 @@ function setupQuickSearch(root) {
                 return itemToCounter;
             }, {});
 
+            if (counters.length === 0) {
+                return '';
+            }
+
             counters.sort(function (counter1, counter2) {
                 var v = counter2.count - counter1.count;
                 if (v !== 0) {
@@ -830,19 +876,23 @@ function setupQuickSearch(root) {
         }
 
         function buildOptions() {
-            toArray(categoryList.getElementsByTagName('li')).forEach(function (dom) {
-                var value = dom.getElementsByClassName('category')[0].innerText;
-                var option = new CategoryOption(dom, value);
-                dom.ctOption = option;
-                unSelectedExpressionToOption[option.expression] = option;
-            });
+            if (hasCategories()) {
+                toArray(categoryList.getElementsByTagName('li')).forEach(function (dom) {
+                    var value = dom.getElementsByClassName('category')[0].innerText;
+                    var option = new CategoryOption(dom, value);
+                    dom.ctOption = option;
+                    unSelectedExpressionToOption[option.expression] = option;
+                });
+            }
 
-            toArray(tagList.getElementsByTagName('li')).forEach(function (dom) {
-                var value = dom.getElementsByClassName('tag')[0].innerText;
-                var option = new TagOption(dom, value);
-                dom.ctOption = option;
-                unSelectedExpressionToOption[option.expression] = option;
-            });
+            if (hasTags()) {
+                toArray(tagList.getElementsByTagName('li')).forEach(function (dom) {
+                    var value = dom.getElementsByClassName('tag')[0].innerText;
+                    var option = new TagOption(dom, value);
+                    dom.ctOption = option;
+                    unSelectedExpressionToOption[option.expression] = option;
+                });
+            }
         }
 
         function toggleSelected(event) {
@@ -916,9 +966,6 @@ function setupQuickSearch(root) {
             categoryAndTagsToggle.classList.add('unfolded');
             searchForm.classList.add('show_ct');
             syncFromInput();
-            if (qsOpened) {
-                searchInput.focus();
-            }
         }
 
         function closeCt() {
@@ -948,7 +995,7 @@ function setupQuickSearch(root) {
                 s = k + ' ' + s;
             });
 
-            searchInput.value = s;
+            searchInput.value = s + ' ';
             lastSyncS = s;
         }
 
@@ -1007,7 +1054,10 @@ function setupQuickSearch(root) {
             });
         }
 
-        function autoSyncS() {
+        function autoSyncFromInput() {
+            if (!hasCategoriesOrTags()) {
+                return;
+            }
             searchInput.addEventListener('keyup', function () {
                 if (ctOpened) {
                     syncFromInput();
