@@ -281,6 +281,7 @@ input.header__row_1__search_input {
 
 .main {
     padding: 0 1em;
+    word-break: break-word;
 }
 
 .tree_box {
