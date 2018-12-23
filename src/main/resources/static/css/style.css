@@ -711,6 +711,9 @@ ul.header__row_1__tools {
     .desktop .header__toolbar {
         padding: 0 0 0 2em;
         line-height: 1;
+    }
+
+    .desktop .fixed .header__toolbar {
         position: sticky;
         top: 3em;
     }
@@ -788,24 +791,21 @@ ul.header__row_1__tools {
 
     /* content */
     .content {
+        box-sizing: border-box;
         padding-top: 1em;
     }
 
     .desktop .content {
-        box-sizing: border-box;
-        padding: 1em 1em 1em;
+        padding: 1em;
     }
 
     .desktop .fixed .content {
-        padding-top: 2em;
+        padding-top: .5em;
     }
 
     .desktop .show_sidebar .column.content {
         padding-left: 2em;
         padding-top: 2em;
-        /* 避免子元素 pre 不出横向滚动条，这个元素的宽度被撑大。
-        width 值可以随便写，只要 <= 这个元素该有的宽度就可以。
-        也可以改为 overflow-x:非visible */
         width: 75%;
     }
 }
