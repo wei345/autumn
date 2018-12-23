@@ -28,6 +28,7 @@ function setupQuickSearch(root) {
 
     function bindSearchInputEvent() {
         searchInput.addEventListener('focus', function () {
+            searchInput.classList.add('header__row_1__search_input_focus');
             qs(true);
         });
 
@@ -43,7 +44,7 @@ function setupQuickSearch(root) {
                 } else {
                     qsrSelectedIndex = (down ? 0 : (qsrList.children.length - 1));
                 }
-                if(qsrSelectedIndexInBound()){
+                if (qsrSelectedIndexInBound()) {
                     select();
                     const selected = qsrList.children[qsrSelectedIndex];
                     if (!isElementInViewport(selected)) {
@@ -109,9 +110,9 @@ function setupQuickSearch(root) {
         });
 
         document.addEventListener('click', function (event) {
-            if (!event.isFromSearchForm) {
-                // searchInput.classList.remove('header__row_1__search_input_focus');
-                if (qsOpened && searchInput.value === '') {
+            if (document.activeElement !== searchInput) {
+                searchInput.classList.remove('header__row_1__search_input_focus');
+                if (!event.isFromSearchForm && qsOpened && searchInput.value === '') {
                     closeQs();
                 }
             }
@@ -122,9 +123,7 @@ function setupQuickSearch(root) {
             /*if (qsOpened && document.activeElement !== searchInput && getSelectionText() === '') {
                 searchInput.focus();
             }
-            if (!searchInput.classList.contains('header__row_1__search_input_focus')) {
-                searchInput.classList.add('header__row_1__search_input_focus');
-            }*/
+            */
         });
     }
 
@@ -820,6 +819,9 @@ function setupQuickSearch(root) {
                 } else {
                     openCt();
                 }
+                if (qsOpened) {
+                    searchInput.focus();
+                }
             });
 
             categoryAndTagsToggle.classList.add('show');
@@ -984,9 +986,6 @@ function setupQuickSearch(root) {
             categoryAndTags.classList.remove('show');
             categoryAndTagsToggle.classList.remove('unfolded');
             searchForm.classList.remove('show_ct');
-            if (qsOpened) {
-                searchInput.focus();
-            }
         }
 
         function syncToInput() {
