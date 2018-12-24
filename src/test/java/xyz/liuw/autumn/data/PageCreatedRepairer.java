@@ -45,6 +45,11 @@ public class PageCreatedRepairer {
 
     private static void repairFile(File file) {
         Page page = PageParser.parse(file);
+        if (page.getSource().contains("\n~~NOCACHE~~\n")
+                && (file.getName().equals("index.md") || file.getName().equals("sidebar.md"))) {
+            logger.info("skip dokuwiki page {}", file.getAbsolutePath());
+            return;
+        }
         Date date = getFirstCommitTimeOf(file);
         if (page.isBlog() && page.getBlogDate().getTime() < date.getTime()) {
             date = page.getBlogDate();

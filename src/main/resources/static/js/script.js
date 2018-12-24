@@ -86,6 +86,7 @@ function escapeRegExp(str) {
 function detectClient() {
     document.body.classList.add('js');
     document.body.classList.add(isMobi ? 'mobi' : 'desktop');
+    document.body.classList.add('multiple_columns');
 }
 
 function bindSidebarToggle() {
@@ -465,12 +466,12 @@ function bindFixedToggle() {
     });
 }
 
-function toggleFixed(flag) {
-    if (flag == null) {
-        flag = container.classList.toggle(fixedClassName);
+function toggleFixed(fixed) {
+    if (fixed == null) {
+        fixed = container.classList.toggle(fixedClassName);
     } else {
-        container.classList.toggle(fixedClassName, flag);
+        container.classList.toggle(fixedClassName, fixed);
     }
-    localStorage.setItem(lsFixedKey, flag ? '1' : '0');
-    isFixed = flag;
+    localStorage.setItem(lsFixedKey, fixed ? '1' : '0');
+    isFixed = fixed;
 }

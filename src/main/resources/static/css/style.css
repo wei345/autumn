@@ -1,8 +1,9 @@
 body {
-    /*margin: 0 15px 15px;*/
     line-height: 1.6;
     color: #333;
     font-family: Arial, x-locale-body, sans-serif;
+    word-break: break-word;
+    -webkit-overflow-scrolling: touch;
     -webkit-font-smoothing: antialiased
 }
 
@@ -34,11 +35,11 @@ code {
     margin: 0 2px;
     padding: 2px 5px;
     white-space: nowrap;
+    word-break: normal;
 }
 
 pre {
     background: #f4f5f6;
-    /*border-left: 3px solid #9b4dca;*/
     overflow-y: hidden;
 }
 
@@ -84,7 +85,6 @@ blockquote *:last-child {
     margin-bottom: 0;
 }
 
-/* 无 border table */
 table {
     border-spacing: 0;
     width: 100%;
@@ -184,7 +184,6 @@ img {
 
 .container {
     min-width: 300px;
-    /*max-width: 1200px;*/
     margin: 0 auto;
 }
 
@@ -202,7 +201,7 @@ img {
     width: 100%;
 }
 
-.container .header {
+.header {
     padding: 0 1em;
 }
 
@@ -281,7 +280,6 @@ input.header__row_1__search_input {
 
 .main {
     padding: 0 1em;
-    word-break: break-word;
 }
 
 .tree_box {
@@ -642,17 +640,14 @@ ul.header__row_1__tools {
     margin: 0 auto;
 }
 
-/*
-只对 desktop 启用左边 Sidebar，中间内容，右边 TOC 的布局，因为在手机上即使横屏宽度够大，但 Sidebar 和 TOC 滚动不流畅。
-*/
 @media (min-width: 640px) {
 
     /* layout */
-    .desktop .row {
+    .multiple_columns .row {
         flex-direction: row;
     }
 
-    .desktop .show_sidebar .center_position, .desktop .show_toc .center_position {
+    .multiple_columns .show_sidebar .center_position, .multiple_columns .show_toc .center_position {
         margin: unset;
         max-width: unset;
     }
@@ -662,18 +657,18 @@ ul.header__row_1__tools {
         flex-direction: row;
     }
 
-    .desktop .header {
+    .multiple_columns .header {
         padding: 0 2em;
     }
 
-    .desktop .fixed .header {
+    .multiple_columns .fixed .header {
         position: -webkit-sticky;
         position: sticky;
         top: 0;
         background: #fff;
     }
 
-    .desktop .fixed.qsr_more .header {
+    .multiple_columns .fixed.qsr_more .header {
         position: static;
         background: transparent;
     }
@@ -708,12 +703,13 @@ ul.header__row_1__tools {
     }
 
     /* toolbar */
-    .desktop .header__toolbar {
+    .multiple_columns .header__toolbar {
         padding: 0 0 0 2em;
         line-height: 1;
     }
 
-    .desktop .fixed .header__toolbar {
+    .multiple_columns .fixed .header__toolbar {
+        position: -webkit-sticky;
         position: sticky;
         top: 3em;
     }
@@ -723,22 +719,22 @@ ul.header__row_1__tools {
         flex: 0 1 16em;
     }
 
-    .desktop .show_sidebar .sidebar .sidebar_toggle {
+    .multiple_columns .show_sidebar .sidebar .sidebar_toggle {
         float: right;
         margin-right: 1.5em;
     }
 
-    .desktop .sidebar_toggle {
+    .multiple_columns .sidebar_toggle {
         line-height: 1;
     }
 
-    .desktop .fixed .header__toolbar .sidebar_toggle {
+    .multiple_columns .fixed .header__toolbar .sidebar_toggle {
         padding-right: 0.5em;
         padding-bottom: 0.5em;
         background: #fff;
     }
 
-    .desktop .fixed .tree_box {
+    .multiple_columns .fixed .tree_box {
         height: calc(100vh - 4em);
         overflow-y: auto;
         width: 100%;
@@ -746,7 +742,7 @@ ul.header__row_1__tools {
         box-sizing: border-box;
     }
 
-    .desktop .fixed .row .column.sidebar {
+    .multiple_columns .fixed .row .column.sidebar {
         position: -webkit-sticky;
         position: sticky;
         top: 3em;
@@ -763,21 +759,22 @@ ul.header__row_1__tools {
         box-sizing: border-box;
     }
 
-    .desktop .fixed .toc {
-        background: #fff;
+    .multiple_columns .fixed .toc {
+        position: -webkit-sticky;
         position: sticky;
+        background: #fff;
         top: 5em;
     }
 
-    .desktop .fixed .show_toc .toc {
+    .multiple_columns .fixed .show_toc .toc {
         margin-right: -17em;
     }
 
-    .desktop .fixed .show_toc .toc h3 {
+    .multiple_columns .fixed .show_toc .toc h3 {
         padding-right: 1em;
     }
 
-    .desktop .fixed .show_toc .toc > ul {
+    .multiple_columns .fixed .show_toc .toc > ul {
         box-sizing: border-box;
         overflow-y: auto;
         max-height: calc(100vh - 8em);
@@ -785,7 +782,7 @@ ul.header__row_1__tools {
         padding-bottom: 1em;
     }
 
-    .desktop .fixed .content.show_toc {
+    .multiple_columns .fixed .content.show_toc {
         padding-right: 17em;
     }
 
@@ -795,17 +792,18 @@ ul.header__row_1__tools {
         padding-top: 1em;
     }
 
-    .desktop .content {
+    .multiple_columns .content {
         padding: 1em;
     }
 
-    .desktop .fixed .content {
+    .multiple_columns .fixed .content {
         padding-top: .5em;
     }
 
-    .desktop .show_sidebar .column.content {
+    .multiple_columns .show_sidebar .column.content {
+        flex: 1 3 48em;
         padding-left: 2em;
         padding-top: 2em;
-        width: 75%;
+        overflow-y: auto;
     }
 }
