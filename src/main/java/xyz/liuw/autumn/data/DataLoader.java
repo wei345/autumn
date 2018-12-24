@@ -17,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 import xyz.liuw.autumn.util.WebUtil;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.util.*;
@@ -54,6 +55,8 @@ public class DataLoader {
 
     private List<TreeJsonChangedListener> treeJsonChangedListeners = new ArrayList<>(1);
 
+    private volatile Thread timingReloadThread;
+
     @Autowired
     public DataLoader(DataSource dataSource, JsonMapper jsonMapper) {
         this.dataSource = dataSource;
@@ -79,6 +82,13 @@ public class DataLoader {
         timingReload();
     }
 
+    @PreDestroy
+    void stop() {
+        if (timingReloadThread != null) {
+            timingReloadThread.interrupt();
+        }
+    }
+
     private void timingReload() {
         if (reloadIntervalSeconds <= 0) {
             return;
@@ -98,9 +108,11 @@ public class DataLoader {
                     }
                 }
             }
+            logger.info("Stopped thread '{}'", threadName);
         }, threadName);
         thread.setDaemon(true);
         thread.start();
+        timingReloadThread = thread;
     }
 
     @SuppressWarnings("WeakerAccess")

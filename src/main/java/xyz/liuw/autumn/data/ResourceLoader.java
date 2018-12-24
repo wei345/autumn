@@ -16,6 +16,7 @@ import xyz.liuw.autumn.util.MimeTypeUtil;
 import xyz.liuw.autumn.util.ResourceWalker;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,10 +49,19 @@ public class ResourceLoader {
     private List<StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
     private List<TemplateLastChangedListener> templateLastChangedListeners = new ArrayList<>(1);
 
+    private volatile Thread timingReloadThread;
+
     @PostConstruct
     private void init() {
         refreshCache();
         timingRefreshCache();
+    }
+
+    @PreDestroy
+    void stop() {
+        if (timingReloadThread != null) {
+            timingReloadThread.interrupt();
+        }
     }
 
     /**
@@ -85,9 +95,11 @@ public class ResourceLoader {
                 ThreadUtil.sleep(reloadIntervalSeconds * 1000);
                 refreshCache();
             }
+            logger.info("Stopped thread '{}'", threadName);
         }, threadName);
         thread.setDaemon(true);
         thread.start();
+        timingReloadThread = thread;
     }
 
     private boolean isJar() {

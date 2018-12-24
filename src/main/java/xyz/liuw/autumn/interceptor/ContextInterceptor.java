@@ -36,9 +36,9 @@ public class ContextInterceptor implements HandlerInterceptor {
             userService.setCurrentUser(request, response);
             templateService.setCtx(request);
 
-            // 如果客户端直接访问错误页面
-            if (errorPath.equals(WebUtil.getInternalPath(request)) &&
-                    request.getAttribute("javax.servlet.error.status_code") == null) {
+            // 直接访问错误页面响应 404
+            if (errorPath.equals(WebUtil.getInternalPath(request))
+                    && request.getAttribute("javax.servlet.error.status_code") == null) {
                 try {
                     response.sendError(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND.getReasonPhrase());
                 } catch (IOException e) {
