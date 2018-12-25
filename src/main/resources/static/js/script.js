@@ -1,4 +1,6 @@
 "use strict";
+var ctx = autumn.ctx;
+var treeVersion = autumn.treeVersion;
 var lsRecentVisitKey = 'autumn.recently_visit';
 var recentlyVisitMaxCount = 100;
 var recentlyVisitPages;
@@ -14,10 +16,8 @@ var treeFirstShow = true;
 var isFixed = false;
 var fixedClassName = 'fixed';
 const lsFixedKey = 'autumn.fixed';
-var emptyFn = function () {
-};
-autumn.toggleSidebar = emptyFn;
-autumn.toggleToc = emptyFn;
+var toggleSidebar = emptyFn;
+var toggleToc = emptyFn;
 window.addEventListener('load', function () {
     detectClient();
     bindFixedToggle();
@@ -28,13 +28,15 @@ window.addEventListener('load', function () {
     anchorLink();
     checkLogout();
     updateVisitList();
-    bindToggle('sitemap');
 });
 
+function emptyFn() {
+}
+
 /**
- * @returns {string} 如果是首页返回 /，否则返回 /xxx
+ * @returns {string} 首页 /，否则 /xxx
  */
-autumn.pathname = function () {
+function pathname() {
     var pathname = location.pathname;
     if (!pathname) {
         pathname = /^(\w+?):\/+?[^\/]+(\/[^?]*)/.exec(location.href)[2];
@@ -43,9 +45,9 @@ autumn.pathname = function () {
         return '/';
     }
     return decodeURIComponent(pathname);
-};
+}
 
-autumn.ajax = function (method, url, success, error) {
+function ajax(method, url, success, error) {
     var r = new XMLHttpRequest();
     r.open(method, url, true);
     r.onreadystatechange = function () {
@@ -57,30 +59,30 @@ autumn.ajax = function (method, url, success, error) {
         }
     };
     r.send("");
-};
+}
 
 // Safari 不支持 classList.replace
-autumn.replaceClass = function (dom, cls, replacement) {
+function replaceClass(dom, cls, replacement) {
     dom.className = dom.className.replace(new RegExp('\\b' + escapeRegExp(cls) + '\\b', 'g'), replacement);
-};
+}
 
-autumn.getCookie = function (name) {
+function getCookie(name) {
     var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
     return v ? v[2] : null;
-};
+}
 
-autumn.setCookie = function (name, value, seconds) {
+function setCookie(name, value, seconds) {
     var d = new Date();
     d.setTime(d.getTime() + 1000 * seconds);
-    document.cookie = name + "=" + value + ";path=" + autumn.ctx + "/;expires=" + d.toGMTString();
-};
+    document.cookie = name + '=' + value + ';path=' + ctx + '/;expires=' + d.toGMTString();
+}
 
-autumn.deleteCookie = function deleteCookie(name) {
-    autumn.setCookie(name, '', -1);
-};
+function deleteCookie(name) {
+    setCookie(name, '', -1);
+}
 
 function escapeRegExp(str) {
-    return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+    return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
 }
 
 function detectClient() {
@@ -97,11 +99,11 @@ function bindSidebarToggle() {
         return;
     }
     var lsKey;
-    switch (autumn.pathname()) {
-        case autumn.ctx + '/':
+    switch (pathname()) {
+        case ctx + '/':
             lsKey = 'autumn.home.sidebar.display';
             break;
-        case autumn.ctx + '/search':
+        case ctx + '/search':
             lsKey = 'autumn.search.sidebar.display';
             break;
         default:
@@ -109,12 +111,12 @@ function bindSidebarToggle() {
             break;
     }
     if (getComputedStyle(main).getPropertyValue('flex-direction') === 'row') {
-        toggleSidebar(localStorage.getItem(lsKey) === '1');
+        internalToggleSidebar(localStorage.getItem(lsKey) === '1');
     }
     toggle.addEventListener('click', toggleSidebarAndRemember);
-    autumn.toggleSidebar = toggleSidebarAndRemember;
+    toggleSidebar = toggleSidebarAndRemember;
 
-    function toggleSidebar(show) {
+    function internalToggleSidebar(show) {
         if (show == null) {
             show = container.classList.toggle('show_sidebar');
         } else {
@@ -129,7 +131,7 @@ function bindSidebarToggle() {
     }
 
     function toggleSidebarAndRemember() {
-        var show = (toggleSidebar() ? '1' : '0');
+        var show = (internalToggleSidebar() ? '1' : '0');
         localStorage.setItem(lsKey, show);
         if (show) {
             selectedNodeScrollIntoViewIfTreeFirstShow();
@@ -153,11 +155,11 @@ function bindTocToggle() {
     }
     toggle.classList.add('no_selection', 'action_toggle');
     var lsKey = 'autumn.toc.display';
-    toggleToc(localStorage.getItem(lsKey) !== '0');
+    internalToggleToc(localStorage.getItem(lsKey) !== '0');
     toggle.addEventListener('click', toggleTocAndRemember);
-    autumn.toggleToc = toggleTocAndRemember;
+    toggleToc = toggleTocAndRemember;
 
-    function toggleToc(show) {
+    function internalToggleToc(show) {
         if (show == null) {
             show = tocBody.classList.toggle('show');
         } else {
@@ -176,7 +178,7 @@ function bindTocToggle() {
     }
 
     function toggleTocAndRemember() {
-        localStorage.setItem(lsKey, toggleToc() ? '1' : '0');
+        localStorage.setItem(lsKey, internalToggleToc() ? '1' : '0');
     }
 }
 
@@ -195,10 +197,10 @@ function bindShortcut() {
                     toggleFixedAndRemember();
                     break;
                 case 's':
-                    autumn.toggleSidebar();
+                    toggleSidebar();
                     break;
                 case 't':
-                    autumn.toggleToc();
+                    toggleToc();
                     break;
                 case 'g':
                     scroll(0, 0);
@@ -223,7 +225,7 @@ function buildTree(then) {
     if (!treeBox) {
         return; // 可能在登录页
     }
-    autumn.ajax('GET', autumn.ctx + '/tree.json?' + autumn.treeVersion, function (text) {
+    ajax('GET', ctx + '/tree.json?' + treeVersion, function (text) {
         var root = JSON.parse(text);
         unfoldCurrentPath(root);
         treeBox.innerHTML = buildTreeHtml([root]);
@@ -236,7 +238,7 @@ function buildTree(then) {
     });
 
     function unfoldCurrentPath(root) {
-        var path = autumn.pathname().substr(autumn.ctx.length);
+        var path = pathname().substr(ctx.length);
         var current;
         if (path === '/') {
             current = root;
@@ -296,7 +298,7 @@ function buildTree(then) {
             html += '<span class="tree_node_header_icon no_selection"></span>';
 
             // title
-            html += (node.children ? '<span class="tree_node_header_name action_toggle no_selection">' : ('<a href="' + (autumn.ctx + node.path) + '">'));
+            html += (node.children ? '<span class="tree_node_header_name action_toggle no_selection">' : ('<a href="' + (ctx + node.path) + '">'));
             html += node.name;
             html += (node.children ? '</span>' : '</a>');
 
@@ -323,9 +325,9 @@ function buildTree(then) {
     function toggle(event) {
         var node = event.currentTarget.parentNode; // tree_node
         if (node.classList.contains('tree_node_folded')) {
-            autumn.replaceClass(node, 'tree_node_folded', 'tree_node_unfolded');
+            replaceClass(node, 'tree_node_folded', 'tree_node_unfolded');
         } else {
-            autumn.replaceClass(node, 'tree_node_unfolded', 'tree_node_folded');
+            replaceClass(node, 'tree_node_unfolded', 'tree_node_folded');
         }
     }
 }
@@ -345,7 +347,6 @@ function selectedNodeScrollIntoViewIfTreeFirstShow() {
 }
 
 function scrollToCenter(el) {
-    // 让当前页面对应的节点（selected）滚动到屏幕中间位置。
     // 使用 scroll，不使用 selected.scrollIntoView({block: 'center'}) ，
     // 因为如果 selected 在页面底部，scrollIntoView 会"过量滚动"，导致 body 也向上滚动一段距离，
     // 另外，Safari 不支持 scrollIntoView 选项。
@@ -413,7 +414,7 @@ function anchorLink() {
         if (levels[tagName]) {
             var a = document.createElement('a');
             if (firstHeading && i < 2 && tagName === 'h1') {
-                a.href = autumn.pathname();
+                a.href = pathname();
             } else {
                 a.href = ('#' + node.id);
             }
@@ -441,18 +442,6 @@ function createAnchorIcon() {
     path.setAttribute("d", "M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z");
     svg.appendChild(path);
     return svg;
-}
-
-function bindToggle(targetClass) {
-    var toggleClass = targetClass + '_toggle';
-    var toggle = document.getElementsByClassName(toggleClass)[0];
-    var target = document.getElementsByClassName(targetClass)[0];
-    if (!toggle || !target) {
-        return;
-    }
-    toggle.addEventListener('click', function () {
-        target.classList.toggle('show');
-    });
 }
 
 function bindFixedToggle() {

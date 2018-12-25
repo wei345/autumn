@@ -125,6 +125,7 @@ legend {
 input[type=search] {
     -moz-appearance: none; /* older firefox */
     -webkit-appearance: none; /* safari, chrome, edge and ie mobile */
+    /*noinspection CssUnknownProperty*/
     appearance: none; /* rest */
 }
 
@@ -195,8 +196,6 @@ img {
 .row .column {
     display: block;
     flex: 1 1 auto;
-    /* 这里可能 width 和 max-width 有一个就够了，或者改为 overflow-x:非visible。
-    但不可一个都没有，否则内部的 pre 宽度就没边了，然后把这个元素撑的宽度没边。*/
     max-width: 100%;
     width: 100%;
 }
@@ -623,15 +622,6 @@ ul.header__row_1__tools {
     position: absolute;
     text-align: right;
     flex: 0 0 12em;
-}
-
-.sitemap {
-    display: none;
-    padding-bottom: 20em;
-}
-
-.sitemap_toggle, .site_help_toggle {
-    cursor: pointer;
 }
 
 .show {

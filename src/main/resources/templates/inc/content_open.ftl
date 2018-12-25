@@ -22,7 +22,6 @@
         </div>
         <div class="header__row_1__right column">
             <ul class="header__row_1__tools no_selection">
-            <#--<li><span class="sitemap_toggle action_toggle">Sitemap</span></li>-->
                 <li><a href="${ctx!}/help">Help</a></li>
                 <li><a href="https://github.com/wei345/autumn">GitHub</a></li>
             <#if logged?? && logged == true>
@@ -35,7 +34,6 @@
 <div class="header__toolbar">
     <span class="sidebar_toggle no_selection action_toggle">Sidebar</span>
 </div>
-<#--<div class="sitemap center_position"></div>-->
 <div class="main row">
     <div class="sidebar column">
         <div class="tree_box">

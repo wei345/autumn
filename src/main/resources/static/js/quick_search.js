@@ -1,5 +1,4 @@
 "use strict";
-
 function setupQuickSearch(root) {
     var searchForm = document.getElementsByClassName('header__row_1__search_form')[0];
     var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
@@ -598,7 +597,7 @@ function setupQuickSearch(root) {
 
     function showRecentlyVisit() {
         if (recentlyVisitPages == null) {
-            var currentPath = autumn.pathname();
+            var currentPath = pathname();
             var pages = [];
             getVisitList().forEach(function (path) {
                 if (path === currentPath) {
@@ -695,7 +694,7 @@ function setupQuickSearch(root) {
         if (titlePreview === '') {
             titlePreview = 'No Title';
         }
-        var html = '<a href="' + autumn.ctx + path + '">';
+        var html = '<a href="' + ctx + path + '">';
         html += '<span class="qsr__list__page_title">' + titlePreview + '</span></br>';
         html += '<span class="qsr__list__page_path">' + pathPreview + '</span>';
         html += '</a>';
@@ -1086,17 +1085,17 @@ function setupQuickSearch(root) {
 }
 
 function checkLogout() {
-    if (autumn.getCookie(logoutCookieName)) {
+    if (getCookie(logoutCookieName)) {
         localStorage.removeItem(lsRecentVisitKey);
-        autumn.deleteCookie(logoutCookieName);
+        deleteCookie(logoutCookieName);
     }
 }
 
 function updateVisitList() {
     // 确定 currentPath
-    var currentPath = autumn.pathname();
-    if (autumn.ctx.length > 0) {
-        currentPath = currentPath.substr(autumn.ctx.length);
+    var currentPath = pathname();
+    if (ctx.length > 0) {
+        currentPath = currentPath.substr(ctx.length);
     }
     if (currentPath === '/' || currentPath === '/login' || currentPath === '/help') {
         return;
