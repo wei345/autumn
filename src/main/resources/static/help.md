@@ -3,9 +3,9 @@
 ## 快捷键
 
 * `/` - 搜索框获得焦点。
-* `f` - 固定 Sidebar、Table of Contents、Header。
 * `s` - 打开/关闭 Sidebar。
 * `t` - 打开/关闭 Table of Contents。
+* `f` - 固定/不固定 Sidebar、Table of Contents、Header。
 * `g` - 页首。
 * `G` - 页尾。
 * `u` - 向上半屏。

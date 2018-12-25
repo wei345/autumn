@@ -4,38 +4,36 @@
 
 ## 环境
 
-Build 环境
+Build 环境：
 
 * Maven 3.5
 * Java 8+
 
-运行环境
+运行环境：
 
 * Java 8+
 * Redis 4
 
 ## 运行
 
-IDE 运行 main class
-
-```text
-xyz.liuw.autumn.Application
-```
-
-或 命令行从源码运行
-
-```bash
-mvn clean compile exec:java
-```
-
-或 命令行打包运行
-
 ```bash
 mvn clean package
 java -jar target/autumn.jar
 ```
 
-启动后，可以用浏览器访问 http://localhost:7000
+或：
+
+```bash
+mvn clean compile exec:java
+```
+
+或在 IDE 中运行 main class：
+
+```text
+xyz.liuw.autumn.Application
+```
+
+启动后，可以用浏览器访问 http://localhost:7000 。
 
 ## 配置
 

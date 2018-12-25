@@ -201,3 +201,9 @@ real	0m7.289s
 user	0m12.844s
 sys	0m0.692s
 ```
+
+### SOMEDAY Space
+
+Space 可以对应特定域名。
+
+不同 Space 可以对应不同数据目录。
