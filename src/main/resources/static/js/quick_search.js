@@ -3,7 +3,7 @@
 function setupQuickSearch(root) {
     var searchForm = document.getElementsByClassName('header__row_1__search_form')[0];
     var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
-    var categoryAndTagsToggle = document.getElementsByClassName('search_box__category_and_tags_toggle')[0];
+    var categoryAndTagsToggle = document.getElementsByClassName('search_box__ct_toggle')[0];
     var qsrClose = document.getElementsByClassName('qsr__close')[0];
     var qsrList = document.getElementsByClassName('qsr__list')[0];
     var qsrAllPages;
@@ -94,6 +94,10 @@ function setupQuickSearch(root) {
         });
 
         searchInput.addEventListener('keyup', function () {
+            qs();
+        });
+
+        searchInput.addEventListener('input', function () {
             qs();
         });
     }
@@ -730,7 +734,7 @@ function setupQuickSearch(root) {
         var categoryField = 'category';
         var tagField = 'tags';
         var selectedClassName = 'cat_selected';
-        var categoryAndTags = document.getElementsByClassName('search_box__category_and_tags')[0];
+        var categoryAndTags = document.getElementsByClassName('search_box__ct')[0];
         categoryAndTags.innerHTML = buildHtml(allPages, categoryField, '分类') + buildHtml(allPages, tagField, '标签');
         var categoryList = document.getElementsByClassName('search_box__' + categoryField + '_list')[0];
         var tagList = document.getElementsByClassName('search_box__' + tagField + '_list')[0];
@@ -1066,6 +1070,12 @@ function setupQuickSearch(root) {
                 return;
             }
             searchInput.addEventListener('keyup', function () {
+                if (ctOpened) {
+                    syncFromInput();
+                }
+
+            });
+            searchInput.addEventListener('input', function () {
                 if (ctOpened) {
                     syncFromInput();
                 }

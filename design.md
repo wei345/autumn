@@ -165,3 +165,39 @@ Someday
 * 限制单个 IP rememberMe 解析错误次数
 * 限制单个 IP rememberMe 用户验证错误次数
 * 限制单个 IP 创建 session 数量
+
+### 启动速度
+
+bin/start.sh 启动过程：
+
+```text
+mvn clean compile dependency:build-classpath
+
+java -classpath ...
+```
+
+如果去掉 clean 可减少 2 秒启动时间。
+
+2 core 2.50GHz 云服务器上启动时间：
+
+```text
+bin/start.sh
+
+Started Application in 5.016 seconds (JVM running for 5.568)
+
+real	0m14.113s
+user	0m13.474s
+sys	0m0.627s
+```
+
+在我电脑上启动时间：
+
+```text
+bin/start.sh
+
+Started Application in 2.467 seconds (JVM running for 2.781)
+
+real	0m7.289s
+user	0m12.844s
+sys	0m0.692s
+```

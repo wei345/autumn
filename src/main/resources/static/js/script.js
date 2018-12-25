@@ -109,7 +109,7 @@ function bindSidebarToggle() {
             break;
     }
     if (getComputedStyle(main).getPropertyValue('flex-direction') === 'row') {
-        toggleSidebar(localStorage.getItem(lsKey) !== '0');
+        toggleSidebar(localStorage.getItem(lsKey) === '1');
     }
     toggle.addEventListener('click', toggleSidebarAndRemember);
     autumn.toggleSidebar = toggleSidebarAndRemember;
@@ -192,7 +192,7 @@ function bindShortcut() {
                     }
                     break;
                 case 'f':
-                    toggleFixed();
+                    toggleFixedAndRemember();
                     break;
                 case 's':
                     autumn.toggleSidebar();
@@ -461,9 +461,11 @@ function bindFixedToggle() {
     if (!toggle) {
         return;
     }
-    toggle.addEventListener('click', function () {
-        toggleFixed();
-    });
+    toggle.addEventListener('click', toggleFixedAndRemember);
+}
+
+function toggleFixedAndRemember() {
+    localStorage.setItem(lsFixedKey, toggleFixed() ? '1' : '0');
 }
 
 function toggleFixed(fixed) {
@@ -472,6 +474,6 @@ function toggleFixed(fixed) {
     } else {
         container.classList.toggle(fixedClassName, fixed);
     }
-    localStorage.setItem(lsFixedKey, fixed ? '1' : '0');
     isFixed = fixed;
+    return fixed
 }
