@@ -20,21 +20,22 @@ public class Searcher {
 
     private Highlighter highlighter = new Highlighter();
 
-    public SearchResult search(String input, Collection<Page> all) {
+    public SearchResult search(String input, Collection<Page> pages) {
         long start = System.currentTimeMillis();
 
-        Set<SearchingPage> result0 = search0(input, all);
+        Set<SearchingPage> searchResult = doSearch(input, pages);
 
-        List<SearchingPage> result1 = Sorting.sort(result0);
+        List<SearchingPage> sortedResult = Sorting.sort(searchResult);
 
-        highlighter.highlightSearchingPage(result1);
+        highlighter.highlightSearchingPage(sortedResult);
 
         long cost = System.currentTimeMillis() - start;
-        return new SearchResult(result1, cost, all.size());
+
+        return new SearchResult(sortedResult, cost, pages.size());
     }
 
-    private Set<SearchingPage> search0(String input, Collection<Page> all) {
-        Set<SearchingPage> data = toSearchingPageSet(all);
+    private Set<SearchingPage> doSearch(String input, Collection<Page> pages) {
+        Set<SearchingPage> sourceData = toSearchingPageSet(pages);
 
         List<Token> tokenList = inputParser.parse(input);
 
@@ -42,7 +43,7 @@ public class Searcher {
         Stack<Operator> operators = new Stack<>();
         for (Token token : tokenList) {
             if (token instanceof Matcher) {
-                ((Matcher) token).setSourceData(data);
+                ((Matcher) token).setSourceData(sourceData);
                 operands.push((Matcher) token);
                 continue;
             }

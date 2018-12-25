@@ -62,8 +62,8 @@ public class MediaService {
 
     private static String getContentDisposition(String filename) {
         // 中文文件名支持
-        String encodedFileName = new String(filename.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
-        return "attachment; filename=\"" + encodedFileName + "\"";
+        String encodedFilename = new String(filename.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
+        return "attachment; filename=\"" + encodedFilename + "\"";
     }
 
     public Object handleRequest(Media media,

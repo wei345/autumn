@@ -6,7 +6,7 @@ package xyz.liuw.autumn.search;
  */
 interface Operator extends Token {
     /**
-     * 返回优先级。数值大的先执行。
+     * Operator 优先级。数值大的先执行。
      */
     int getPriority();
 

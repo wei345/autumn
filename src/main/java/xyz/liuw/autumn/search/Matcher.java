@@ -17,10 +17,4 @@ interface Matcher extends Token {
     }
 
     Set<SearchingPage> search(Set<SearchingPage> source);
-
-    /**
-     * @return 小写的 expression e.g. tag:abc
-     */
-    @Override
-    String getExpression();
 }
