@@ -39,7 +39,7 @@ Search
 * sticky sidebar; sticky toc。1d。
 * 第一次显示 tree 时，当前页面对应的节点自动滚动到屏幕中间; 更新 readme。1d。
 
-12.17 - 12.23
+12.17 - 12.24
 
 * 完成 readme.md; 分类标签选择栏自动与搜索框内容同步。1d。
 * 优化 Heading 字体样式; 添加快捷键 s 和 t。0.5d。
@@ -49,3 +49,7 @@ Search
 * QuickSearch 在本次搜索中记住展开状态; 显示结果总数; QuickSearch 面板添加阴影。1d。
 * 移除 actuator; 启动脚本设置 JVM 参数; password hash 改为 sha512; AES 从 128 改为 256。1d。
 * 手机横屏也启用左中右布局; 改进 QuickSearch  UI; 加快应用启动速度。1d。
+
+12.25
+
+* Release v1.0.0
