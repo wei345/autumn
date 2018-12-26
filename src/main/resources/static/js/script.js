@@ -209,10 +209,10 @@ function bindShortcut() {
                     scroll(0, document.scrollingElement.scrollHeight);
                     break;
                 case 'u':
-                    document.scrollingElement.scrollTop -= window.innerHeight / 2;
+                    document.scrollingElement.scrollTop -= getViewportHeight() / 2;
                     break;
                 case 'd':
-                    document.scrollingElement.scrollTop += window.innerHeight / 2;
+                    document.scrollingElement.scrollTop += getViewportHeight() / 2;
                     break;
             }
         }
@@ -358,7 +358,7 @@ function scrollToCenter(el) {
     }
     var expectRectTop = (getViewportHeight() / 2) - (el.clientHeight / 2);
     var expectScrollTop = scrollEl.scrollTop + (rect.top - expectRectTop);
-    var scrollTop = Math.min(maxScrollTop, expectScrollTop);
+    var scrollTop = Math.max(0, Math.min(maxScrollTop, expectScrollTop));
     scrollEl.scroll(0, scrollTop);
 }
 
