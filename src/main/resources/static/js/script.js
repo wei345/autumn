@@ -53,9 +53,9 @@ function ajax(method, url, success, error) {
     r.onreadystatechange = function () {
         if (r.readyState !== 4) return;
         if (r.status === 200) {
-            if (typeof(success === 'function')) success(r.responseText);
+            if (typeof success === 'function') success(r.responseText);
         } else {
-            if (typeof(error === 'function')) error(r.responseText);
+            if (typeof error === 'function') error(r.responseText);
         }
     };
     r.send("");
