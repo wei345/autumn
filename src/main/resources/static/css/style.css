@@ -728,7 +728,7 @@ ul.header__row_1__tools {
     }
 
     .multiple_columns .fixed .tree_box {
-        height: calc(100vh - 4em);
+        height: calc(100vh - 67px);
         overflow-y: auto;
         width: 100%;
         padding: 0 1em 1em 0;
@@ -738,7 +738,7 @@ ul.header__row_1__tools {
     .multiple_columns .fixed .row .column.sidebar {
         position: -webkit-sticky;
         position: sticky;
-        top: 3em;
+        top: 51px;
         height: calc(100vh - 3em);
         box-sizing: border-box;
         border-right: 1px solid rgba(0, 0, 0, .1);
@@ -756,7 +756,7 @@ ul.header__row_1__tools {
         position: -webkit-sticky;
         position: sticky;
         background: #fff;
-        top: 5em;
+        top: 3em;
     }
 
     .multiple_columns .fixed .show_toc .toc {
@@ -797,6 +797,6 @@ ul.header__row_1__tools {
         flex: 1 3 48em;
         padding-left: 2em;
         padding-top: 2em;
-        overflow-y: auto;
+        width: 1%;
     }
 }
