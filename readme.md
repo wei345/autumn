@@ -12,9 +12,7 @@ Build 环境：
 运行环境：
 
 * Java 8+
-* Redis 4
-
-Redis 仅用于存储一些计数，例如登录计数。
+* Redis 4 - 可选，默认不启用，可通过修改配置文件启用，详见 application.properties。
 
 ## 配置
 
@@ -143,6 +141,12 @@ cd /path/to/data
 git pull
 curl --silent -X POST http://localhost:${server.port}${server.servlet.context-path}/manage/data
 END
+```
+
+若要启用 Redis，设置：
+
+```properties
+spring.autoconfigure.exclude=
 ```
 
 启动/重启：
