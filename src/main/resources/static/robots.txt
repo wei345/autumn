@@ -1,3 +1,9 @@
 User-agent: *
-Disallow: /login
-Disallow: /search
+Disallow: /
+
+User-agent: Googlebot
+Allow: /
+
+# Slurp is Yahoo's robot
+User-agent: Slurp
+Allow: /
