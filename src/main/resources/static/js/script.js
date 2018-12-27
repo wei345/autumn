@@ -185,7 +185,7 @@ function bindTocToggle() {
 function bindShortcut() {
     var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
     document.addEventListener('keydown', function (event) {
-        if (event.target === document.body) {
+        if (event.target === document.body && !event.altKey && !event.ctrlKey && !event.metaKey) {
             switch (event.key) {
                 case '/':
                     if (searchInput) {
