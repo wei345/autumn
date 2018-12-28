@@ -44,9 +44,10 @@ pre {
 }
 
 pre > code {
+    margin: 0;
     border-radius: 0;
     display: block;
-    padding: 10px 15px;
+    padding: 10px 16px;
     white-space: pre;
     overflow-y: hidden;
 }
