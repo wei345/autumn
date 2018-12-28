@@ -147,7 +147,7 @@ function bindTocToggle() {
     }
     var toggle = toc.getElementsByTagName('h3')[0];
     var tocBody = toggle.nextElementSibling;
-    if (!toggle || !tocBody || tocBody.getElementsByTagName('li').length < 3) {
+    if (!toggle || !tocBody || tocBody.getElementsByTagName('li').length < 2) {
         if (toggle) {
             toggle.style.display = 'none';
         }
