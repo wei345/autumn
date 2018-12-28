@@ -26,22 +26,14 @@ import static xyz.liuw.autumn.service.UserService.isLogged;
 @Component
 public class TemplateService {
 
-    private static Logger logger = LoggerFactory.getLogger(TemplateService.class);
-
     private static final String JS_CACHE_VERSION = "jsCacheVersion";
-
     private static final String CSS_CACHE_VERSION = "cssCacheVersion";
-
     private static final String TREE_VERSION = "treeVersion";
-
     private static final String LOGGED = "logged";
-
     private static final String CTX = "ctx";
-
     private static final String GOOGLE_ANALYTICS_ID = "googleAnalyticsId";
-
     private static final String SITE_TITLE = "siteTitle";
-
+    private static Logger logger = LoggerFactory.getLogger(TemplateService.class);
     @Autowired
     private Configuration freeMarkerConfiguration;
 

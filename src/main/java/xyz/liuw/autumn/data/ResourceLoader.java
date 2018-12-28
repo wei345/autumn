@@ -40,19 +40,33 @@ import static java.nio.file.FileVisitResult.CONTINUE;
 public class ResourceLoader {
 
     public static final String STATIC_ROOT = "/static";
+    public static final String WEBJARS_ROOT = "/META-INF/resources/webjars";
     private static final String TEMPLATE_ROOT = "/templates";
     private static Logger logger = LoggerFactory.getLogger(ResourceLoader.class);
     private volatile long templateLastModified;
     @Value("${autumn.resource.reload-interval-seconds:10}")
     private long reloadIntervalSeconds;
     private volatile Map<String, ResourceLoader.ResourceCache> resourceCacheMap = Collections.emptyMap();
+    private Map<String, ResourceLoader.ResourceCache> webjarsResourceCacheMap = Collections.emptyMap();
     private List<StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
     private List<TemplateLastChangedListener> templateLastChangedListeners = new ArrayList<>(1);
 
     private volatile Thread timingReloadThread;
 
+    private static byte[] readClasspath(String classpath) {
+        InputStream in = ResourceLoader.class.getResourceAsStream(classpath);
+        try {
+            return StreamUtils.copyToByteArray(in);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            IOUtil.closeQuietly(in);
+        }
+    }
+
     @PostConstruct
     private void init() {
+        loadWebjarFiles();
         refreshCache();
         timingRefreshCache();
     }
@@ -131,9 +145,18 @@ public class ResourceLoader {
         LoadResourceVisitor visitor = new LoadResourceVisitor(classpathOfRoot, resourceCacheMap);
         ResourceWalker.walk(classpathOfRoot, visitor);
         if (visitor.isChanged()) {
-            resourceCacheMap = visitor.getPathToResourceCache();
+            Map<String, ResourceCache> classpathToResourceCache = visitor.getPathToResourceCache();
+            classpathToResourceCache.putAll(webjarsResourceCacheMap);
+            resourceCacheMap = classpathToResourceCache;
             staticChangedListeners.forEach(StaticChangedListener::onChanged);
         }
+    }
+
+    private void loadWebjarFiles() {
+        String classpathOfRoot = WEBJARS_ROOT;
+        LoadResourceVisitor visitor = new LoadResourceVisitor(classpathOfRoot, webjarsResourceCacheMap);
+        ResourceWalker.walk(classpathOfRoot, visitor);
+        webjarsResourceCacheMap = visitor.getPathToResourceCache();
     }
 
     public interface TemplateLastChangedListener {
@@ -196,46 +219,39 @@ public class ResourceLoader {
 
             // file in jar
             if (StringUtils.containsIgnoreCase(file.getFileSystem().getClass().getSimpleName(), "zip")) {
-                String internalPath = path;
+                String fileClasspath = path;
                 if (path.startsWith(ResourceWalker.SPRING_BOOT_CLASSES)) {
-                    internalPath = path.substring(ResourceWalker.SPRING_BOOT_CLASSES.length());
+                    fileClasspath = path.substring(ResourceWalker.SPRING_BOOT_CLASSES.length());
                 }
 
-                ResourceCache old = oldMap.get(internalPath);
+                ResourceCache old = oldMap.get(fileClasspath);
                 long lastModified = attrs.lastModifiedTime().toMillis();
                 if (old != null && old.getLastModified() >= lastModified) {
-                    pathToResourceCache.put(internalPath, old);
+                    pathToResourceCache.put(fileClasspath, old);
                     return CONTINUE;
                 }
 
                 addOrModifiedCount++;
-                InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("classpath:" + internalPath);
-                byte[] content;
-                try {
-                    content = StreamUtils.copyToByteArray(in);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                } finally {
-                    IOUtil.closeQuietly(in);
-                }
+
+                byte[] content = readClasspath(fileClasspath);
                 String md5 = DigestUtils.md5DigestAsHex(content);
-                String mimeType = MimeTypeUtil.getMimeType(internalPath);
+                String mimeType = MimeTypeUtil.getMimeType(fileClasspath);
                 ResourceCache resourceCache = new ResourceCache();
                 resourceCache.setContent(content);
                 resourceCache.setMd5(md5);
                 resourceCache.setMimeType(mimeType);
                 resourceCache.setLastModified(attrs.lastModifiedTime().toMillis());
-                resourceCache.setPath(internalPath);
-                pathToResourceCache.put(internalPath, resourceCache);
+                resourceCache.setPath(fileClasspath);
+                pathToResourceCache.put(fileClasspath, resourceCache);
                 return CONTINUE;
             }
 
             // file in file system
-            String internalPath = classpathOfRoot + "/" + root.relativize(file).toString();
-            ResourceCache old = oldMap.get(internalPath);
+            String fileClasspath = classpathOfRoot + "/" + root.relativize(file).toString();
+            ResourceCache old = oldMap.get(fileClasspath);
             long lastModified = attrs.lastModifiedTime().toMillis();
             if (old != null && old.getLastModified() >= lastModified) {
-                pathToResourceCache.put(internalPath, old);
+                pathToResourceCache.put(fileClasspath, old);
                 return CONTINUE;
             }
 
@@ -254,8 +270,8 @@ public class ResourceLoader {
             resourceCache.setMd5(md5);
             resourceCache.setMimeType(mimeType);
             resourceCache.setLastModified(lastModified);
-            resourceCache.setPath(internalPath);
-            pathToResourceCache.put(internalPath, resourceCache);
+            resourceCache.setPath(fileClasspath);
+            pathToResourceCache.put(fileClasspath, resourceCache);
             return CONTINUE;
         }
 

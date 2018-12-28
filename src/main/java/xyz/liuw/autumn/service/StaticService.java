@@ -6,11 +6,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
-import xyz.liuw.autumn.data.*;
+import xyz.liuw.autumn.data.Page;
+import xyz.liuw.autumn.data.PageParser;
+import xyz.liuw.autumn.data.ResourceLoader;
+import xyz.liuw.autumn.data.TreeJson;
 import xyz.liuw.autumn.util.WebUtil;
 
 import javax.annotation.PostConstruct;
@@ -24,6 +28,7 @@ import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static xyz.liuw.autumn.data.ResourceLoader.STATIC_ROOT;
+import static xyz.liuw.autumn.data.ResourceLoader.WEBJARS_ROOT;
 import static xyz.liuw.autumn.service.UserService.isLogged;
 
 /**
@@ -43,16 +48,28 @@ public class StaticService {
 
     private volatile Page helpPage;
 
-    @Autowired
-    private WebUtil webUtil;
+    private String codeHighlightJs;
+
+    private String codeHighlightCss;
 
     @Autowired
-    private DataSource dataSource;
+    private WebUtil webUtil;
 
     @Autowired
     private ResourceLoader resourceLoader;
 
     private List<ResourceLoader.StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
+
+    @Value("${autumn.code-block-highlighting.enabled}")
+    private boolean codeHighlightEnabled;
+
+    @Value("${autumn.code-block-highlighting.languages}")
+    private List<String> highlightLanguages;
+
+    @Value("${autumn.code-block-highlighting.style}")
+    private String highlightStyle;
+
+    private StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
 
     @PostConstruct
     private void init() {
@@ -91,11 +108,11 @@ public class StaticService {
         return resourceLoader.getResourceCache(STATIC_ROOT + path);
     }
 
-    public JsCache getJsCache() {
+    public WebPageReferenceData getJsCache() {
         return isLogged() ? userJsCache : guestJsCache;
     }
 
-    public CssCache getCssCache() {
+    public WebPageReferenceData getCssCache() {
         return cssCache;
     }
 
@@ -161,18 +178,20 @@ public class StaticService {
                 .replaceFirst("\"use strict\";\n", "")
                 .trim();
 
-        byte[] jsBytes = StringBuilderHolder.getGlobal()
-                .append("\"use strict\";\n")
+        StringBuilder stringBuilder = stringBuilderHolder.get();
+        stringBuilder.append("\"use strict\";\n")
                 .append("(function () {\n")
                 .append(scriptJsContent).append("\n")
                 .append(quickSearchJsContent).append("\n")
-                .append("})();")
-                .toString()
-                .getBytes(UTF_8);
+                .append("})();");
+        if (codeHighlightEnabled) {
+            stringBuilder.append("\n").append(getCodeHighlightJs());
+        }
+        byte[] jsBytes = stringBuilder.toString().getBytes(UTF_8);
 
         String md5 = DigestUtils.md5DigestAsHex(jsBytes);
         String etag = webUtil.getEtag(md5);
-        String version = md5.substring(0, 7);
+        String version = getVersion(md5);
 
         JsCache jsCache = new JsCache();
         jsCache.setContent(jsBytes);
@@ -193,12 +212,19 @@ public class StaticService {
             return false;
         }
 
-        String cssText = new String(normalizeCss.getContent(), UTF_8) + new String(styleCss.getContent(), UTF_8);
+        StringBuilder stringBuilder = stringBuilderHolder.get();
+        stringBuilder.append(new String(normalizeCss.getContent(), UTF_8))
+                .append(new String(styleCss.getContent(), UTF_8));
+        if (codeHighlightEnabled) {
+            stringBuilder.append("\n").append(getCodeHighlightCss());
+        }
+        String cssText = stringBuilder.toString();
+
         CssCache cssCache = new CssCache();
         cssCache.setContent(cssText.getBytes(UTF_8));
         String md5 = DigestUtils.md5DigestAsHex(cssCache.getContent());
         String etag = webUtil.getEtag(md5);
-        String version = md5.substring(0, 7);
+        String version = getVersion(md5);
         cssCache.setEtag(etag);
         cssCache.setVersion(version);
         cssCache.setNormalizeCssMd5(normalizeCss.getMd5());
@@ -206,6 +232,45 @@ public class StaticService {
         this.cssCache = cssCache;
         logger.info("cssCache updated");
         return true;
+    }
+
+    private String getVersion(String md5) {
+        return md5.substring(0, 7);
+    }
+
+    private String getCodeHighlightJs() {
+        if (codeHighlightJs != null) {
+            return codeHighlightJs;
+        }
+
+        ResourceLoader.ResourceCache baseHljs = resourceLoader.getResourceCache(WEBJARS_ROOT + "/highlightjs/9.8.0/highlight.js");
+        StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
+        stringBuilder.append(new String(baseHljs.getContent(), UTF_8));
+
+        highlightLanguages.forEach(language -> {
+            String text = new String(resourceLoader.getResourceCache(WEBJARS_ROOT + "/highlightjs/9.8.0/languages/" + language + ".js").getContent(), UTF_8);
+            int jsStart = text.indexOf("function");
+            String js = text.substring(jsStart);
+            // hljs.registerLanguage('language', function(hljs){...});
+            stringBuilder.append("\nhljs.registerLanguage('").append(language).append("', ").append(js).append(");");
+        });
+
+        codeHighlightJs = stringBuilder.append("\nhljs.initHighlightingOnLoad();").toString();
+        return codeHighlightJs;
+    }
+
+    private String getCodeHighlightCss() {
+        if (codeHighlightCss != null) {
+            return codeHighlightCss;
+        }
+
+        ResourceLoader.ResourceCache cssCache = resourceLoader.getResourceCache(WEBJARS_ROOT + "/highlightjs/9.8.0/styles/" + highlightStyle + ".css");
+        String css = new String(cssCache.getContent(), UTF_8);
+        if (highlightStyle.contains("light")) {
+            css = css + "\npre > code.hljs {background: #f4f5f6;}";
+        }
+        codeHighlightCss = css;
+        return css;
     }
 
     void addStaticChangedListener(ResourceLoader.StaticChangedListener listener) {
@@ -256,7 +321,7 @@ public class StaticService {
         }
     }
 
-    public static abstract class WebPageReferenceData {
+    public static class WebPageReferenceData {
         private String version;
         private byte[] content;
         private String etag;

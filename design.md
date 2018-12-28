@@ -141,6 +141,22 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 
 页面内容显示和全文搜索不依赖 JS，即使客户端禁用了 JS，仍然可以阅读内容和使用搜索功能。
 
+### highlight
+
+启用代码块高亮后：
+
+* all.js 11.7 KB -> 22.3 KB，增加 190%
+* all.css 5.1 KB -> 5.6 KB，增加 10%
+
+浅色
+
+* default.css; -webkit-font-smoothing: antialiased;
+* atom-one-light.css; -webkit-font-smoothing: auto;
+
+深色
+
+* solarized-dark.css; -webkit-font-smoothing: auto;
+
 ### 安全
 
 // 确保检查和更新失败次数线程安全：

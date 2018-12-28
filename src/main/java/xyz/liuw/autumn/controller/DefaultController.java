@@ -57,20 +57,19 @@ public class DefaultController {
 
     @RequestMapping(value = "/js/all.js", method = RequestMethod.GET)
     public Object allJs(WebRequest webRequest) {
-        StaticService.WebPageReferenceData jsCache = staticService.getJsCache();
-        if (webRequest.checkNotModified(jsCache.getEtag())) {
-            return null;
-        }
-        return jsCache.getContent();
+        return handleWebPageReferenceData(staticService.getJsCache(), webRequest);
     }
 
     @RequestMapping(value = "/css/all.css", method = RequestMethod.GET)
     public Object allCss(WebRequest webRequest) {
-        StaticService.WebPageReferenceData cssCache = staticService.getCssCache();
-        if (webRequest.checkNotModified(cssCache.getEtag())) {
+        return handleWebPageReferenceData(staticService.getCssCache(), webRequest);
+    }
+
+    private Object handleWebPageReferenceData(StaticService.WebPageReferenceData data, WebRequest webRequest) {
+        if (webRequest.checkNotModified(data.getEtag())) {
             return null;
         }
-        return cssCache.getContent();
+        return data.getContent();
     }
 
     @RequestMapping(value = "/tree.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

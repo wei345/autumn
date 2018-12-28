@@ -4,7 +4,7 @@ body {
     font-family: Arial, x-locale-body, sans-serif;
     word-break: break-word;
     -webkit-overflow-scrolling: touch;
-    -webkit-font-smoothing: antialiased
+    -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -36,6 +36,7 @@ code {
     padding: 2px 5px;
     white-space: nowrap;
     word-break: normal;
+    tab-size: 4;
 }
 
 pre {
@@ -50,7 +51,13 @@ pre > code {
     padding: 10px 16px;
     white-space: pre;
     overflow-y: hidden;
+    -webkit-font-smoothing: auto;
 }
+
+pre > code.hljs {
+    padding: 10px 16px;
+}
+
 
 pre code table {
     margin: 0;
