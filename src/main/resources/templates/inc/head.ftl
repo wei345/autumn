@@ -11,6 +11,13 @@
         ga('send', 'pageview');
     </script>
     </#if><#--@formatter:on-->
+    <script>
+        var autumn = {
+            ctx: '${ctx!}',
+            treeVersion: '${treeVersion!}'
+        };
+    </script>
+    <script async src="${ctx!}/js/all.js?${jsCacheVersion!}"></script>
     <meta charset="utf-8">
     <meta name="google" content="notranslate">
     <meta http-equiv="Content-Language" content="en">
