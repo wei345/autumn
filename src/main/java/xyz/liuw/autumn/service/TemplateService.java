@@ -5,6 +5,7 @@ import freemarker.template.Template;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerProperties;
 import org.springframework.stereotype.Component;
 import xyz.liuw.autumn.data.DataLoader;
@@ -37,6 +38,10 @@ public class TemplateService {
 
     private static final String CTX = "ctx";
 
+    private static final String GOOGLE_ANALYTICS_ID = "googleAnalyticsId";
+
+    private static final String SITE_TITLE = "siteTitle";
+
     @Autowired
     private Configuration freeMarkerConfiguration;
 
@@ -57,6 +62,12 @@ public class TemplateService {
 
     @Autowired
     private ResourceLoader resourceLoader;
+
+    @Value("${autumn.google-analytics-id}")
+    private String googleAnalyticsId;
+
+    @Value("${autumn.title}")
+    private String siteTitle;
 
     private volatile long templateLastModified;
 
@@ -90,6 +101,8 @@ public class TemplateService {
         model.put(JS_CACHE_VERSION, staticService.getJsCache().getVersion());
         model.put(TREE_VERSION, dataService.getTreeJson().getVersion());
         model.put(LOGGED, isLogged());
+        model.put(GOOGLE_ANALYTICS_ID, googleAnalyticsId);
+        model.put(SITE_TITLE, siteTitle);
     }
 
     /**
@@ -102,6 +115,8 @@ public class TemplateService {
         request.setAttribute(JS_CACHE_VERSION, staticService.getJsCache().getVersion());
         request.setAttribute(TREE_VERSION, dataService.getTreeJson().getVersion());
         request.setAttribute(LOGGED, isLogged());
+        request.setAttribute(GOOGLE_ANALYTICS_ID, googleAnalyticsId);
+        request.setAttribute(SITE_TITLE, siteTitle);
     }
 
     private void refreshTemplateLastModified() {
