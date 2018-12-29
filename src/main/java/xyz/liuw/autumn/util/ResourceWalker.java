@@ -16,12 +16,12 @@ public class ResourceWalker {
     public static final String SPRING_BOOT_CLASSES = "/BOOT-INF/classes";
     private static Logger logger = LoggerFactory.getLogger(ResourceWalker.class);
 
-    public static void walk(String relativePath, FileVisitor<? super Path> visitor) {
+    public static void walk(String classpath, FileVisitor<? super Path> visitor) {
         try {
-            URI uri = ResourceWalker.class.getResource(relativePath).toURI();
+            URI uri = ResourceWalker.class.getResource(classpath).toURI();
 
             if (uri.getScheme().equals("jar")) {
-                walkJar(uri, relativePath, visitor);
+                walkJar(uri, classpath, visitor);
                 return;
             }
 
@@ -38,18 +38,18 @@ public class ResourceWalker {
         }
     }
 
-    private static void walkJar(URI uri, String relativePath, FileVisitor<? super Path> visitor) {
+    private static void walkJar(URI uri, String classpath, FileVisitor<? super Path> visitor) {
         FileSystem fileSystem = null;
         try {
             fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap());
 
-            Path path = fileSystem.getPath(relativePath);
+            Path path = fileSystem.getPath(classpath);
             if (!Files.exists(path)) {
-                path = fileSystem.getPath(SPRING_BOOT_CLASSES + relativePath);
+                path = fileSystem.getPath(SPRING_BOOT_CLASSES + classpath);
             }
 
             if (!Files.exists(path)) {
-                throw new RuntimeException(relativePath + " not exist");
+                throw new RuntimeException(classpath + " not exist");
             }
 
             Files.walkFileTree(path, visitor);
