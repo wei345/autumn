@@ -1,11 +1,11 @@
 package xyz.liuw.autumn.data;
 
 import ch.qos.logback.classic.Level;
-import com.vip.vjtools.vjkit.io.IOUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xyz.liuw.autumn.util.CommandExecutor;
 import xyz.liuw.autumn.util.ResourceWalker;
 
 import java.io.File;
@@ -75,36 +75,17 @@ public class PageCreatedRepairer {
                 file.getAbsolutePath()
         };
         logger.debug(StringUtils.join(commands, " "));
-        String out = executeCommand(commands);
+
+        CommandExecutor.Result result = CommandExecutor.execute(commands);
+        if (result.hasError()) {
+            throw new RuntimeException(result.getStderr());
+        }
+        String out = result.getStdout();
         String[] lines = out.split("\n");
         try {
             return DATE_PARSER_ON_SECOND.parse(lines[lines.length - 1]);
         } catch (ParseException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    private static String executeCommand(String[] command) {
-        Process p = null;
-        try {
-            p = Runtime.getRuntime().exec(command);
-            p.waitFor();
-
-            String err = IOUtil.toString(p.getErrorStream());
-
-            if (StringUtils.isNotBlank(err)) {
-                throw new RuntimeException("err:" + err);
-            }
-
-            return IOUtil.toString(p.getInputStream());
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (p != null) {
-                IOUtil.closeQuietly(p.getInputStream());
-                IOUtil.closeQuietly(p.getOutputStream());
-            }
         }
     }
 

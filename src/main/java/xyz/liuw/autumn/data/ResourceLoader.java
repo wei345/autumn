@@ -44,7 +44,7 @@ public class ResourceLoader {
     private static final String TEMPLATE_ROOT = "/templates";
     private static Logger logger = LoggerFactory.getLogger(ResourceLoader.class);
     private volatile long templateLastModified;
-    @Value("${autumn.resource.reload-interval-seconds:10}")
+    @Value("${autumn.resource.reload-interval-seconds}")
     private long reloadIntervalSeconds;
     private volatile Map<String, ResourceLoader.ResourceCache> resourceCacheMap = Collections.emptyMap();
     private Map<String, ResourceLoader.ResourceCache> webjarsResourceCacheMap = Collections.emptyMap();

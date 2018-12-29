@@ -124,7 +124,7 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 
 * Controller 设置 model 时确保 HTML 安全，FreeMarker 不用转义，只是原样输出。
 
-### UI
+### Web
 
 初始 sidebar 和 toc 不显示，当页面加载完成后由 JS 控制是否显示。因为先显示然后又不显示，不如先不显示然后显示看起来好。
 
@@ -141,12 +141,12 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 
 页面内容显示和全文搜索不依赖 JS，即使客户端禁用了 JS，仍然可以阅读内容和使用搜索功能。
 
-### highlight
+#### highlight
 
 启用代码块高亮后：
 
-* all.js 11.7 KB -> 22.3 KB，增加 190%
-* all.css 5.1 KB -> 5.6 KB，增加 10%
+* all.js 11.7 KB gzip -> 34 KB gzip，增加 190%
+* all.css 5.1 KB gzip -> 5.6 KB gzip，增加 10%
 
 浅色
 
@@ -156,6 +156,13 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 深色
 
 * solarized-dark.css; -webkit-font-smoothing: auto;
+
+#### js, css 压缩
+
+使用 google Closure Compiler 压缩后：
+
+* all.js 34 KB gzip -> 24 KB gzip，减少 29.4%
+* all.css 5.6 KB gzip -> 4 KB gzip，减少 28.6%
 
 ### 安全
 

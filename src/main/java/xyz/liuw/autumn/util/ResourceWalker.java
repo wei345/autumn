@@ -16,6 +16,9 @@ public class ResourceWalker {
     public static final String SPRING_BOOT_CLASSES = "/BOOT-INF/classes";
     private static Logger logger = LoggerFactory.getLogger(ResourceWalker.class);
 
+    /**
+     * @param classpath e.g. /static
+     */
     public static void walk(String classpath, FileVisitor<? super Path> visitor) {
         try {
             URI uri = ResourceWalker.class.getResource(classpath).toURI();

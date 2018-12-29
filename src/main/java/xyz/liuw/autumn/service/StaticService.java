@@ -69,6 +69,9 @@ public class StaticService {
     @Value("${autumn.code-block-highlighting.style}")
     private String highlightStyle;
 
+    @Autowired
+    private JsCssCompressor jsCssCompressor;
+
     private StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
 
     @PostConstruct
@@ -187,8 +190,10 @@ public class StaticService {
         if (codeHighlightEnabled) {
             stringBuilder.append("\n").append(getCodeHighlightJs());
         }
-        byte[] jsBytes = stringBuilder.toString().getBytes(UTF_8);
 
+        String js = jsCssCompressor.compressJs(stringBuilder.toString());
+
+        byte[] jsBytes = js.getBytes(UTF_8);
         String md5 = DigestUtils.md5DigestAsHex(jsBytes);
         String etag = webUtil.getEtag(md5);
         String version = getVersion(md5);
@@ -218,7 +223,7 @@ public class StaticService {
         if (codeHighlightEnabled) {
             stringBuilder.append("\n").append(getCodeHighlightCss());
         }
-        String cssText = stringBuilder.toString();
+        String cssText = jsCssCompressor.compressCss(stringBuilder.toString());
 
         CssCache cssCache = new CssCache();
         cssCache.setContent(cssText.getBytes(UTF_8));
