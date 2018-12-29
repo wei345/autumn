@@ -7,14 +7,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
 import xyz.liuw.autumn.data.Page;
 import xyz.liuw.autumn.data.PageParser;
 import xyz.liuw.autumn.data.ResourceLoader;
-import xyz.liuw.autumn.data.TreeJson;
 import xyz.liuw.autumn.util.WebUtil;
 
 import javax.annotation.PostConstruct;
@@ -29,7 +27,6 @@ import java.util.List;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static xyz.liuw.autumn.data.ResourceLoader.STATIC_ROOT;
 import static xyz.liuw.autumn.data.ResourceLoader.WEBJARS_ROOT;
-import static xyz.liuw.autumn.service.UserService.isLogged;
 
 /**
  * @author liuwei
@@ -38,28 +35,13 @@ import static xyz.liuw.autumn.service.UserService.isLogged;
 @Component
 public class StaticService {
     private static Logger logger = LoggerFactory.getLogger(StaticService.class);
-
-    // 如果 js 中包含 tree.js 或 treeVersion，那么 userJsCache 与 guestJsCache 不一样，否则二者一样。
-    private volatile JsCache userJsCache;
-
-    private volatile JsCache guestJsCache;
-
+    private static StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
+    private volatile JsCache jsCache;
     private volatile CssCache cssCache;
-
     private volatile Page helpPage;
-
     private String codeHighlightJs;
-
     private String codeHighlightCss;
-
-    @Autowired
-    private WebUtil webUtil;
-
-    @Autowired
-    private ResourceLoader resourceLoader;
-
     private List<ResourceLoader.StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
-
     @Value("${autumn.code-block-highlighting.enabled}")
     private boolean codeHighlightEnabled;
 
@@ -70,9 +52,13 @@ public class StaticService {
     private String highlightStyle;
 
     @Autowired
-    private JsCssCompressor jsCssCompressor;
+    private WebUtil webUtil;
 
-    private StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
+    @Autowired
+    private ResourceLoader resourceLoader;
+
+    @Autowired
+    private JsCssCompressor jsCssCompressor;
 
     @PostConstruct
     private void init() {
@@ -112,7 +98,7 @@ public class StaticService {
     }
 
     public WebPageReferenceData getJsCache() {
-        return isLogged() ? userJsCache : guestJsCache;
+        return jsCache;
     }
 
     public WebPageReferenceData getCssCache() {
@@ -150,23 +136,16 @@ public class StaticService {
         ResourceLoader.ResourceCache scriptJs = getResourceCache("/js/script.js");
         ResourceLoader.ResourceCache quickSearchJs = getResourceCache("/js/quick_search.js");
 
-        if (userJsCache == null || userJsCache.hasChanged(null, scriptJs.getMd5(), quickSearchJs.getMd5())) {
-            userJsCache = createJsCache(null, scriptJs, quickSearchJs);
-            logger.info("userJsCache updated");
-            changed = true;
-        }
-
-        if (guestJsCache == null || guestJsCache.hasChanged(null, scriptJs.getMd5(), quickSearchJs.getMd5())) {
-            guestJsCache = createJsCache(null, scriptJs, quickSearchJs);
-            logger.info("guestJsCache updated");
+        if (jsCache == null || jsCache.hasChanged(scriptJs.getMd5(), quickSearchJs.getMd5())) {
+            jsCache = createJsCache(scriptJs, quickSearchJs);
+            logger.info("jsCache updated");
             changed = true;
         }
         return changed;
     }
 
     @SuppressWarnings("SameParameterValue")
-    private JsCache createJsCache(@Nullable TreeJson treeJson,
-                                  ResourceLoader.ResourceCache scriptJs,
+    private JsCache createJsCache(ResourceLoader.ResourceCache scriptJs,
                                   ResourceLoader.ResourceCache quickSearchJs) {
 
         // 如果把 tree.js 也加进来：
@@ -204,9 +183,6 @@ public class StaticService {
         jsCache.setVersion(version);
         jsCache.setScriptJsMd5(scriptJs.getMd5());
         jsCache.setQuickSearchJsMd5(quickSearchJs.getMd5());
-        if (treeJson != null) {
-            jsCache.setTreeJsonMd5(treeJson.getMd5());
-        }
         return jsCache;
     }
 
@@ -305,11 +281,8 @@ public class StaticService {
 
         private String scriptJsMd5;
 
-        private String treeJsonMd5;
-
-        boolean hasChanged(String treeJsonMd5, String scriptJsMd5, String quickSearchJsMd5) {
-            return !StringUtils.equals(this.treeJsonMd5, treeJsonMd5)
-                    || !StringUtils.equals(this.scriptJsMd5, scriptJsMd5)
+        boolean hasChanged(String scriptJsMd5, String quickSearchJsMd5) {
+            return !StringUtils.equals(this.scriptJsMd5, scriptJsMd5)
                     || !StringUtils.equals(this.quickSearchJsMd5, quickSearchJsMd5);
         }
 
@@ -319,10 +292,6 @@ public class StaticService {
 
         void setScriptJsMd5(String scriptJsMd5) {
             this.scriptJsMd5 = scriptJsMd5;
-        }
-
-        void setTreeJsonMd5(String treeJsonMd5) {
-            this.treeJsonMd5 = treeJsonMd5;
         }
     }
 
