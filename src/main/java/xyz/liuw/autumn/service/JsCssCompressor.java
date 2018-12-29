@@ -3,7 +3,6 @@ package xyz.liuw.autumn.service;
 import com.google.common.annotations.VisibleForTesting;
 import com.vip.vjtools.vjkit.io.FileUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,7 +12,6 @@ import xyz.liuw.autumn.util.CommandExecutor;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -26,7 +24,6 @@ import java.util.List;
 @SuppressWarnings("SameParameterValue")
 @Component
 public class JsCssCompressor {
-    private static final String JAR_FILE_PREFIX = "jar:file:";
     private static Logger logger = LoggerFactory.getLogger(JsCssCompressor.class);
 
     @Value("${autumn.yui-compressor-jar-full-path}")
@@ -40,17 +37,6 @@ public class JsCssCompressor {
 
     @Value("${autumn.compressor.css.enabled}")
     private boolean compressCss;
-
-    private static String getJarFullPath(String classpath) {
-        URL url = JsCssCompressor.class.getResource(classpath);
-        if (url == null) {
-            return null;
-        }
-        // e.g. jar:file:/path/to/.m2/repository/com/yahoo/platform/yui/yuicompressor/2.4.8/yuicompressor-2.4.8.jar!/com/yahoo/platform/yui/compressor/YUICompressor.class
-        String path = url.toString();
-        Validate.isTrue(path.startsWith(JAR_FILE_PREFIX));
-        return path.substring(JAR_FILE_PREFIX.length(), path.length() - classpath.length() - 1);
-    }
 
     /**
      * 压缩 js 或 css。
@@ -118,8 +104,6 @@ public class JsCssCompressor {
         commands.add(jar);
         commands.add("--js");
         commands.add(inputJs.toString());
-        //commands.add("--formatting");
-        //commands.add("PRETTY_PRINT");
         if (outToFile) {
             commands.add("--js_output_file");
             commands.add(outputJs.toString());
@@ -128,12 +112,7 @@ public class JsCssCompressor {
         logger.info("Closure Compiler compressing... {} chars", input.length());
         CommandExecutor.Result result = CommandExecutor.execute(commands.toArray(new String[0]));
 
-        String resultJs;
-        if (outToFile) {
-            resultJs = FileUtil.toString(outputJs.toFile());
-        } else {
-            resultJs = result.getStdout();
-        }
+        String resultJs = outToFile ? FileUtil.toString(outputJs.toFile()) : result.getStdout();
         if (resultJs == null) {
             resultJs = "";
         }
@@ -165,6 +144,7 @@ public class JsCssCompressor {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public String compressJs(String input) {
         if (!compressJs) {
             return input;
@@ -176,6 +156,7 @@ public class JsCssCompressor {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public String compressCss(String input) {
         if (!compressCss) {
             return input;
