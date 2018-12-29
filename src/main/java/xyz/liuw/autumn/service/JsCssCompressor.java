@@ -26,58 +26,11 @@ import java.util.List;
 public class JsCssCompressor {
     private static Logger logger = LoggerFactory.getLogger(JsCssCompressor.class);
 
-    @Value("${autumn.yui-compressor-jar-full-path}")
-    private String yuiJarFullPath;
-
     @Value("${autumn.closure-compiler-jar-full-path}")
     private String closureJarFullPath;
 
     @Value("${autumn.compressor.javascript.enabled}")
     private boolean compressJs;
-
-    @Value("${autumn.compressor.css.enabled}")
-    private boolean compressCss;
-
-    /**
-     * 压缩 js 或 css。
-     * <p>
-     * docs: http://yui.github.io/yuicompressor/
-     *
-     * @param type      js or css
-     * @param input     待压缩的内容
-     * @param lineBreak split long lines after a specific column, Specify 0 to get a line break
-     *                  after each semi-colon in JavaScript, and after each rule in CSS.
-     * @return 压缩后的内容
-     */
-    private static String yuiCompress(String type, String input, Integer lineBreak, String jar) {
-        if (jar == null) {
-            logger.warn("YUI jar not found, return raw input");
-            return input;
-        }
-
-        List<String> commands = new ArrayList<>(10);
-        commands.add("java");
-        commands.add("-jar");
-        commands.add(jar);
-        commands.add("--type");
-        commands.add(type);
-        if (lineBreak != null) {
-            commands.add("--line-break");
-            commands.add(String.valueOf(lineBreak));
-        }
-        commands.add("--charset");
-        commands.add("utf-8");
-
-        CommandExecutor.Result result = CommandExecutor.execute(commands.toArray(new String[0]), input);
-        if (result.hasError()) {
-            logger.warn("YUI stderr: {}", result.getStderr());
-            if (StringUtils.isBlank(result.getStdout())) {
-                logger.warn("YUI stdout is blank, return raw input");
-                return input;
-            }
-        }
-        return result.getStdout();
-    }
 
     // https://developers.google.com/closure/compiler/docs/gettingstarted_app
     @SuppressWarnings("ConstantConditions")
@@ -134,10 +87,6 @@ public class JsCssCompressor {
 
     @PostConstruct
     private void check() {
-        if (yuiJarFullPath != null && !new File(yuiJarFullPath).exists()) {
-            logger.warn("yui jar '{}' not exist", yuiJarFullPath);
-            yuiJarFullPath = null;
-        }
         if (closureJarFullPath != null && !new File(closureJarFullPath).exists()) {
             logger.warn("Closure Compiler jar '{}' not exist", closureJarFullPath);
             closureJarFullPath = null;
@@ -156,19 +105,6 @@ public class JsCssCompressor {
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
-    public String compressCss(String input) {
-        if (!compressCss) {
-            return input;
-        }
-        return yuiCompress("css", input, 0, yuiJarFullPath);
-    }
-
-    @VisibleForTesting
-    void setYuiJarFullPath(String yuiJarFullPath) {
-        this.yuiJarFullPath = yuiJarFullPath;
-    }
-
     @VisibleForTesting
     void setClosureJarFullPath(String closureJarFullPath) {
         this.closureJarFullPath = closureJarFullPath;
@@ -179,8 +115,4 @@ public class JsCssCompressor {
         this.compressJs = compressJs;
     }
 
-    @VisibleForTesting
-    void setCompressCss(boolean compressCss) {
-        this.compressCss = compressCss;
-    }
 }

@@ -166,24 +166,12 @@
 
     <profiles>
         <!--
-        下载 YUI Compressor 和 Closure Compiler
+        下载 Closure Compiler:
         mvn dependency:resolve -P compressor
         -->
         <profile>
             <id>compressor</id>
             <dependencies>
-                <dependency>
-                    <groupId>com.yahoo.platform.yui</groupId>
-                    <artifactId>yuicompressor</artifactId>
-                    <version>2.4.8</version>
-                    <scope>test</scope>
-                    <exclusions>
-                        <exclusion>
-                            <artifactId>*</artifactId>
-                            <groupId>*</groupId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
                 <dependency>
                     <groupId>com.google.javascript</groupId>
                     <artifactId>closure-compiler</artifactId>

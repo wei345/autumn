@@ -199,7 +199,7 @@ public class StaticService {
         if (codeHighlightEnabled) {
             stringBuilder.append("\n").append(getCodeHighlightCss());
         }
-        String cssText = jsCssCompressor.compressCss(stringBuilder.toString());
+        String cssText = stringBuilder.toString();
 
         CssCache cssCache = new CssCache();
         cssCache.setContent(cssText.getBytes(UTF_8));
@@ -224,20 +224,26 @@ public class StaticService {
             return codeHighlightJs;
         }
 
-        ResourceLoader.ResourceCache baseHljs = resourceLoader.getResourceCache(WEBJARS_ROOT + "/highlightjs/9.8.0/highlight.js");
+        ResourceLoader.ResourceCache hljsCache = resourceLoader.getResourceCache(WEBJARS_ROOT + "/highlightjs/9.8.0/highlight.js");
+
         StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
-        stringBuilder.append(new String(baseHljs.getContent(), UTF_8));
-
+        stringBuilder.append(new String(hljsCache.getContent(), UTF_8)).append("\n");
         highlightLanguages.forEach(language -> {
-            String text = new String(resourceLoader.getResourceCache(WEBJARS_ROOT + "/highlightjs/9.8.0/languages/" + language + ".js").getContent(), UTF_8);
-            int jsStart = text.indexOf("function");
-            String js = text.substring(jsStart);
+            String classpath = WEBJARS_ROOT + "/highlightjs/9.8.0/languages/" + language + ".js";
+            ResourceLoader.ResourceCache cache = resourceLoader.getResourceCache(classpath);
+            String text = new String(cache.getContent(), UTF_8);
+            String js = text.substring(text.indexOf("function"));
             // hljs.registerLanguage('language', function(hljs){...});
-            stringBuilder.append("\nhljs.registerLanguage('").append(language).append("', ").append(js).append(");");
+            stringBuilder.append("hljs.registerLanguage('").append(language).append("', ").append(js).append(");\n");
         });
+        stringBuilder
+                .append("window.addEventListener('load', function () {\n")
+                .append("    Array.prototype.map.call(document.getElementsByClassName('language-text'),e => e)\n" +
+                        "        .forEach(el => el.classList.remove('language-text'));\n")
+                .append("    hljs.initHighlighting();\n")
+                .append("});\n");
 
-        codeHighlightJs = stringBuilder.append("\nhljs.initHighlightingOnLoad();").toString();
-        return codeHighlightJs;
+        return (codeHighlightJs = stringBuilder.toString());
     }
 
     private String getCodeHighlightCss() {
@@ -245,13 +251,14 @@ public class StaticService {
             return codeHighlightCss;
         }
 
-        ResourceLoader.ResourceCache cssCache = resourceLoader.getResourceCache(WEBJARS_ROOT + "/highlightjs/9.8.0/styles/" + highlightStyle + ".css");
-        String css = new String(cssCache.getContent(), UTF_8);
-        if (highlightStyle.contains("light")) {
-            css = css + "\npre > code.hljs {background: #f4f5f6;}";
+        if (StringUtils.isBlank(highlightStyle)) {
+            return (codeHighlightCss = "");
         }
-        codeHighlightCss = css;
-        return css;
+
+        String webjarClasspath = WEBJARS_ROOT + "/highlightjs/9.8.0/styles/" + highlightStyle + ".css";
+        String classpath = highlightStyle.startsWith("/") ? highlightStyle : webjarClasspath;
+        ResourceLoader.ResourceCache cssCache = resourceLoader.getResourceCache(classpath);
+        return (codeHighlightCss = new String(cssCache.getContent(), UTF_8));
     }
 
     void addStaticChangedListener(ResourceLoader.StaticChangedListener listener) {
