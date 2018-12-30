@@ -977,7 +977,7 @@ function setupQuickSearch(root) {
             ctOpened = true;
             categoryAndTags.classList.add('show');
             categoryAndTagsToggle.classList.add('unfolded');
-            searchForm.classList.add('show_ct');
+            container.classList.add('show_ct');
             syncFromInput();
         }
 
@@ -988,7 +988,7 @@ function setupQuickSearch(root) {
             ctOpened = false;
             categoryAndTags.classList.remove('show');
             categoryAndTagsToggle.classList.remove('unfolded');
-            searchForm.classList.remove('show_ct');
+            container.classList.remove('show_ct');
         }
 
         function syncToInput() {

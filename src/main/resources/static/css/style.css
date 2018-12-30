@@ -58,7 +58,6 @@ pre > code.hljs {
     padding: 10px 16px;
 }
 
-
 pre code table {
     margin: 0;
     padding-right: 15px;
@@ -679,11 +678,14 @@ ul.header__row_1__tools {
         min-width: 7em;
     }
 
-    .show_ct.header__row_1__search_form, .qs_opened .header__row_1__search_form {
-        box-shadow: 0 4px 6px 0 rgba(32, 33, 36, 0.28);
+    .header__row_1__search_form, .header__row_1__search_form {
         border-radius: .4em;
+    }
+
+    .show_ct .header__row_1__search_form, .qs_opened .header__row_1__search_form {
+        box-shadow: 0 4px 6px 0 rgba(32, 33, 36, 0.28);
         padding-bottom: 1em;
-        margin-bottom: 5em;
+        background: #fff;
     }
 
     .show_ct .header__row_1__search_input, .qs_opened .header__row_1__search_input {
@@ -805,6 +807,7 @@ ul.header__row_1__tools {
             position: sticky;
             top: 0;
             background: #fff;
+            z-index: 1; /* 在 Sidebar 和 TOC 之上 */
         }
 
         .multiple_columns .fixed.qsr_more .header {
@@ -812,8 +815,13 @@ ul.header__row_1__tools {
             background: transparent;
         }
 
+        .multiple_columns .fixed .header__row_1__search_box {
+            box-sizing: border-box;
+            height: 51px;
+        }
+
         .multiple_columns .fixed .header__toolbar {
-            top: 3em;
+            top: 51px;
         }
 
         .multiple_columns .fixed .row .column.sidebar {
