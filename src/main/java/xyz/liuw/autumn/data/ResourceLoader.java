@@ -1,7 +1,7 @@
 package xyz.liuw.autumn.data;
 
 import com.google.common.collect.Maps;
-import com.vip.vjtools.vjkit.concurrent.ThreadUtil;
+import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
 import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.io.IOUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +29,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 
@@ -37,7 +40,7 @@ import static java.nio.file.FileVisitResult.CONTINUE;
  * Created by liuwei on 2018/12/11.
  */
 @Component
-public class ResourceLoader {
+public class ResourceLoader implements Runnable {
 
     public static final String STATIC_ROOT = "/static";
     public static final String WEBJARS_ROOT = "/META-INF/resources/webjars";
@@ -51,7 +54,7 @@ public class ResourceLoader {
     private List<StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
     private List<TemplateLastChangedListener> templateLastChangedListeners = new ArrayList<>(1);
 
-    private volatile Thread timingReloadThread;
+    private ScheduledExecutorService scheduler;
 
     private static byte[] readClasspath(String classpath) {
         InputStream in = ResourceLoader.class.getResourceAsStream(classpath);
@@ -68,13 +71,34 @@ public class ResourceLoader {
     private void init() {
         loadWebjarFiles();
         refreshCache();
-        timingRefreshCache();
+        startSchedule();
+    }
+
+    private void startSchedule() {
+        if (isJar() || reloadIntervalSeconds <= 0) {
+            return;
+        }
+        scheduler = Executors.newScheduledThreadPool(1,
+                ThreadPoolUtil.buildThreadFactory("loadResource", true));
+        schedule();
+    }
+
+    private void schedule() {
+        if (!scheduler.isShutdown()) {
+            scheduler.schedule(this, reloadIntervalSeconds, TimeUnit.SECONDS);
+        }
+    }
+
+    @Override
+    public void run() {
+        refreshCache();
+        schedule();
     }
 
     @PreDestroy
     void stop() {
-        if (timingReloadThread != null) {
-            timingReloadThread.interrupt();
+        if (scheduler != null) {
+            scheduler.shutdown();
         }
     }
 
@@ -93,27 +117,9 @@ public class ResourceLoader {
         this.staticChangedListeners.add(listener);
     }
 
+    @SuppressWarnings("unused")
     public long getTemplateLastModified() {
         return templateLastModified;
-    }
-
-    private void timingRefreshCache() {
-        if (isJar() || reloadIntervalSeconds <= 0) {
-            return;
-        }
-
-        String threadName = getClass().getSimpleName() + ".timingRefreshCache";
-        Thread thread = new Thread(() -> {
-            logger.info("Started '{}' thread", threadName);
-            while (!Thread.interrupted()) {
-                ThreadUtil.sleep(reloadIntervalSeconds * 1000);
-                refreshCache();
-            }
-            logger.info("Stopped thread '{}'", threadName);
-        }, threadName);
-        thread.setDaemon(true);
-        thread.start();
-        timingReloadThread = thread;
     }
 
     private boolean isJar() {
@@ -158,6 +164,7 @@ public class ResourceLoader {
         ResourceWalker.walk(classpathOfRoot, visitor);
         webjarsResourceCacheMap = visitor.getPathToResourceCache();
     }
+
 
     public interface TemplateLastChangedListener {
         void onChanged();

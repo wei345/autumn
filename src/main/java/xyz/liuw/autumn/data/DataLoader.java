@@ -2,7 +2,7 @@ package xyz.liuw.autumn.data;
 
 import ch.qos.logback.classic.Level;
 import com.google.common.collect.Maps;
-import com.vip.vjtools.vjkit.concurrent.ThreadUtil;
+import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import com.vip.vjtools.vjkit.number.MathUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
@@ -21,6 +21,9 @@ import javax.annotation.PreDestroy;
 import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static org.springframework.web.util.HtmlUtils.htmlEscape;
 
@@ -29,7 +32,7 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
  * Created by liuwei on 2018/11/19.
  */
 @Component
-public class DataLoader {
+public class DataLoader implements Runnable {
 
     private static final String ARCHIVE_PATH_PREFIX = "/archive/";
 
@@ -55,7 +58,7 @@ public class DataLoader {
 
     private List<TreeJsonChangedListener> treeJsonChangedListeners = new ArrayList<>(1);
 
-    private volatile Thread timingReloadThread;
+    private ScheduledExecutorService scheduler;
 
     @Autowired
     public DataLoader(DataSource dataSource, JsonMapper jsonMapper) {
@@ -65,6 +68,46 @@ public class DataLoader {
 
     @PostConstruct
     void start() {
+        quietlyLoad();
+        startSchedule();
+    }
+
+    private void startSchedule() {
+        if (reloadIntervalSeconds <= 0) {
+            return;
+        }
+        scheduler = Executors.newScheduledThreadPool(1,
+                ThreadPoolUtil.buildThreadFactory("loadData", true));
+        schedule(reloadIntervalSeconds);
+    }
+
+    private void schedule(long delay) {
+        if (!scheduler.isShutdown()) {
+            scheduler.schedule(this, delay, TimeUnit.SECONDS);
+        }
+    }
+
+    @Override
+    public void run() {
+        try {
+            load();
+            reloadContinuousFailures = 0;
+        } catch (Exception e) {
+            if (reloadContinuousFailures < 10) {
+                reloadContinuousFailures++;
+            }
+        }
+        schedule(reloadIntervalSeconds * MathUtil.pow(2, reloadContinuousFailures));
+    }
+
+    @PreDestroy
+    void stop() {
+        if (scheduler != null) {
+            scheduler.shutdown();
+        }
+    }
+
+    private void quietlyLoad() {
         // 为避免每次启动输出 1000 多条解析日志，将 PageParser 日志级别设为 WARN，初始加载完成后会恢复
         ch.qos.logback.classic.Logger parserLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(PageParser.class);
         Level oldLevel = parserLogger.getLevel();
@@ -78,41 +121,6 @@ public class DataLoader {
 
         logger.info("Data loaded in {} ms", System.currentTimeMillis() - start);
         parserLogger.setLevel(oldLevel);
-
-        timingReload();
-    }
-
-    @PreDestroy
-    void stop() {
-        if (timingReloadThread != null) {
-            timingReloadThread.interrupt();
-        }
-    }
-
-    private void timingReload() {
-        if (reloadIntervalSeconds <= 0) {
-            return;
-        }
-
-        String threadName = getClass().getSimpleName() + ".timingReload";
-        Thread thread = new Thread(() -> {
-            logger.info("Started thread '{}'", threadName);
-            while (!Thread.interrupted()) {
-                ThreadUtil.sleep(reloadIntervalSeconds * 1000 * MathUtil.pow(2, reloadContinuousFailures));
-                try {
-                    load();
-                    reloadContinuousFailures = 0;
-                } catch (Exception e) {
-                    if (reloadContinuousFailures < 10) {
-                        reloadContinuousFailures++;
-                    }
-                }
-            }
-            logger.info("Stopped thread '{}'", threadName);
-        }, threadName);
-        thread.setDaemon(true);
-        thread.start();
-        timingReloadThread = thread;
     }
 
     @SuppressWarnings("WeakerAccess")
