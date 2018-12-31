@@ -86,8 +86,9 @@ function escapeRegExp(str) {
 }
 
 function detectClient() {
-    document.body.classList.add('js');
-    document.body.classList.add(isMobi ? 'mobi' : 'desktop');
+    var html = document.querySelector('html');
+    html.classList.add('js');
+    html.classList.add(isMobi ? 'mobi' : 'desktop');
     document.body.classList.add('multiple_columns');
 }
 

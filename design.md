@@ -141,6 +141,8 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 
 页面内容显示和全文搜索不依赖 JS，即使客户端禁用了 JS，仍然可以阅读内容和使用搜索功能。
 
+默认样式：小桌面
+
 #### highlight
 
 启用代码块高亮后：
