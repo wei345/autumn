@@ -167,10 +167,8 @@ function bindTocToggle() {
         }
         if (show) {
             content.classList.add('show_toc');
-            content.classList.remove('hide_toc');
             toggle.innerText = 'Table of Contents';
         } else {
-            content.classList.add('hide_toc');
             content.classList.remove('show_toc');
             toggle.innerText = 'TOC';
         }
@@ -420,8 +418,10 @@ function anchorLink() {
             }
             if (isMobi) {
                 a.appendChild(createAnchorIcon());
+                a.classList.add('heading__anchor__icon');
                 node.appendChild(a);
             } else {
+                a.appendChild(createAnchorIcon());
                 a.classList.add('heading__anchor');
                 node.classList.add('heading');
                 node.insertBefore(a, node.firstChild);
@@ -433,7 +433,6 @@ function anchorLink() {
 
 function createAnchorIcon() {
     var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.classList.add('heading__anchor__icon');
     svg.setAttribute('width', '16');
     svg.setAttribute('height', '16');
     svg.setAttribute('viewBox', '0 0 512 512');

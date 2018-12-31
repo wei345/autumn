@@ -115,9 +115,10 @@ function setupQuickSearch(root) {
         document.addEventListener('click', function (event) {
             if (document.activeElement !== searchInput) {
                 searchInput.classList.remove('header__row_1__search_input_focus');
+                /* not auto close
                 if (!event.isFromSearchForm && qsOpened && searchInput.value === '') {
                     closeQs();
-                }
+                }*/
             }
         });
 
@@ -811,9 +812,10 @@ function setupQuickSearch(root) {
             }
 
             document.addEventListener('click', function (event) {
+                /* not auto close
                 if (!event.isFromSearchForm && !qsOpened) {
                     closeCt();
-                }
+                }*/
             });
 
             categoryAndTagsToggle.addEventListener('click', function () {

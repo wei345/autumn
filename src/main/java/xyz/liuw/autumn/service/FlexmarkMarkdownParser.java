@@ -46,15 +46,10 @@ public class FlexmarkMarkdownParser implements MarkdownParser {
                         TocExtension.create()/*,
                         LineNumberCodeBlockExtension.create()*/))
                 .set(TocExtension.LEVELS, 127)
-                // @formatter:off
-                // 顶层元素 div.toc
-                .set(TocExtension.DIV_CLASS, "toc")
-                // <h3>title</h3>
-                .set(TocExtension.TITLE_LEVEL, 3)
+                // .set(TocExtension.LIST_CLASS, "toc"); // 顶层元素 ul.toc
+                .set(TocExtension.DIV_CLASS, "toc") // 顶层元素 div.toc
+                .set(TocExtension.TITLE_LEVEL, 3) // <h3>title</h3>
                 .set(TocExtension.TITLE, "Table of Contents");
-                // 或者顶层元素 ul.toc
-                // .set(TocExtension.LIST_CLASS, "toc");
-                // @formatter:on
 
         parser = Parser.builder(options).build();
         renderer = HtmlRenderer.builder(options).build();
