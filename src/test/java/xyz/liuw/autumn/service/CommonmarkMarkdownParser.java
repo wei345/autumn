@@ -24,6 +24,8 @@ import java.util.Map;
  * Not thread-safe
  * <p>
  * Not thread-safe
+ * <p>
+ * Not thread-safe
  *//*
 public class CommonmarkMarkdownParser implements MarkdownParser {
 

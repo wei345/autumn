@@ -7,9 +7,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import xyz.liuw.autumn.Application;
 import xyz.liuw.autumn.search.SearchResult;
-import xyz.liuw.autumn.search.SearchingPage;
-
-import java.util.Set;
 
 /**
  * @author liuwei

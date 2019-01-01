@@ -50,9 +50,6 @@ public class DefaultController {
     @Autowired
     private StaticService staticService;
 
-    @Autowired
-    private WebUtil webUtil;
-
     private Map<String, String> pathToView;
 
     @RequestMapping(value = "/js/all.js", method = RequestMethod.GET)
@@ -66,7 +63,7 @@ public class DefaultController {
     }
 
     private Object handleWebPageReferenceData(StaticService.WebPageReferenceData data, WebRequest webRequest) {
-        if (webRequest.checkNotModified(data.getEtag())) {
+        if (WebUtil.checkNotModified(webRequest, data.getEtag())) {
             return null;
         }
         return data.getContent();
@@ -76,20 +73,10 @@ public class DefaultController {
     public String treeJson(WebRequest webRequest) {
         TreeJson treeJson = dataService.getTreeJson();
 
-        String etag = treeJson.getEtag();
-        if (etag == null) {
-            //noinspection SynchronizationOnLocalVariableOrMethodParameter
-            synchronized (treeJson) {
-                if (treeJson.getEtag() == null) {
-                    treeJson.setEtag(webUtil.getEtag(treeJson.getMd5()));
-                }
-            }
-            etag = treeJson.getEtag();
-        }
-
-        if (webRequest.checkNotModified(etag)) {
+        if (WebUtil.checkNotModified(webRequest, treeJson.getEtag())) {
             return null;
         }
+
         return treeJson.getJson();
     }
 

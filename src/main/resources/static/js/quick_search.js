@@ -1,4 +1,5 @@
 "use strict";
+
 function setupQuickSearch(root) {
     var searchForm = document.getElementsByClassName('header__row_1__search_form')[0];
     var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];

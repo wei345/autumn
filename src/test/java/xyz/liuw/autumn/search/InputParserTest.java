@@ -1,11 +1,8 @@
 package xyz.liuw.autumn.search;
 
-import com.google.common.collect.Sets;
 import org.junit.Test;
 
 import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author liuwei

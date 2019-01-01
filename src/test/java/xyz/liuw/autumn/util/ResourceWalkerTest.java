@@ -30,9 +30,9 @@ public class ResourceWalkerTest {
 
                 String path = file.toString();
 
-                if(StringUtils.containsIgnoreCase(file.getFileSystem().getClass().getSimpleName(), "zip")){
+                if (StringUtils.containsIgnoreCase(file.getFileSystem().getClass().getSimpleName(), "zip")) {
 
-                    if(path.startsWith(ResourceWalker.SPRING_BOOT_CLASSES)){
+                    if (path.startsWith(ResourceWalker.SPRING_BOOT_CLASSES)) {
                         String relativePath = path.substring(ResourceWalker.SPRING_BOOT_CLASSES.length());
                         getClass().getResourceAsStream(relativePath);
 

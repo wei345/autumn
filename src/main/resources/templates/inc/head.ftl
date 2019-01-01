@@ -14,17 +14,17 @@
     <script>
         var autumn = {
             ctx: '${ctx!}',
-            treeVersion: '${treeVersion!}'
+            treeVersionKeyValue: '${treeVersionKeyValue!}'
         };
     </script>
-    <script async src="${ctx!}/js/all.js?${jsCacheVersion!}"></script>
+    <script async src="${ctx!}/js/all.js?${jsVersionKeyValue!}"></script>
     <meta charset="utf-8">
     <meta name="google" content="notranslate">
     <meta http-equiv="Content-Language" content="en">
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <title>${title!"No Title"} - ${siteTitle!}</title>
     <link rel="icon" href="${ctx!}/favicon.ico" type="image/x-icon"/>
-    <link rel="stylesheet" href="${ctx!}/css/all.css?${cssCacheVersion!}"/>
+    <link rel="stylesheet" href="${ctx!}/css/all.css?${cssVersionKeyValue!}"/>
 </head>
 <body>
 <div class="container">

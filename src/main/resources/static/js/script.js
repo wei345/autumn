@@ -1,6 +1,6 @@
 "use strict";
 var ctx = autumn.ctx;
-var treeVersion = autumn.treeVersion;
+var treeVersionKeyValue = autumn.treeVersionKeyValue;
 var lsRecentVisitKey = 'autumn.recently_visit';
 var recentlyVisitMaxCount = 100;
 var recentlyVisitPages;
@@ -224,7 +224,7 @@ function buildTree(then) {
     if (!treeBox) {
         return; // 可能在登录页
     }
-    ajax('GET', ctx + '/tree.json?' + treeVersion, function (text) {
+    ajax('GET', ctx + '/tree.json?' + treeVersionKeyValue, function (text) {
         var root = JSON.parse(text);
         unfoldCurrentPath(root);
         treeBox.innerHTML = buildTreeHtml([root]);

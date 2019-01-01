@@ -52,9 +52,6 @@ public class StaticService {
     private String highlightStyle;
 
     @Autowired
-    private WebUtil webUtil;
-
-    @Autowired
     private ResourceLoader resourceLoader;
 
     @Autowired
@@ -78,8 +75,8 @@ public class StaticService {
                                 WebRequest webRequest,
                                 HttpServletRequest request,
                                 HttpServletResponse response) {
-        String etag = webUtil.getEtag(resourceCache.getMd5());
-        if (webRequest.checkNotModified(etag)) {
+        String etag = WebUtil.getEtag(resourceCache.getMd5());
+        if (WebUtil.checkNotModified(webRequest, etag)) {
             return null;
         }
 
@@ -174,13 +171,12 @@ public class StaticService {
 
         byte[] jsBytes = js.getBytes(UTF_8);
         String md5 = DigestUtils.md5DigestAsHex(jsBytes);
-        String etag = webUtil.getEtag(md5);
-        String version = getVersion(md5);
+        String etag = WebUtil.getEtag(md5);
 
         JsCache jsCache = new JsCache();
         jsCache.setContent(jsBytes);
         jsCache.setEtag(etag);
-        jsCache.setVersion(version);
+        jsCache.setVersionKeyValue(WebUtil.getVersionKeyValue(md5));
         jsCache.setScriptJsMd5(scriptJs.getMd5());
         jsCache.setQuickSearchJsMd5(quickSearchJs.getMd5());
         return jsCache;
@@ -204,19 +200,14 @@ public class StaticService {
         CssCache cssCache = new CssCache();
         cssCache.setContent(cssText.getBytes(UTF_8));
         String md5 = DigestUtils.md5DigestAsHex(cssCache.getContent());
-        String etag = webUtil.getEtag(md5);
-        String version = getVersion(md5);
+        String etag = WebUtil.getEtag(md5);
         cssCache.setEtag(etag);
-        cssCache.setVersion(version);
+        cssCache.setVersionKeyValue(WebUtil.getVersionKeyValue(md5));
         cssCache.setNormalizeCssMd5(normalizeCss.getMd5());
         cssCache.setStyleCssMd5(styleCss.getMd5());
         this.cssCache = cssCache;
         logger.info("cssCache updated");
         return true;
-    }
-
-    private String getVersion(String md5) {
-        return md5.substring(0, 7);
     }
 
     private String getCodeHighlightJs() {
@@ -303,12 +294,12 @@ public class StaticService {
     }
 
     public static class WebPageReferenceData {
-        private String version;
+        private String versionKeyValue;
         private byte[] content;
         private String etag;
 
-        String getVersion() {
-            return version;
+        String getVersionKeyValue() {
+            return versionKeyValue;
         }
 
         public byte[] getContent() {
@@ -319,8 +310,8 @@ public class StaticService {
             return etag;
         }
 
-        void setVersion(String version) {
-            this.version = version;
+        void setVersionKeyValue(String versionKeyValue) {
+            this.versionKeyValue = versionKeyValue;
         }
 
         public void setContent(byte[] content) {

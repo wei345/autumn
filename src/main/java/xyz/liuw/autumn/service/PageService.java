@@ -38,9 +38,6 @@ public class PageService {
     @Autowired
     private SearchService searchService;
 
-    @Autowired
-    private WebUtil webUtil;
-
     public byte[] handlePageRequest(@NotNull Page page, Map<String, Object> model, String view, WebRequest webRequest) {
         Page.ViewCache viewCache = dataService.getViewCache(page);
         long templateLastModified = templateService.getTemplateLastModified();
@@ -54,14 +51,14 @@ public class PageService {
                     model.put(PAGE_HTML, getPageHtml(page));
                     byte[] content = templateService.merge(model, view).getBytes(StandardCharsets.UTF_8);
                     String md5 = DigestUtils.md5DigestAsHex(content);
-                    String etag = webUtil.getEtag(md5);
+                    String etag = WebUtil.getEtag(md5);
                     dataService.setViewCache(page, new Page.ViewCache(content, etag, templateLastModified));
                 }
             }
             viewCache = dataService.getViewCache(page);
         }
 
-        if (webRequest.checkNotModified(viewCache.getEtag())) {
+        if (WebUtil.checkNotModified(webRequest, viewCache.getEtag())) {
             return null;
         }
 
@@ -89,8 +86,8 @@ public class PageService {
             }
             md5 = page.getSourceMd5();
         }
-        String etag = webUtil.getEtag(md5);
-        if (webRequest.checkNotModified(etag)) {
+        String etag = WebUtil.getEtag(md5);
+        if (WebUtil.checkNotModified(webRequest, etag)) {
             return null;
         }
 

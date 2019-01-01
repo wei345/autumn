@@ -26,9 +26,9 @@ import static xyz.liuw.autumn.service.UserService.isLogged;
 @Component
 public class TemplateService {
 
-    private static final String JS_CACHE_VERSION = "jsCacheVersion";
-    private static final String CSS_CACHE_VERSION = "cssCacheVersion";
-    private static final String TREE_VERSION = "treeVersion";
+    private static final String JS_VERSION_KEY_VALUE = "jsVersionKeyValue";
+    private static final String CSS_VERSION_KEY_VALUE = "cssVersionKeyValue";
+    private static final String TREE_VERSION_KEY_VALUE = "treeVersionKeyValue";
     private static final String LOGGED = "logged";
     private static final String CTX = "ctx";
     private static final String GOOGLE_ANALYTICS_ID = "googleAnalyticsId";
@@ -89,9 +89,9 @@ public class TemplateService {
 
     public void setCtx(Map<String, Object> model) {
         model.put(CTX, webUtil.getContextPath());
-        model.put(CSS_CACHE_VERSION, staticService.getCssCache().getVersion());
-        model.put(JS_CACHE_VERSION, staticService.getJsCache().getVersion());
-        model.put(TREE_VERSION, dataService.getTreeJson().getVersion());
+        model.put(CSS_VERSION_KEY_VALUE, staticService.getCssCache().getVersionKeyValue());
+        model.put(JS_VERSION_KEY_VALUE, staticService.getJsCache().getVersionKeyValue());
+        model.put(TREE_VERSION_KEY_VALUE, dataService.getTreeJson().getVersionKeyValue());
         model.put(LOGGED, isLogged());
         model.put(GOOGLE_ANALYTICS_ID, googleAnalyticsId);
         model.put(SITE_TITLE, siteTitle);
@@ -103,9 +103,9 @@ public class TemplateService {
      */
     public void setCtx(HttpServletRequest request) {
         request.setAttribute(CTX, webUtil.getContextPath());
-        request.setAttribute(CSS_CACHE_VERSION, staticService.getCssCache().getVersion());
-        request.setAttribute(JS_CACHE_VERSION, staticService.getJsCache().getVersion());
-        request.setAttribute(TREE_VERSION, dataService.getTreeJson().getVersion());
+        request.setAttribute(CSS_VERSION_KEY_VALUE, staticService.getCssCache().getVersionKeyValue());
+        request.setAttribute(JS_VERSION_KEY_VALUE, staticService.getJsCache().getVersionKeyValue());
+        request.setAttribute(TREE_VERSION_KEY_VALUE, dataService.getTreeJson().getVersionKeyValue());
         request.setAttribute(LOGGED, isLogged());
         request.setAttribute(GOOGLE_ANALYTICS_ID, googleAnalyticsId);
         request.setAttribute(SITE_TITLE, siteTitle);

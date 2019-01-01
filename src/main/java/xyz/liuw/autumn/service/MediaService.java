@@ -4,7 +4,6 @@ import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.io.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -35,16 +34,13 @@ public class MediaService {
     @Value("${server.compression.mime-types}")
     private List<String> compressionMimeTypes;
 
-    @Autowired
-    private WebUtil webUtil;
-
     static Object handleRequest(byte[] content,
                                 String etag,
                                 String filename,
                                 String mimeType,
                                 WebRequest webRequest,
                                 HttpServletRequest request) {
-        if (webRequest.checkNotModified(etag)) {
+        if (WebUtil.checkNotModified(webRequest, etag)) {
             return null;
         }
 
@@ -96,7 +92,7 @@ public class MediaService {
 
         if (media.getContent() != null) {
             return handleRequest(media.getContent(),
-                    webUtil.getEtag(media.getMd5()),
+                    WebUtil.getEtag(media.getMd5()),
                     media.getFile().getName(),
                     media.getMimeType(),
                     webRequest, request);
@@ -113,7 +109,7 @@ public class MediaService {
 
         handleRequest(inputStreamSupplier,
                 (int) file.length(),
-                webUtil.getEtag(media.getMd5()),
+                WebUtil.getEtag(media.getMd5()),
                 file.getName(),
                 media.getMimeType(),
                 webRequest, request, response);
@@ -128,7 +124,7 @@ public class MediaService {
                                WebRequest webRequest,
                                HttpServletRequest request,
                                HttpServletResponse response) throws IOException {
-        if (webRequest.checkNotModified(etag)) {
+        if (WebUtil.checkNotModified(webRequest, etag)) {
             return;
         }
 
