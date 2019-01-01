@@ -34,6 +34,9 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class UserService {
 
+    // 改变这个值会使所有已登录 Cookie 失效
+    private static final int REMEMBER_ME_VERSION = 2;
+
     private static final String REMEMBER_ME_COOKIE_NAME = "ME";
 
     private static final String LOGOUT_COOKIE_NAME = "logout";
@@ -87,27 +90,26 @@ public class UserService {
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {
-        deleteCookie(REMEMBER_ME_COOKIE_NAME, response);
+        deleteCookie(REMEMBER_ME_COOKIE_NAME, request, response);
 
         // 设置 logout cookie，JavaScript 检查该 cookie，清理客户端用户数据，然后删除该 cookie
+        String value = String.valueOf(System.currentTimeMillis());
         CookieGenerator cg = new CookieGenerator();
         cg.setCookieName(LOGOUT_COOKIE_NAME);
         cg.setCookieMaxAge(-1);
-        cg.setCookiePath(webUtil.getContextPath() + "/");
-        cg.addCookie(response, String.valueOf(System.currentTimeMillis()));
+        addCookie(cg, value, request, response);
     }
 
     private void setRememberMe(User user, String plainPassword, HttpServletRequest request, HttpServletResponse response) {
         // id|password|timeOnSeconds
-        String raw = user.getId() + SEPARATOR + plainPassword + SEPARATOR + System.currentTimeMillis() / 1000;
+        String raw = REMEMBER_ME_VERSION + SEPARATOR + user.getId() + SEPARATOR + plainPassword + SEPARATOR + System.currentTimeMillis() / 1000;
         String encrypted = EncodeUtil.encodeBase64(
                 CryptoUtil.aesEncrypt(raw.getBytes(StandardCharsets.UTF_8), aesKey));
         CookieGenerator cg = new CookieGenerator();
         cg.setCookieName(REMEMBER_ME_COOKIE_NAME);
         cg.setCookieMaxAge(rememberMeSeconds);
         cg.setCookieHttpOnly(true);
-        cg.setCookiePath(webUtil.getContextPath() + "/");
-        cg.addCookie(response, encrypted);
+        addCookie(cg, encrypted, request, response);
     }
 
     /**
@@ -121,7 +123,7 @@ public class UserService {
 
         String rememberMe = cookie.getValue();
         if (StringUtils.isBlank(rememberMe)) {
-            deleteCookie(cookie.getName(), response);
+            deleteCookie(cookie.getName(), request, response);
             return null;
         }
 
@@ -135,7 +137,7 @@ public class UserService {
             return user;
         }
 
-        deleteCookie(cookie.getName(), response);
+        deleteCookie(cookie.getName(), request, response);
         return null;
     }
 
@@ -147,6 +149,11 @@ public class UserService {
         try {
             String decrypted = CryptoUtil.aesDecrypt(EncodeUtil.decodeBase64(rememberMe), aesKey);
             StringTokenizer tokenizer = new StringTokenizer(decrypted, SEPARATOR);
+            int version = Integer.parseInt(tokenizer.nextToken());
+            if (version != REMEMBER_ME_VERSION) {
+                logger.info("rememberMe version not match, current: '{}', cookie: '{}'", REMEMBER_ME_VERSION, version);
+                return USER_REMEMBER_ME_PARSE_ERROR;
+            }
             long id = Long.parseLong(tokenizer.nextToken());
             String password = tokenizer.nextToken();
             User user = checkPassword(id, password);
@@ -172,13 +179,26 @@ public class UserService {
         return null;
     }
 
-    private void deleteCookie(String name, HttpServletResponse response) {
+    private void deleteCookie(String name, HttpServletRequest request, HttpServletResponse response) {
         CookieGenerator cg = new CookieGenerator();
         cg.setCookieName(name);
         cg.setCookieMaxAge(0);
         cg.setCookieHttpOnly(true);
+        addCookie(cg, null, request, response);
+    }
+
+    private void addCookie(CookieGenerator cg, String value, HttpServletRequest request, HttpServletResponse response) {
         cg.setCookiePath(webUtil.getContextPath() + "/");
-        cg.addCookie(response, null);
+        cg.setCookieSecure(isSecure(request));
+        cg.addCookie(response, value);
+    }
+
+    private boolean isSecure(HttpServletRequest request) {
+        String scheme = request.getHeader("X-Forwarded-Proto");
+        if (StringUtils.isBlank(scheme)) {
+            scheme = request.getScheme();
+        }
+        return "https".equalsIgnoreCase(scheme);
     }
 
     /**
