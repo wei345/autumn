@@ -3,6 +3,8 @@ package xyz.liuw.autumn.data;
 import ch.qos.logback.classic.Level;
 import com.google.common.collect.Maps;
 import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
+import com.vip.vjtools.vjkit.io.FileUtil;
+import com.vip.vjtools.vjkit.io.IOUtil;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import com.vip.vjtools.vjkit.number.MathUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
@@ -14,12 +16,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
+import xyz.liuw.autumn.util.MimeTypeUtil;
 import xyz.liuw.autumn.util.WebUtil;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.validation.constraints.NotNull;
-import java.io.File;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -48,6 +52,9 @@ public class DataLoader implements Runnable {
     @Value("${autumn.data.reload-interval-seconds:10}")
     private long reloadIntervalSeconds;
 
+    @SuppressWarnings("FieldCanBeLocal")
+    private int cacheFileMaxLength = 1024 * 1024; // 1 MB
+
     @Value("${autumn.data.publish-all-media:true}")
     private boolean publishAllMedia;
 
@@ -58,7 +65,11 @@ public class DataLoader implements Runnable {
 
     private List<TreeJsonChangedListener> treeJsonChangedListeners = new ArrayList<>(1);
 
+    private List<MediaChangedListener> mediaChangedListeners = new ArrayList<>(1);
+
     private ScheduledExecutorService scheduler;
+
+    private volatile long mediaLastChanged;
 
     @Autowired
     public DataLoader(DataSource dataSource, JsonMapper jsonMapper) {
@@ -123,7 +134,9 @@ public class DataLoader implements Runnable {
         parserLogger.setLevel(oldLevel);
     }
 
-    @SuppressWarnings("WeakerAccess")
+    /**
+     * public 只是为了让 xyz.liuw.autumn.manage.DataEndpoint 调用
+     */
     public synchronized void load() {
         Validate.notBlank(dataDir, "config 'autumn.data-dir' is empty");
         load(new File(dataDir));
@@ -203,6 +216,7 @@ public class DataLoader implements Runnable {
                         if (media == null || media.getLastModified() != file.lastModified()) {
                             mediaAddedOrModified++;
                             media = new Media(file);
+                            loadMediaInfo(media, file);
                         }
                         mediaMap.put(path, media);
                     }
@@ -239,6 +253,11 @@ public class DataLoader implements Runnable {
             logger.info("TreeJson changed");
             treeJsonChangedListeners.forEach(TreeJsonChangedListener::onChanged);
         }
+
+        if(mediaChanged){
+            mediaLastChanged = System.currentTimeMillis();
+            mediaChangedListeners.forEach(MediaChangedListener::onChanged);
+        }
     }
 
     private String filename(File f) {
@@ -248,6 +267,45 @@ public class DataLoader implements Runnable {
             return s;
         }
         return s.substring(0, n);
+    }
+
+    /**
+     * 设置 media.md5 和 media.mimeType，如果文件不大，还会缓存内容
+     */
+    private void loadMediaInfo(Media media, File file) {
+        if (file.length() <= cacheFileMaxLength) {
+            logger.debug("Caching small file content and calculate md5 {}", file.getAbsolutePath());
+            // content
+            try {
+                media.setContent(FileUtil.toByteArray(file));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            // md5
+            media.setMd5(DigestUtils.md5DigestAsHex(media.getContent()));
+        } else {
+            // md5
+            logger.debug("Calculating big file md5 {}", file.getAbsolutePath());
+            InputStream in;
+            try {
+                in = new FileInputStream(file);
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            try {
+                media.setMd5(DigestUtils.md5DigestAsHex(in));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                IOUtil.closeQuietly(in);
+            }
+        }
+
+        media.setEtag(WebUtil.getEtag(media.getMd5()));
+
+        media.setVersionKeyValue(WebUtil.getVersionKeyValue(media.getMd5()));
+
+        media.setMimeType(MimeTypeUtil.getMimeType(file.getName()));
     }
 
     private void sortAndRemoveEmptyNode(TreeNode root) {
@@ -416,7 +474,19 @@ public class DataLoader implements Runnable {
         this.treeJsonChangedListeners.add(listener);
     }
 
+    public void addMediaChangedListeners(MediaChangedListener listener) {
+        this.mediaChangedListeners.add(listener);
+    }
+
+    public long getMediaLastChanged() {
+        return mediaLastChanged;
+    }
+
     public interface TreeJsonChangedListener {
+        void onChanged();
+    }
+
+    public interface MediaChangedListener {
         void onChanged();
     }
 }

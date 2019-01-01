@@ -8,9 +8,11 @@ import java.io.File;
  */
 public class Media {
     private File file;
-    private volatile byte[] content; // file content
-    private volatile String md5; // content md5
-    private volatile String mimeType;
+    private byte[] content; // file content
+    private String md5; // content md5
+    private String etag;
+    private String versionKeyValue;
+    private String mimeType;
     private long lastModified; // file last modified
 
     public Media() {
@@ -20,6 +22,10 @@ public class Media {
     public Media(File file) {
         this.file = file;
         this.lastModified = file.lastModified();
+    }
+
+    public void setMd5(String md5) {
+        this.md5 = md5;
     }
 
     public long getLastModified() {
@@ -42,10 +48,6 @@ public class Media {
         return md5;
     }
 
-    public void setMd5(String md5) {
-        this.md5 = md5;
-    }
-
     public File getFile() {
         return file;
     }
@@ -60,5 +62,21 @@ public class Media {
 
     public void setMimeType(String mimeType) {
         this.mimeType = mimeType;
+    }
+
+    public String getEtag() {
+        return etag;
+    }
+
+    public void setEtag(String etag) {
+        this.etag = etag;
+    }
+
+    public String getVersionKeyValue() {
+        return versionKeyValue;
+    }
+
+    public void setVersionKeyValue(String versionKeyValue) {
+        this.versionKeyValue = versionKeyValue;
     }
 }

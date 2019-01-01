@@ -49,14 +49,4 @@ public class FlexmarkMarkdownParserTest {
         String html = renderer.render(document);  // "<p>This is <em>Sparta</em></p>\n"
         System.out.println(html);
     }
-
-    @Test
-    public void render() throws IOException {
-
-        String source = "[TOC]\n" + FileUtil.toString(new File("../notes/java/concurrent/thread-life-cycle.md"));
-
-        FlexmarkMarkdownParser parser = new FlexmarkMarkdownParser();
-        System.out.println(parser.render(source));
-
-    }
 }

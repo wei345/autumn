@@ -26,14 +26,17 @@ import static xyz.liuw.autumn.service.UserService.isLogged;
 @Component
 public class TemplateService {
 
+    private static final String FAVICON_ICO_MEDIA_PATH = "/favicon.ico";
     private static final String JS_VERSION_KEY_VALUE = "jsVersionKeyValue";
     private static final String CSS_VERSION_KEY_VALUE = "cssVersionKeyValue";
     private static final String TREE_VERSION_KEY_VALUE = "treeVersionKeyValue";
+    private static final String FAVICON_URL = "faviconUrl";
     private static final String LOGGED = "logged";
     private static final String CTX = "ctx";
     private static final String GOOGLE_ANALYTICS_ID = "googleAnalyticsId";
     private static final String SITE_TITLE = "siteTitle";
     private static Logger logger = LoggerFactory.getLogger(TemplateService.class);
+
     @Autowired
     private Configuration freeMarkerConfiguration;
 
@@ -61,16 +64,21 @@ public class TemplateService {
     @Value("${autumn.title}")
     private String siteTitle;
 
-    private volatile long templateLastModified;
+    private String faviconUrl;
+
+    private volatile long templateLastChanged;
 
     private ThreadLocal<StringWriter> stringWriterThreadLocal = ThreadLocal.withInitial(() -> new StringWriter(10240));
 
     @PostConstruct
     private void init() {
-        dataLoader.addTreeJsonChangedListener(this::refreshTemplateLastModified);
-        resourceLoader.addTemplateLastChangedListener(this::refreshTemplateLastModified);
-        staticService.addStaticChangedListener(this::refreshTemplateLastModified);
-        refreshTemplateLastModified();
+        faviconUrl = webUtil.getContextPath() + FAVICON_ICO_MEDIA_PATH + "?" + dataService.getMediaVersionKeyValue(FAVICON_ICO_MEDIA_PATH);
+
+        dataLoader.addTreeJsonChangedListener(this::refreshTemplateLastChanged);
+        dataLoader.addMediaChangedListeners(this::refreshTemplateLastChanged);
+        resourceLoader.addTemplateLastChangedListener(this::refreshTemplateLastChanged);
+        staticService.addStaticChangedListener(this::refreshTemplateLastChanged);
+        refreshTemplateLastChanged();
     }
 
     public String merge(Map<String, Object> model, String view) {
@@ -92,6 +100,7 @@ public class TemplateService {
         model.put(CSS_VERSION_KEY_VALUE, staticService.getCssCache().getVersionKeyValue());
         model.put(JS_VERSION_KEY_VALUE, staticService.getJsCache().getVersionKeyValue());
         model.put(TREE_VERSION_KEY_VALUE, dataService.getTreeJson().getVersionKeyValue());
+        model.put(FAVICON_URL, faviconUrl);
         model.put(LOGGED, isLogged());
         model.put(GOOGLE_ANALYTICS_ID, googleAnalyticsId);
         model.put(SITE_TITLE, siteTitle);
@@ -106,17 +115,18 @@ public class TemplateService {
         request.setAttribute(CSS_VERSION_KEY_VALUE, staticService.getCssCache().getVersionKeyValue());
         request.setAttribute(JS_VERSION_KEY_VALUE, staticService.getJsCache().getVersionKeyValue());
         request.setAttribute(TREE_VERSION_KEY_VALUE, dataService.getTreeJson().getVersionKeyValue());
+        request.setAttribute(FAVICON_URL, faviconUrl);
         request.setAttribute(LOGGED, isLogged());
         request.setAttribute(GOOGLE_ANALYTICS_ID, googleAnalyticsId);
         request.setAttribute(SITE_TITLE, siteTitle);
     }
 
-    private void refreshTemplateLastModified() {
-        templateLastModified = System.currentTimeMillis();
-        logger.info("Refreshed templateLastModified");
+    private void refreshTemplateLastChanged() {
+        templateLastChanged = System.currentTimeMillis();
+        logger.info("Refreshed templateLastChanged");
     }
 
-    long getTemplateLastModified() {
-        return templateLastModified;
+    long getTemplateLastChanged() {
+        return templateLastChanged;
     }
 }

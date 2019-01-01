@@ -98,7 +98,7 @@ public class DefaultController {
         // Page
         Page page = dataService.getPage(path);
         if (page != null) {
-            return handlePage(page, path, false, h, webRequest, model);
+            return handlePage(page, path, false, h, webRequest, request, model);
         }
 
         // Page source
@@ -106,7 +106,7 @@ public class DefaultController {
             String pathWithoutDotMd = path.substring(0, path.length() - DOT_MD.length());
             page = dataService.getPage(pathWithoutDotMd);
             if (page != null) {
-                return handlePage(page, path, true, h, webRequest, model);
+                return handlePage(page, path, true, h, webRequest, request, model);
             }
         }
 
@@ -128,6 +128,7 @@ public class DefaultController {
                               boolean source,
                               String[] h,
                               WebRequest webRequest,
+                              HttpServletRequest request,
                               Map<String, Object> model) {
         Validate.notNull(page);
 
@@ -152,10 +153,10 @@ public class DefaultController {
                 strings = new String[10];
                 System.arraycopy(h, 0, strings, 0, strings.length);
             }
-            return pageService.handlePageHighlightRequest(page, Arrays.asList(strings), model, view);
+            return pageService.handlePageHighlightRequest(page, Arrays.asList(strings), model, view, request);
         }
 
-        return pageService.handlePageRequest(page, model, view, webRequest);
+        return pageService.handlePageRequest(page, model, view, webRequest, request);
     }
 
     @Value("${autumn.path-to-view}")

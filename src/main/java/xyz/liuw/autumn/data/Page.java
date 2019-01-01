@@ -22,7 +22,7 @@ public class Page {
     private String name; // file name without extension
     private String title;
     private String body;
-    private volatile String html;
+    private volatile HtmlCache htmlCache;
     private String source; // file content
     private long lastModified; // file last modified
     private volatile ViewCache userViewCache; // 已登录用户页面缓存
@@ -55,15 +55,33 @@ public class Page {
         return page;
     }
 
+    public static class HtmlCache {
+        private String content;
+        private long time;
+
+        public HtmlCache(String content) {
+            this.content = content;
+            this.time = System.currentTimeMillis();
+        }
+
+        public String getContent() {
+            return content;
+        }
+
+        public long getTime() {
+            return time;
+        }
+    }
+
     public static class ViewCache {
         private byte[] content;
         private String etag;
-        private long templateLastModified;
+        private long time;
 
-        public ViewCache(byte[] content, String etag, long templateLastModified) {
+        public ViewCache(byte[] content, String etag) {
             this.content = content;
             this.etag = etag;
-            this.templateLastModified = templateLastModified;
+            this.time = System.currentTimeMillis();
         }
 
         public byte[] getContent() {
@@ -74,8 +92,8 @@ public class Page {
             return etag;
         }
 
-        public long getTemplateLastModified() {
-            return templateLastModified;
+        public long getTime() {
+            return time;
         }
     }
 
@@ -143,12 +161,12 @@ public class Page {
         this.source = source;
     }
 
-    public String getHtml() {
-        return html;
+    public HtmlCache getHtmlCache() {
+        return htmlCache;
     }
 
-    public void setHtml(String html) {
-        this.html = html;
+    public void setHtmlCache(HtmlCache htmlCache) {
+        this.htmlCache = htmlCache;
     }
 
     public long getLastModified() {

@@ -1,6 +1,5 @@
 package xyz.liuw.autumn.service;
 
-import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.io.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
 import xyz.liuw.autumn.data.Media;
 import xyz.liuw.autumn.util.MimeTypeUtil;
@@ -28,8 +26,6 @@ public class MediaService {
 
     private static Logger logger = LoggerFactory.getLogger(MediaService.class);
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private int cacheFileMaxLength = 1024 * 1024; // 1 MB
 
     @Value("${server.compression.mime-types}")
     private List<String> compressionMimeTypes;
@@ -67,28 +63,6 @@ public class MediaService {
                                 HttpServletRequest request,
                                 HttpServletResponse response) throws IOException {
         File file = media.getFile();
-        // 设置 md5 和 mimeType，如果文件不大，还会缓存内容
-        if (media.getMd5() == null) {
-            //noinspection SynchronizationOnLocalVariableOrMethodParameter
-            synchronized (media) {
-                if (media.getMd5() == null) {
-                    if (file.length() <= cacheFileMaxLength) {
-                        logger.info("Caching small file content and calculate md5 {}", file.getAbsolutePath());
-                        media.setContent(FileUtil.toByteArray(file));
-                        media.setMd5(DigestUtils.md5DigestAsHex(media.getContent()));
-                    } else {
-                        // md5
-                        logger.info("Calculating big file md5 {}", file.getAbsolutePath());
-                        InputStream in = new FileInputStream(file);
-                        media.setMd5(DigestUtils.md5DigestAsHex(in));
-                        IOUtil.closeQuietly(in);
-                    }
-
-                    String mimeType = MimeTypeUtil.getMimeType(file.getName());
-                    media.setMimeType(mimeType);
-                }
-            }
-        }
 
         if (media.getContent() != null) {
             return handleRequest(media.getContent(),
@@ -115,6 +89,7 @@ public class MediaService {
                 webRequest, request, response);
         return null;
     }
+
 
     private void handleRequest(Supplier<InputStream> inputStreamSupplier,
                                int length,

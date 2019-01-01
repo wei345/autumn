@@ -6,9 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
+import xyz.liuw.autumn.data.DataLoader;
 import xyz.liuw.autumn.data.Page;
 import xyz.liuw.autumn.util.WebUtil;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -38,21 +40,28 @@ public class PageService {
     @Autowired
     private SearchService searchService;
 
-    public byte[] handlePageRequest(@NotNull Page page, Map<String, Object> model, String view, WebRequest webRequest) {
+    @Autowired
+    private DataLoader dataLoader;
+
+    public byte[] handlePageRequest(@NotNull Page page,
+                                    Map<String, Object> model,
+                                    String view,
+                                    WebRequest webRequest,
+                                    HttpServletRequest request) {
         Page.ViewCache viewCache = dataService.getViewCache(page);
-        long templateLastModified = templateService.getTemplateLastModified();
-        if (viewCache == null || viewCache.getTemplateLastModified() < templateLastModified) {
+        long templateLastModified = templateService.getTemplateLastChanged();
+        if (viewCache == null || viewCache.getTime() < templateLastModified) {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (page) {
                 viewCache = dataService.getViewCache(page);
-                if (viewCache == null || viewCache.getTemplateLastModified() < templateLastModified) {
+                if (viewCache == null || viewCache.getTime() < templateLastModified) {
                     logger.info("Building cache path={}", page.getPath());
                     model.put(TITLE, htmlEscape(page.getTitle()));
-                    model.put(PAGE_HTML, getPageHtml(page));
+                    model.put(PAGE_HTML, getPageHtml(page, WebUtil.getInternalPath(request)));
                     byte[] content = templateService.merge(model, view).getBytes(StandardCharsets.UTF_8);
                     String md5 = DigestUtils.md5DigestAsHex(content);
                     String etag = WebUtil.getEtag(md5);
-                    dataService.setViewCache(page, new Page.ViewCache(content, etag, templateLastModified));
+                    dataService.setViewCache(page, new Page.ViewCache(content, etag));
                 }
             }
             viewCache = dataService.getViewCache(page);
@@ -65,8 +74,12 @@ public class PageService {
         return viewCache.getContent();
     }
 
-    public String handlePageHighlightRequest(@NotNull Page page, List<String> searchStrList, Map<String, Object> model, String view) {
-        String html = getPageHtml(page);
+    public String handlePageHighlightRequest(@NotNull Page page,
+                                             List<String> searchStrList,
+                                             Map<String, Object> model,
+                                             String view,
+                                             HttpServletRequest request) {
+        String html = getPageHtml(page, WebUtil.getInternalPath(request));
         html = searchService.highlightSearchStr(html, searchStrList);
         model.put(TITLE, htmlEscape(page.getTitle()));
         model.put(PAGE_HTML, html);
@@ -94,17 +107,17 @@ public class PageService {
         return page.getSource();
     }
 
-    private String getPageHtml(Page page) {
-        if (page.getHtml() == null) {
+    private String getPageHtml(Page page, String path) {
+        if (page.getHtmlCache() == null || page.getHtmlCache().getTime() < dataLoader.getMediaLastChanged()) {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (page) {
-                if (page.getHtml() == null) {
-                    String html = markdownParser.render(page.getTitle(), page.getBody());
-                    page.setHtml(html);
+                if (page.getHtmlCache() == null || page.getHtmlCache().getTime() < dataLoader.getMediaLastChanged()) {
+                    String html = markdownParser.render(page.getTitle(), page.getBody(), path);
+                    page.setHtmlCache(new Page.HtmlCache(html));
                 }
             }
         }
-        return page.getHtml();
+        return page.getHtmlCache().getContent();
     }
 
 }

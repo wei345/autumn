@@ -7,6 +7,7 @@ import xyz.liuw.autumn.data.Media;
 import xyz.liuw.autumn.data.Page;
 import xyz.liuw.autumn.data.TreeJson;
 
+import javax.annotation.PostConstruct;
 import java.util.Map;
 
 import static xyz.liuw.autumn.service.UserService.isLogged;
@@ -29,6 +30,18 @@ public class DataService {
     @Autowired
     private StaticService staticService;
 
+
+    private volatile long mediaLastChanged;
+
+    @PostConstruct
+    private void init(){
+
+    }
+
+    private void refreshMediaLastChanged(){
+        mediaLastChanged = System.currentTimeMillis();
+    }
+
     public TreeJson getTreeJson() {
         return isLogged() ?
                 dataSource.getAllData().getTreeJson() :
@@ -49,6 +62,14 @@ public class DataService {
             return LOGIN_REQUIRED_MEDIA;
         }
         return null;
+    }
+
+    public String getMediaVersionKeyValue(String path) {
+        Media media = dataSource.getAllData().getMediaMap().get(path);
+        if (media != null) {
+            return media.getVersionKeyValue();
+        }
+        return "";
     }
 
     Page.ViewCache getViewCache(Page page) {

@@ -24,7 +24,7 @@ public class WebUtil {
     private static final int ETAG_VERSION = 1;
     private static final String REQUEST_VERSION_KEY = "v";
     private static final String VERSION_KEY_VALUE_PREFIX = REQUEST_VERSION_KEY + "=" + ETAG_VERSION + ETAG_MD5_SEPARATOR;
-    private static final long DEFAULT_EXPIRES_SECONDS = 86400;
+    private static final long DEFAULT_EXPIRES_SECONDS = 86400 * 365 * 16; // 16 年
     @Value("${server.servlet.context-path:}")
     private String contextPath;
 
