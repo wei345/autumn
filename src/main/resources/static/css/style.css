@@ -41,6 +41,7 @@ code {
 
 pre {
     background: #f4f5f6;
+    border-radius: 3px;
     overflow-y: hidden;
 }
 
@@ -359,14 +360,10 @@ input.header__row_1__search_input {
 }
 
 /* 锚链接 */
-.page .heading {
-    margin-left: -1em;
-    padding-left: 1em;
-}
-
 .page .heading > a.heading__anchor {
-    position: absolute;
+    float: left;
     margin-left: -21px;
+    padding-right: 6px;
     visibility: hidden;
     display: block;
 }
