@@ -190,6 +190,14 @@ img {
     -ms-user-select: none;
 }
 
+.scroll_table {
+    overflow: auto;
+}
+
+.scroll_table table {
+    white-space: pre;
+}
+
 .container {
     max-width: 70em;
     min-width: 20em;
