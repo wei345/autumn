@@ -189,16 +189,8 @@ public class UserService {
 
     private void addCookie(CookieGenerator cg, String value, HttpServletRequest request, HttpServletResponse response) {
         cg.setCookiePath(webUtil.getContextPath() + "/");
-        cg.setCookieSecure(isSecure(request));
+        cg.setCookieSecure(WebUtil.isSecure(request));
         cg.addCookie(response, value);
-    }
-
-    private boolean isSecure(HttpServletRequest request) {
-        String scheme = request.getHeader("X-Forwarded-Proto");
-        if (StringUtils.isBlank(scheme)) {
-            scheme = request.getScheme();
-        }
-        return "https".equalsIgnoreCase(scheme);
     }
 
     /**

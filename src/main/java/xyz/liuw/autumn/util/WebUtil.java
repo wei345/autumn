@@ -1,6 +1,7 @@
 package xyz.liuw.autumn.util;
 
 import com.vip.vjtools.vjkit.text.EscapeUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -83,6 +84,18 @@ public class WebUtil {
         response.setDateHeader(HttpHeaders.EXPIRES, System.currentTimeMillis() + (expiresSeconds * 1000));
         // Http 1.1 header, set a time after now.
         response.setHeader(HttpHeaders.CACHE_CONTROL, "private, max-age=" + expiresSeconds);
+    }
+
+    public static boolean isSecure(HttpServletRequest request) {
+        return "https".equalsIgnoreCase(getScheme(request));
+    }
+
+    private static String getScheme(HttpServletRequest request) {
+        String scheme = request.getHeader("X-Forwarded-Proto");
+        if (StringUtils.isNotBlank(scheme)) {
+            return scheme;
+        }
+        return request.getScheme();
     }
 
     public String getContextPath() {
