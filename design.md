@@ -232,3 +232,9 @@ sys	0m0.692s
 Space 可以对应特定域名。
 
 不同 Space 可以对应不同数据目录。
+
+### Robot
+
+* [Googlebot](https://www.distilnetworks.com/bot-directory/bot/googlebot/)
+* [Yahoo! Slurp](https://www.distilnetworks.com/bot-directory/bot/yahoo-slurp/)
+
