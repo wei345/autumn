@@ -877,5 +877,11 @@ ul.header__row_1__tools {
         .multiple_columns .fixed .show_toc .toc > ul {
             max-height: calc(100vh - 7em);
         }
+
+        .qsr__list {
+            min-height: 6em;
+            max-height: calc(100vh - 13em);
+            overflow: auto;
+        }
     }
 }
