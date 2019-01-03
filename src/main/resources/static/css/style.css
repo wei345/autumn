@@ -763,7 +763,6 @@ ul.header__row_1__tools {
         top: 0;
         height: 100vh;
         box-sizing: border-box;
-        border-right: 1px solid rgba(0, 0, 0, .1);
     }
 
     .multiple_columns .fixed .tree_box {
