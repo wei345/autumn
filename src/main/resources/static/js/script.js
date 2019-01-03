@@ -345,17 +345,28 @@ function selectedNodeScrollIntoViewIfTreeFirstShow() {
     }
 }
 
+function scrollToTop(el) {
+    scrollToRectTop(el, 0);
+}
+
 function scrollToCenter(el) {
+    var expectRectTop = (getViewportHeight() / 2) - (el.clientHeight / 2);
+    scrollToRectTop(el, expectRectTop);
+}
+
+function scrollToRectTop(el, expectRectTop) {
     // 使用 scroll，不使用 selected.scrollIntoView({block: 'center'}) ，
     // 因为如果 selected 在页面底部，scrollIntoView 会"过量滚动"，导致 body 也向上滚动一段距离，
     // 另外，Safari 不支持 scrollIntoView 选项。
+    var rect = el.getBoundingClientRect(); // 相对于 Viewport 左上角的坐标
+    if (rect.top === expectRectTop) {
+        return;
+    }
     var scrollEl = getScrollParent(el);
-    var rect = el.getBoundingClientRect();
     var maxScrollTop = scrollEl.scrollHeight - scrollEl.clientHeight;
     if (maxScrollTop === 0) { // 手机 chrome 可能为 0
         maxScrollTop = scrollEl.scrollHeight - getViewportHeight();
     }
-    var expectRectTop = (getViewportHeight() / 2) - (el.clientHeight / 2);
     var expectScrollTop = scrollEl.scrollTop + (rect.top - expectRectTop);
     var scrollTop = Math.max(0, Math.min(maxScrollTop, expectScrollTop));
     scrollEl.scroll(0, scrollTop);

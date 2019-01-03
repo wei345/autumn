@@ -28,6 +28,9 @@ function setupQuickSearch(root) {
 
     function bindSearchInputEvent() {
         searchInput.addEventListener('focus', function () {
+            if (isMobi) {
+                scrollToTop(searchInput);
+            }
             searchInput.classList.add('header__row_1__search_input_focus');
             qs(true);
         });
