@@ -191,6 +191,10 @@ img {
     -ms-user-select: none;
 }
 
+.show {
+    display: block !important;
+}
+
 .scroll_table {
     overflow: auto;
 }
@@ -561,7 +565,9 @@ input.header__row_1__search_input {
 
 .qsr__list {
     margin: 0;
+    clear: both;
     padding-left: 1.2em;
+    padding-right: 1.2em;
 }
 
 .qsr__list li {
@@ -642,10 +648,6 @@ ul.header__row_1__tools {
     flex: 0 0 12em;
 }
 
-.show {
-    display: block !important;
-}
-
 .center_position {
     max-width: 600px;
     margin: 0 auto;
@@ -693,6 +695,7 @@ ul.header__row_1__tools {
         min-width: 7em;
     }
 
+    /* 快速搜索面板阴影 */
     .header__row_1__search_form, .header__row_1__search_form {
         border-radius: .4em;
     }
@@ -848,6 +851,10 @@ ul.header__row_1__tools {
         .multiple_columns .fixed .header__row_1__search_box {
             box-sizing: border-box;
             height: 51px;
+        }
+
+        .multiple_columns .fixed.qsr_more .header__row_1__search_box {
+            height: auto;
         }
 
         .multiple_columns .fixed .header__toolbar {
