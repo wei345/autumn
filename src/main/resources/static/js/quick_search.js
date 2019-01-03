@@ -949,7 +949,13 @@ function setupQuickSearch(root) {
         }
 
         function focusAndQs() {
-            searchInput.focus();
+            // 移动设备上点击标签或分类，搜索框不要自动获得焦点，
+            // 因为获得焦点后会显示键盘浮层，页面显示空间变小，这可能不是用户期望的行为。
+            if (!isMobi || searchInput.classList.contains('header__row_1__search_input_focus')) {
+                if (document.activeElement !== searchInput) {
+                    searchInput.focus();
+                }
+            }
             qs();
         }
 
