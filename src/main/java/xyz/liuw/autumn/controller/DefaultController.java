@@ -90,7 +90,7 @@ public class DefaultController {
         String path = WebUtil.getInternalPath(request);
 
         // 静态文件
-        ResourceLoader.ResourceCache resourceCache = staticService.getResourceCache(path);
+        ResourceLoader.ResourceCache resourceCache = staticService.getStaticResourceCache(path);
         if (resourceCache != null) {
             return staticService.handleRequest(resourceCache, webRequest, request, response);
         }

@@ -33,6 +33,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.FileVisitResult.CONTINUE;
 
 /**
@@ -43,20 +44,19 @@ import static java.nio.file.FileVisitResult.CONTINUE;
 public class ResourceLoader implements Runnable {
 
     public static final String STATIC_ROOT = "/static";
-    public static final String WEBJARS_ROOT = "/META-INF/resources/webjars";
+    private static final String WEBJARS_ROOT = "/META-INF/resources/webjars";
     private static final String TEMPLATE_ROOT = "/templates";
     private static Logger logger = LoggerFactory.getLogger(ResourceLoader.class);
     private volatile long templateLastModified;
     @Value("${autumn.resource.reload-interval-seconds}")
     private long reloadIntervalSeconds;
     private volatile Map<String, ResourceLoader.ResourceCache> resourceCacheMap = Collections.emptyMap();
-    private Map<String, ResourceLoader.ResourceCache> webjarsResourceCacheMap = Collections.emptyMap();
     private List<StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
     private List<TemplateLastChangedListener> templateLastChangedListeners = new ArrayList<>(1);
 
     private ScheduledExecutorService scheduler;
 
-    private static byte[] readClasspath(String classpath) {
+    private static byte[] getResourceAsBytes(String classpath) {
         InputStream in = ResourceLoader.class.getResourceAsStream(classpath);
         try {
             return StreamUtils.copyToByteArray(in);
@@ -69,7 +69,6 @@ public class ResourceLoader implements Runnable {
 
     @PostConstruct
     private void init() {
-        loadWebjarFiles();
         refreshCache();
         startSchedule();
     }
@@ -151,20 +150,14 @@ public class ResourceLoader implements Runnable {
         LoadResourceVisitor visitor = new LoadResourceVisitor(classpathOfRoot, resourceCacheMap);
         ResourceWalker.walk(classpathOfRoot, visitor);
         if (visitor.isChanged()) {
-            Map<String, ResourceCache> classpathToResourceCache = visitor.getPathToResourceCache();
-            classpathToResourceCache.putAll(webjarsResourceCacheMap);
-            resourceCacheMap = classpathToResourceCache;
+            resourceCacheMap = visitor.getPathToResourceCache();
             staticChangedListeners.forEach(StaticChangedListener::onChanged);
         }
     }
 
-    private void loadWebjarFiles() {
-        String classpathOfRoot = WEBJARS_ROOT;
-        LoadResourceVisitor visitor = new LoadResourceVisitor(classpathOfRoot, webjarsResourceCacheMap);
-        ResourceWalker.walk(classpathOfRoot, visitor);
-        webjarsResourceCacheMap = visitor.getPathToResourceCache();
+    public String getWebJarResourceAsString(String internalPath) {
+        return new String(getResourceAsBytes(WEBJARS_ROOT + internalPath), UTF_8);
     }
-
 
     public interface TemplateLastChangedListener {
         void onChanged();
@@ -240,7 +233,7 @@ public class ResourceLoader implements Runnable {
 
                 addOrModifiedCount++;
 
-                byte[] content = readClasspath(fileClasspath);
+                byte[] content = getResourceAsBytes(fileClasspath);
                 String md5 = DigestUtils.md5DigestAsHex(content);
                 String mimeType = MimeTypeUtil.getMimeType(fileClasspath);
                 ResourceCache resourceCache = new ResourceCache();

@@ -26,7 +26,6 @@ import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static xyz.liuw.autumn.data.ResourceLoader.STATIC_ROOT;
-import static xyz.liuw.autumn.data.ResourceLoader.WEBJARS_ROOT;
 
 /**
  * @author liuwei
@@ -39,17 +38,22 @@ public class StaticService {
     private volatile JsCache jsCache;
     private volatile CssCache cssCache;
     private volatile Page helpPage;
-    private String codeHighlightJs;
-    private String codeHighlightCss;
+    private String codeBlockLineNumberJs;
+    private String codeBlockHighlightJs;
+    private String codeBlockHighlightCss;
     private List<ResourceLoader.StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
+
+    @Value("${autumn.code-block-line-number.enabled}")
+    private boolean codeBlockLineNumberEnabled;
+
     @Value("${autumn.code-block-highlighting.enabled}")
-    private boolean codeHighlightEnabled;
+    private boolean codeBlockHighlightEnabled;
 
     @Value("${autumn.code-block-highlighting.languages}")
     private List<String> highlightLanguages;
 
     @Value("${autumn.code-block-highlighting.style}")
-    private String highlightStyle;
+    private String codeBlockHighlightStyle;
 
     @Autowired
     private ResourceLoader resourceLoader;
@@ -90,7 +94,7 @@ public class StaticService {
         );
     }
 
-    public ResourceLoader.ResourceCache getResourceCache(String path) {
+    public ResourceLoader.ResourceCache getStaticResourceCache(String path) {
         return resourceLoader.getResourceCache(STATIC_ROOT + path);
     }
 
@@ -107,7 +111,7 @@ public class StaticService {
     }
 
     private void refreshHelpPage() {
-        ResourceLoader.ResourceCache data = getResourceCache("/help.md");
+        ResourceLoader.ResourceCache data = getStaticResourceCache("/help.md");
         if (helpPage != null && helpPage.getLastModified() >= data.getLastModified()) {
             return;
         }
@@ -130,8 +134,8 @@ public class StaticService {
 
     private boolean refreshJsCache() {
         boolean changed = false;
-        ResourceLoader.ResourceCache scriptJs = getResourceCache("/js/script.js");
-        ResourceLoader.ResourceCache quickSearchJs = getResourceCache("/js/quick_search.js");
+        ResourceLoader.ResourceCache scriptJs = getStaticResourceCache("/js/script.js");
+        ResourceLoader.ResourceCache quickSearchJs = getStaticResourceCache("/js/quick_search.js");
 
         if (jsCache == null || jsCache.hasChanged(scriptJs.getMd5(), quickSearchJs.getMd5())) {
             jsCache = createJsCache(scriptJs, quickSearchJs);
@@ -162,9 +166,12 @@ public class StaticService {
                 .append("(function () {\n")
                 .append(scriptJsContent).append("\n")
                 .append(quickSearchJsContent).append("\n")
-                .append("})();");
-        if (codeHighlightEnabled) {
-            stringBuilder.append("\n").append(getCodeHighlightJs());
+                .append("})();\n");
+        if (codeBlockHighlightEnabled) {
+            stringBuilder.append(getCodeBlockHighlightJs()).append("\n");
+        }
+        if (codeBlockLineNumberEnabled) {
+            stringBuilder.append(getCodeBlockLineNumberJs()).append("\n");
         }
 
         String js = jsCssCompressor.compressJs(stringBuilder.toString());
@@ -183,17 +190,17 @@ public class StaticService {
     }
 
     private boolean refreshCssCache() {
-        ResourceLoader.ResourceCache normalizeCss = getResourceCache("/css/normalize.css");
-        ResourceLoader.ResourceCache styleCss = getResourceCache("/css/style.css");
+        ResourceLoader.ResourceCache normalizeCss = getStaticResourceCache("/css/normalize.css");
+        ResourceLoader.ResourceCache styleCss = getStaticResourceCache("/css/style.css");
         if (cssCache != null && cssCache.checkNotModified(normalizeCss.getMd5(), styleCss.getMd5())) {
             return false;
         }
 
         StringBuilder stringBuilder = stringBuilderHolder.get();
-        stringBuilder.append(new String(normalizeCss.getContent(), UTF_8))
-                .append(new String(styleCss.getContent(), UTF_8));
-        if (codeHighlightEnabled) {
-            stringBuilder.append("\n").append(getCodeHighlightCss());
+        stringBuilder.append(new String(normalizeCss.getContent(), UTF_8)).append("\n")
+                .append(new String(styleCss.getContent(), UTF_8)).append("\n");
+        if (codeBlockHighlightEnabled) {
+            stringBuilder.append(getCodeBlockHighlightCss()).append("\n");
         }
         String cssText = stringBuilder.toString();
 
@@ -210,46 +217,59 @@ public class StaticService {
         return true;
     }
 
-    private String getCodeHighlightJs() {
-        if (codeHighlightJs != null) {
-            return codeHighlightJs;
+    private String getCodeBlockLineNumberJs() {
+        if (codeBlockLineNumberJs != null) {
+            return codeBlockLineNumberJs;
         }
 
-        ResourceLoader.ResourceCache hljsCache = resourceLoader.getResourceCache(WEBJARS_ROOT + "/highlightjs/9.8.0/highlight.js");
+        StringBuilder stringBuilder = new StringBuilder(7000);
+        ResourceLoader.ResourceCache resourceCache = getStaticResourceCache("/js/lib/highlightjs-line-numbers.js");
+        // 不依赖 highlight.js
+        stringBuilder.append("if(!window.hljs) window.hljs = {};\n")
+                .append(new String(resourceCache.getContent(), UTF_8)).append("\n")
+                .append("window.addEventListener('load', function () {\n")
+                .append("    Array.prototype.map.call(document.querySelectorAll('pre code'),el => el)\n")
+                .append("        .forEach(el => hljs.lineNumbersBlock(el, {singleLine: true}));\n")
+                .append("});\n");
+        return codeBlockLineNumberJs = stringBuilder.toString();
+    }
+
+    private String getCodeBlockHighlightJs() {
+        if (codeBlockHighlightJs != null) {
+            return codeBlockHighlightJs;
+        }
+
+        String hljsContent = resourceLoader.getWebJarResourceAsString("/highlightjs/9.8.0/highlight.js");
 
         StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
-        stringBuilder.append(new String(hljsCache.getContent(), UTF_8)).append("\n");
+        stringBuilder.append(hljsContent).append("\n");
         highlightLanguages.forEach(language -> {
-            String classpath = WEBJARS_ROOT + "/highlightjs/9.8.0/languages/" + language + ".js";
-            ResourceLoader.ResourceCache cache = resourceLoader.getResourceCache(classpath);
-            String text = new String(cache.getContent(), UTF_8);
+            String text = resourceLoader.getWebJarResourceAsString("/highlightjs/9.8.0/languages/" + language + ".js");
             String js = text.substring(text.indexOf("function"));
             // hljs.registerLanguage('language', function(hljs){...});
             stringBuilder.append("hljs.registerLanguage('").append(language).append("', ").append(js).append(");\n");
         });
         stringBuilder
                 .append("window.addEventListener('load', function () {\n")
-                .append("    Array.prototype.map.call(document.getElementsByClassName('language-text'),e => e)\n" +
-                        "        .forEach(el => el.classList.remove('language-text'));\n")
+                .append("    Array.prototype.map.call(document.getElementsByClassName('language-text'),e => e)\n")
+                .append("        .forEach(el => el.classList.remove('language-text'));\n")
                 .append("    hljs.initHighlighting();\n")
                 .append("});\n");
 
-        return (codeHighlightJs = stringBuilder.toString());
+        return (codeBlockHighlightJs = stringBuilder.toString());
     }
 
-    private String getCodeHighlightCss() {
-        if (codeHighlightCss != null) {
-            return codeHighlightCss;
+    private String getCodeBlockHighlightCss() {
+        if (codeBlockHighlightCss != null) {
+            return codeBlockHighlightCss;
         }
 
-        if (StringUtils.isBlank(highlightStyle)) {
-            return (codeHighlightCss = "");
+        if (StringUtils.isBlank(codeBlockHighlightStyle)) {
+            return (codeBlockHighlightCss = "");
         }
 
-        String webjarClasspath = WEBJARS_ROOT + "/highlightjs/9.8.0/styles/" + highlightStyle + ".css";
-        String classpath = highlightStyle.startsWith("/") ? highlightStyle : webjarClasspath;
-        ResourceLoader.ResourceCache cssCache = resourceLoader.getResourceCache(classpath);
-        return (codeHighlightCss = new String(cssCache.getContent(), UTF_8));
+        String text = resourceLoader.getWebJarResourceAsString("/highlightjs/9.8.0/styles/" + codeBlockHighlightStyle + ".css");
+        return codeBlockHighlightCss = text;
     }
 
     void addStaticChangedListener(ResourceLoader.StaticChangedListener listener) {
