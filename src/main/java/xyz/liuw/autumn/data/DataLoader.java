@@ -1,6 +1,5 @@
 package xyz.liuw.autumn.data;
 
-import ch.qos.logback.classic.Level;
 import com.google.common.collect.Maps;
 import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
 import com.vip.vjtools.vjkit.io.FileUtil;
@@ -79,7 +78,7 @@ public class DataLoader implements Runnable {
 
     @PostConstruct
     void start() {
-        quietlyLoad();
+        firstLoad();
         startSchedule();
     }
 
@@ -118,20 +117,13 @@ public class DataLoader implements Runnable {
         }
     }
 
-    private void quietlyLoad() {
-        // 为避免每次启动输出 1000 多条解析日志，将 PageParser 日志级别设为 WARN，初始加载完成后会恢复
-        ch.qos.logback.classic.Logger parserLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(PageParser.class);
-        Level oldLevel = parserLogger.getLevel();
-        if (oldLevel == null || oldLevel == Level.INFO) {
-            parserLogger.setLevel(Level.WARN);
-        }
+    private void firstLoad() {
         logger.info("Data loading: {}", dataDir);
         long start = System.currentTimeMillis();
 
         load();
 
         logger.info("Data loaded in {} ms", System.currentTimeMillis() - start);
-        parserLogger.setLevel(oldLevel);
     }
 
     /**
