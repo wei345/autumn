@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.springframework.web.util.HtmlUtils.htmlEscape;
 
@@ -47,6 +48,9 @@ public class DataLoader implements Runnable {
 
     @Value("${autumn.data-dir}")
     private String dataDir;
+
+    @Value("${autumn.data.exclude}")
+    private Set<String> excludes;
 
     @Value("${autumn.data.reload-interval-seconds:10}")
     private long reloadIntervalSeconds;
@@ -78,6 +82,7 @@ public class DataLoader implements Runnable {
 
     @PostConstruct
     void start() {
+        excludes = excludes.stream().map(s -> new File(dataDir, s).getAbsolutePath()).collect(Collectors.toSet());
         firstLoad();
         startSchedule();
     }
@@ -166,6 +171,9 @@ public class DataLoader implements Runnable {
                 if (file.isDirectory() && file.getName().endsWith(".mindnode")) {
                     continue;
                 }
+                if (excludes.contains(file.getAbsolutePath())) {
+                    continue;
+                }
 
                 if (file.isDirectory()) {
                     String path = parent.path + file.getName() + "/";
@@ -177,16 +185,12 @@ public class DataLoader implements Runnable {
                 }
 
                 if (file.isFile()) {
+
                     // Page
                     if (file.getName().endsWith(".md")) {
                         String name = filename(file);
                         String path = parent.path + name;
 
-                        // parse page
-                        if ("/index".equals(path) || "/sidebar".equals(path)) {
-                            // skip dokuwiki page
-                            continue;
-                        }
                         Page page = oldPageMap.get(path);
                         if (page == null || page.getLastModified() != file.lastModified()) {
                             pageAddedOrModified++;
@@ -246,7 +250,7 @@ public class DataLoader implements Runnable {
             treeJsonChangedListeners.forEach(TreeJsonChangedListener::onChanged);
         }
 
-        if(mediaChanged){
+        if (mediaChanged) {
             mediaLastChanged = System.currentTimeMillis();
             mediaChangedListeners.forEach(MediaChangedListener::onChanged);
         }
