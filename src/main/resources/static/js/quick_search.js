@@ -30,10 +30,13 @@ function setupQuickSearch(root) {
 
     function bindSearchInputEvent() {
         searchInput.addEventListener('focus', function () {
-            if (isMobi) {
-                scrollToTop(searchInput);
+            if (!isSearchInputFocusing()) {
+                setSearchInputFocusing(true);
+                if (isMobi) {
+                    scrollToTop(searchInput);
+                }
             }
-            searchInput.classList.add('header__row_1__search_input_focus');
+
             qs(true);
         });
 
@@ -82,10 +85,10 @@ function setupQuickSearch(root) {
 
             if (event.key === 'Escape') {
                 event.preventDefault(); // 阻止浏览器默认清空 input
-                /*if (qsrSelectedIndexInBound()) {
+                if (qsrSelectedIndexInBound()) {
                     resetSelect();
                     return;
-                }*/
+                }
 
                 /* 不清空
                 if (searchInput.value.trim().length > 0) {
@@ -95,7 +98,6 @@ function setupQuickSearch(root) {
 
                 if (qsOpened) {
                     closeQs();
-                    return;
                 }
                 searchInput.blur();
             }
@@ -127,13 +129,14 @@ function setupQuickSearch(root) {
             if (qsOpened) {
                 //searchInput.value = '';
                 closeQs();
+                setSearchInputFocusing(false);
             }
             event.stopPropagation();
         });
 
         document.addEventListener('click', function (event) {
             if (document.activeElement !== searchInput) {
-                searchInput.classList.remove('header__row_1__search_input_focus');
+                setSearchInputFocusing(false);
                 /* not auto close */
                 if (!event.isFromSearchForm && qsOpened) {
                     closeQs();
@@ -148,6 +151,14 @@ function setupQuickSearch(root) {
             }
             */
         });
+    }
+
+    function isSearchInputFocusing() {
+        return searchInput.classList.contains('header__row_1__search_input_focus');
+    }
+
+    function setSearchInputFocusing(isFocusing) {
+        searchInput.classList.toggle('header__row_1__search_input_focus', isFocusing);
     }
 
     function updateBtnClearSearchVisible() {
@@ -855,7 +866,7 @@ function setupQuickSearch(root) {
                 } else {
                     openCt();
                 }
-                if (qsOpened) {
+                if (isSearchInputFocusing()) {
                     searchInput.focus();
                 }
             });
@@ -978,7 +989,7 @@ function setupQuickSearch(root) {
         function focusAndQs() {
             // 移动设备上点击标签或分类，搜索框不要自动获得焦点，
             // 因为获得焦点后会显示键盘浮层，页面显示空间变小，这可能不是用户期望的行为。
-            if (!isMobi || searchInput.classList.contains('header__row_1__search_input_focus')) {
+            if (!isMobi || isSearchInputFocusing()) {
                 if (document.activeElement !== searchInput) {
                     searchInput.focus();
                 }
@@ -1046,6 +1057,7 @@ function setupQuickSearch(root) {
 
             searchInput.value = s + ' ';
             lastSyncS = s;
+            updateBtnClearSearchVisible();
         }
 
         function syncFromInput() {

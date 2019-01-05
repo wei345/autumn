@@ -8,7 +8,7 @@
         </div>
         <div class="header__row_1__search_box column">
             <form class="header__row_1__search_form" method="GET" action="${ctx!}/search">
-                <span class="search_icon"></span>
+                <span class="search_icon btn"></span>
                 <span class="search_box__ct_toggle btn"></span>
                 <span class="btn_clear_search btn"></span>
                 <input class="header__row_1__search_input" type="search" name="s" value="${s!}" autocomplete="off"

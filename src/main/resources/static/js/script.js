@@ -189,6 +189,7 @@ function bindShortcut() {
                 case '/':
                     if (searchInput) {
                         searchInput.focus();
+                        searchInput.select();
                         event.preventDefault();
                     }
                     break;
@@ -359,7 +360,7 @@ function scrollToRectTop(el, expectRectTop) {
     // 因为如果 selected 在页面底部，scrollIntoView 会"过量滚动"，导致 body 也向上滚动一段距离，
     // 另外，Safari 不支持 scrollIntoView 选项。
     var rect = el.getBoundingClientRect(); // 相对于 Viewport 左上角的坐标
-    if (rect.top === expectRectTop) {
+    if (Math.abs(rect.top - expectRectTop) < 16) {
         return;
     }
     var scrollEl = getScrollParent(el);
