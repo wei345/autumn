@@ -290,8 +290,8 @@ input.header__row_1__search_input {
 
 .qs_opened input.header__row_1__search_input_focus, input.header__row_1__search_input:focus {
     background-color: transparent;
-    border-radius: 0;
-    border-bottom: 1px solid #dfe1e5;
+    border-radius: .4em;
+    border: 1px solid #dfe1e5;
 }
 
 .btn_clear_search {
@@ -699,7 +699,7 @@ ul.header__row_1__tools {
     }
 
     .multiple_columns .header {
-        padding: 0 2em;
+        padding: 8px 2em 0;
     }
 
     .mobi .multiple_columns .header {
@@ -734,9 +734,11 @@ ul.header__row_1__tools {
         background: #fff;
     }
 
-    .show_ct .header__row_1__search_input, .qs_opened .header__row_1__search_input {
+    .show_ct .header__row_1__search_form .header__row_1__search_input, .qs_opened .header__row_1__search_form .header__row_1__search_input {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
+        border-left-width: 0;
+        border-right-width: 0;
     }
 
     /* toolbar */
