@@ -103,5 +103,29 @@ public class LineNumberCodeBlockExtension implements HtmlRenderer.HtmlRendererEx
     }
 }
 
+/*
+pre code table {
+    margin: 0;
+    padding-right: 15px;
+    width: auto;
+}
+
+pre code table td {
+    border: 0;
+    padding: 0;
+}
+
+pre code table td.line-number {
+    min-width: 1em;
+    text-align: right;
+    padding-right: 0.8em;
+    color: rgba(27, 31, 35, .3);
+}
+
+pre code table td.line-number:before {
+    content: attr(data-line-number);
+}
+*/
+
 
 

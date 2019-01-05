@@ -57,6 +57,7 @@ public class FlexmarkMarkdownParser implements MarkdownParser {
                         AutolinkExtension.create(),
                         TocExtension.create(),
                         new MediaVersionExtension(dataService)))
+                .set(HtmlRenderer.FENCED_CODE_LANGUAGE_CLASS_PREFIX, "")
                 .set(ScrollTableExtension.CLASS_NAME, "scroll_table")
                 .set(TocExtension.LEVELS, 127)
                 .set(TocExtension.DIV_CLASS, "toc") // 顶层元素 div.toc

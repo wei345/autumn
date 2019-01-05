@@ -228,8 +228,8 @@ public class StaticService {
         stringBuilder.append("if(!window.hljs) window.hljs = {};\n")
                 .append(new String(resourceCache.getContent(), UTF_8)).append("\n")
                 .append("window.addEventListener('load', function () {\n")
-                .append("    Array.prototype.map.call(document.querySelectorAll('pre code'),el => el)\n")
-                .append("        .forEach(el => hljs.lineNumbersBlock(el, {singleLine: true}));\n")
+                .append("    Array.prototype.map.call(document.querySelectorAll('pre code'), el => el)\n")
+                .append("        .forEach(block => hljs.lineNumbersBlock(block));\n")
                 .append("});\n");
         return codeBlockLineNumberJs = stringBuilder.toString();
     }
@@ -251,9 +251,13 @@ public class StaticService {
         });
         stringBuilder
                 .append("window.addEventListener('load', function () {\n")
-                .append("    Array.prototype.map.call(document.getElementsByClassName('language-text'),e => e)\n")
-                .append("        .forEach(el => el.classList.remove('language-text'));\n")
-                .append("    hljs.initHighlighting();\n")
+                .append("    Array.prototype.map.call(document.querySelectorAll('pre code'), el => el)\n")
+                .append("        .forEach(block => {\n")
+                .append("            var isText = block.classList.contains('text');\n")
+                .append("            if(isText) block.classList.remove('text');\n")
+                .append("            hljs.highlightBlock(block);\n")
+                .append("            if(isText) block.classList.add('text');\n")
+                .append("        });\n")
                 .append("});\n");
 
         return (codeBlockHighlightJs = stringBuilder.toString());
