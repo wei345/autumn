@@ -9,12 +9,13 @@
         <div class="header__row_1__search_box column">
             <form class="header__row_1__search_form" method="GET" action="${ctx!}/search">
                 <span class="search_icon"></span>
-                <span class="search_box__ct_toggle no_selection"></span>
+                <span class="search_box__ct_toggle btn"></span>
+                <span class="btn_clear_search btn"></span>
                 <input class="header__row_1__search_input" type="search" name="s" value="${s!}" autocomplete="off"
                        placeholder="Search"/>
                 <div class="search_box__ct no_selection"></div>
                 <div class="qsr">
-                    <span class="qsr__close no_selection"></span>
+                    <span class="qsr__close btn"></span>
                     <div class="qsr__stats"></div>
                     <ul class="qsr__list"></ul>
                 </div>

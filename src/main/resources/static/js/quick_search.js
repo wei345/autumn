@@ -4,6 +4,7 @@ function setupQuickSearch(root) {
     var searchForm = document.getElementsByClassName('header__row_1__search_form')[0];
     var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
     var categoryAndTagsToggle = document.getElementsByClassName('search_box__ct_toggle')[0];
+    var btnClearSearch = document.getElementsByClassName('btn_clear_search')[0];
     var qsrClose = document.getElementsByClassName('qsr__close')[0];
     var qsrList = document.getElementsByClassName('qsr__list')[0];
     var qsrAllPages;
@@ -20,6 +21,7 @@ function setupQuickSearch(root) {
     var qsTimeoutId;
     var onQsOpen;
     var onQsClose;
+    var btnClearSearchVisible = false;
 
     getAllPages(root);
     setUpCategoryAndTags();
@@ -78,29 +80,42 @@ function setupQuickSearch(root) {
                 return;
             }
 
-            // ESC 清空输入框或关闭 QuickSearch
             if (event.key === 'Escape') {
-                if (qsrSelectedIndexInBound()) {
+                event.preventDefault(); // 阻止浏览器默认清空 input
+                /*if (qsrSelectedIndexInBound()) {
                     resetSelect();
-                    event.preventDefault();
                     return;
-                }
+                }*/
 
+                /* 不清空
                 if (searchInput.value.trim().length > 0) {
                     searchInput.value = ''; // 之后 keyup 会触发 qs()
                     return;
-                }
+                }*/
 
+                if (qsOpened) {
+                    closeQs();
+                    return;
+                }
                 searchInput.blur();
-                closeQs();
             }
         });
 
-        searchInput.addEventListener('keyup', function () {
+        /* 按 ESC 或方向键不搜索
+        searchInput.addEventListener('keyup', function (event) {
+            qs();
+        });*/
+
+        // 键盘或鼠标操作内容变化触发搜索
+        searchInput.addEventListener('input', function () {
+            updateBtnClearSearchVisible();
             qs();
         });
 
-        searchInput.addEventListener('input', function () {
+        btnClearSearch.addEventListener('click', function () {
+            searchInput.value = '';
+            searchInput.focus();
+            updateBtnClearSearchVisible();
             qs();
         });
     }
@@ -110,7 +125,7 @@ function setupQuickSearch(root) {
 
         qsrClose.addEventListener('click', function (event) {
             if (qsOpened) {
-                searchInput.value = '';
+                //searchInput.value = '';
                 closeQs();
             }
             event.stopPropagation();
@@ -119,10 +134,10 @@ function setupQuickSearch(root) {
         document.addEventListener('click', function (event) {
             if (document.activeElement !== searchInput) {
                 searchInput.classList.remove('header__row_1__search_input_focus');
-                /* not auto close
-                if (!event.isFromSearchForm && qsOpened && searchInput.value === '') {
+                /* not auto close */
+                if (!event.isFromSearchForm && qsOpened) {
                     closeQs();
-                }*/
+                }
             }
         });
 
@@ -133,6 +148,20 @@ function setupQuickSearch(root) {
             }
             */
         });
+    }
+
+    function updateBtnClearSearchVisible() {
+        if (searchInput.value === '') {
+            if (btnClearSearchVisible) {
+                btnClearSearch.classList.remove('show');
+                btnClearSearchVisible = false;
+            }
+        } else {
+            if (!btnClearSearchVisible) {
+                btnClearSearch.classList.add('show');
+                btnClearSearchVisible = true;
+            }
+        }
     }
 
     function getSelectionText() {
@@ -597,7 +626,6 @@ function setupQuickSearch(root) {
 
     function renderQsrHtml(html) {
         qsrList.innerHTML = html;
-        qsrClose.classList.toggle('show', true);
     }
 
     function showRecentlyVisit() {
@@ -731,7 +759,6 @@ function setupQuickSearch(root) {
         qsrList.innerHTML = '';
         qsrAllPages = null;
         qsrSelectedIndex = -1;
-        qsrClose.classList.toggle('show', false);
     }
 
     function setUpCategoryAndTags() {
