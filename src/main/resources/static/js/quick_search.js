@@ -18,8 +18,9 @@ function setupQuickSearch(treeRoot) {
     var lastS;
     var pendingQs = 0;
     var qsTimeoutId;
-    var onQsOpen;
-    var onQsClose;
+    var onQsOpenListeners = [];
+    var onQsCloseListeners = [];
+    var onSearchInputChangeListeners = [];
     var btnClearSearchVisible = false;
 
     getAllPages(treeRoot);
@@ -91,7 +92,7 @@ function setupQuickSearch(treeRoot) {
 
                 /* 不清空
                 if (searchInput.value.trim().length > 0) {
-                    searchInput.value = ''; // 之后 keyup 会触发 qs()
+                    setSearchInputValue(''); // 之后 keyup 会触发 qs()
                     return;
                 }*/
 
@@ -114,11 +115,16 @@ function setupQuickSearch(treeRoot) {
         });
 
         btnClearSearch.addEventListener('click', function () {
-            searchInput.value = '';
+            setSearchInputValue('');
             searchInput.focus();
             updateBtnClearSearchVisible();
             qs();
         });
+    }
+
+    function setSearchInputValue(value) {
+        searchInput.value = value;
+        onSearchInputChangeListeners.forEach(fn => fn());
     }
 
     function bindQuickSearchCloseEvent() {
@@ -126,7 +132,7 @@ function setupQuickSearch(treeRoot) {
 
         qsrClose.addEventListener('click', function (event) {
             if (qsOpened) {
-                //searchInput.value = '';
+                //setSearchInputValue('');
                 closeQs();
                 setSearchInputFocusing(false);
             }
@@ -249,9 +255,7 @@ function setupQuickSearch(treeRoot) {
     function openQs() {
         qsOpened = true;
         container.classList.add('qs_opened');
-        if (typeof (onQsOpen) === 'function') {
-            onQsOpen();
-        }
+        onQsOpenListeners.forEach(fn => fn());
     }
 
     function closeQs() {
@@ -263,9 +267,7 @@ function setupQuickSearch(treeRoot) {
         qsOpened = false;
         container.classList.remove('qs_opened');
         container.classList.remove('qsr_more');
-        if (typeof(onQsClose) === 'function') {
-            onQsClose();
-        }
+        onQsCloseListeners.forEach(fn => fn());
     }
 
     function doSearch(s) {
@@ -969,6 +971,9 @@ function setupQuickSearch(treeRoot) {
         }
 
         function syncFromInput() {
+            if (!ctOpened) {
+                return;
+            }
             const s = searchInput.value.trim();
             if (lastSyncS === s) {
                 return;
@@ -1010,18 +1015,10 @@ function setupQuickSearch(treeRoot) {
             if (!hasCategoriesOrTags()) {
                 return;
             }
-            searchInput.addEventListener('keyup', function () {
-                if (ctOpened) {
-                    syncFromInput();
-                }
-
-            });
-            searchInput.addEventListener('input', function () {
-                if (ctOpened) {
-                    syncFromInput();
-                }
-            });
-            onQsClose = closeCt;
+            searchInput.addEventListener('keyup', syncFromInput);
+            searchInput.addEventListener('input', syncFromInput);
+            onSearchInputChangeListeners.push(syncFromInput);
+            onQsCloseListeners.push(closeCt);
         }
     }
 }
