@@ -1,9 +1,8 @@
 "use strict";
-
-function setupQuickSearch(root) {
+function setupQuickSearch(treeRoot) {
     var searchForm = au.el('.header__row_1__search_form');
     var searchInput = au.el('.header__row_1__search_input');
-    var categoryAndTagsToggle = au.el('.search_box__ct_toggle');
+    var ctToggle = au.el('.search_box__ct_toggle');
     var btnClearSearch = au.el('.btn_clear_search');
     var qsrClose = au.el('.qsr__close');
     var qsrList = au.el('.qsr__list');
@@ -23,8 +22,8 @@ function setupQuickSearch(root) {
     var onQsClose;
     var btnClearSearchVisible = false;
 
-    getAllPages(root);
-    setUpCategoryAndTags();
+    getAllPages(treeRoot);
+    setupCt();
     bindSearchInputEvent();
     bindQuickSearchCloseEvent();
 
@@ -686,12 +685,12 @@ function setupQuickSearch(root) {
         qsrSelectedIndex = -1;
     }
 
-    function setUpCategoryAndTags() {
+    function setupCt() {
         var categoryField = 'category';
         var tagField = 'tags';
         var selectedClassName = 'cat_selected';
-        var categoryAndTags = au.el('.search_box__ct');
-        categoryAndTags.innerHTML = buildHtml(allPages, categoryField, '分类') + buildHtml(allPages, tagField, '标签');
+        var ct = au.el('.search_box__ct');
+        ct.innerHTML = buildHtml(allPages, categoryField, '分类') + buildHtml(allPages, tagField, '标签');
         var categoryList = au.el('.search_box__' + categoryField + '_list');
         var tagList = au.el('.search_box__' + tagField + '_list');
         const categoryTitle = au.el('.search_box__' + categoryField + '_list_title');
@@ -769,7 +768,7 @@ function setupQuickSearch(root) {
             });
             */
 
-            categoryAndTagsToggle.addEventListener('click', function () {
+            ctToggle.addEventListener('click', function () {
                 if (ctOpened) {
                     closeCt();
                 } else {
@@ -780,7 +779,7 @@ function setupQuickSearch(root) {
                 }
             });
 
-            categoryAndTagsToggle.classList.add('show');
+            ctToggle.classList.add('show');
         }
 
         function hasCategoriesOrTags() {
@@ -934,8 +933,8 @@ function setupQuickSearch(root) {
 
         function openCt() {
             ctOpened = true;
-            categoryAndTags.classList.add('show');
-            categoryAndTagsToggle.classList.add('unfolded');
+            ct.classList.add('show');
+            ctToggle.classList.add('unfolded');
             container.classList.add('show_ct');
             syncFromInput();
         }
@@ -945,8 +944,8 @@ function setupQuickSearch(root) {
                 return;
             }
             ctOpened = false;
-            categoryAndTags.classList.remove('show');
-            categoryAndTagsToggle.classList.remove('unfolded');
+            ct.classList.remove('show');
+            ctToggle.classList.remove('unfolded');
             container.classList.remove('show_ct');
         }
 
