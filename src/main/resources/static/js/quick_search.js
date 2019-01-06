@@ -1,12 +1,12 @@
 "use strict";
 
 function setupQuickSearch(root) {
-    var searchForm = document.getElementsByClassName('header__row_1__search_form')[0];
-    var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
-    var categoryAndTagsToggle = document.getElementsByClassName('search_box__ct_toggle')[0];
-    var btnClearSearch = document.getElementsByClassName('btn_clear_search')[0];
-    var qsrClose = document.getElementsByClassName('qsr__close')[0];
-    var qsrList = document.getElementsByClassName('qsr__list')[0];
+    var searchForm = au.el('.header__row_1__search_form');
+    var searchInput = au.el('.header__row_1__search_input');
+    var categoryAndTagsToggle = au.el('.search_box__ct_toggle');
+    var btnClearSearch = au.el('.btn_clear_search');
+    var qsrClose = au.el('.qsr__close');
+    var qsrList = au.el('.qsr__list');
     var qsrAllPages;
     var qsrResultName;
     var qsrDefaultLines = 6;
@@ -33,7 +33,7 @@ function setupQuickSearch(root) {
             if (!isSearchInputFocusing()) {
                 setSearchInputFocusing(true);
                 if (isMobi) {
-                    scrollToTop(searchInput);
+                    au.scrollToTop(searchInput);
                 }
             }
 
@@ -55,8 +55,8 @@ function setupQuickSearch(root) {
                 if (qsrSelectedIndexInBound()) {
                     select();
                     const selected = qsrList.children[qsrSelectedIndex];
-                    if (!isElementInViewport(selected)) {
-                        scrollToCenter(selected);
+                    if (!au.isElementInViewport(selected)) {
+                        au.scrollToCenter(selected);
                     }
                 }
                 event.preventDefault();
@@ -76,7 +76,7 @@ function setupQuickSearch(root) {
                     return;
                 }
 
-                var href = selected.getElementsByTagName('a')[0].href;
+                var href = au.el('a', selected).href;
                 if (href) {
                     location.href = href;
                 }
@@ -173,16 +173,6 @@ function setupQuickSearch(root) {
                 btnClearSearchVisible = true;
             }
         }
-    }
-
-    function getSelectionText() {
-        var text = '';
-        if (window.getSelection) {
-            text = window.getSelection().toString();
-        } else if (document.selection && document.selection.type !== 'Control') {
-            text = document.selection.createRange().text;
-        }
-        return text;
     }
 
     function getAllPages(root) {
@@ -385,8 +375,8 @@ function setupQuickSearch(root) {
         var pageHit = page.hitMap[search];
         if (!pageHit) {
             pageHit = {
-                nameEq: equalsIgnoreCase(page.name, search),
-                titleEq: equalsIgnoreCase(page.title, search),
+                nameEq: au.stringEqualsIgnoreCase(page.name, search),
+                titleEq: au.stringEqualsIgnoreCase(page.title, search),
                 nameHitList: searchString(page.name, search),
                 titleHitList: searchString(page.title, search),
                 pathHitList: searchString(page.path, search)
@@ -417,7 +407,7 @@ function setupQuickSearch(root) {
     }
 
     function searchString(sourceStr, searchStr) {
-        if (isEmpty(sourceStr) || isEmpty(searchStr)) {
+        if (au.isEmpty(sourceStr) || au.isEmpty(searchStr)) {
             return [];
         }
         var source = sourceStr.toLowerCase();
@@ -492,7 +482,7 @@ function setupQuickSearch(root) {
             }
 
             // 字典顺序
-            return compareStringIgnoreCase(o1.path, o2.path);
+            return au.compareStringIgnoreCase(o1.path, o2.path);
         });
     }
 
@@ -537,9 +527,9 @@ function setupQuickSearch(root) {
             var html = '';
             var start = 0;
             hits.forEach(function (hit) {
-                html += escapeHtml(str.substring(start, hit.start));
+                html += au.escapeHtml(str.substring(start, hit.start));
                 html += hlTagOpen;
-                html += escapeHtml(str.substring(hit.start, hit.end));
+                html += au.escapeHtml(str.substring(hit.start, hit.end));
                 html += hlTagClose;
                 start = hit.end;
             });
@@ -549,61 +539,11 @@ function setupQuickSearch(root) {
             }
 
             if (start < str.length) {
-                html += escapeHtml(str.substring(start, str.length));
+                html += au.escapeHtml(str.substring(start, str.length));
             }
 
             return html;
         }
-
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-    }
-
-    function isEmpty(str) {
-        return str == null || str.length === 0;
-    }
-
-    function equalsIgnoreCase(str1, str2) {
-        if (str1 == null && str2 == null) {
-            return true;
-        }
-        if (str1 == null || str2 == null) {
-            return false;
-        }
-        if (str1.length !== str2.length) {
-            return false;
-        }
-        return compareStringIgnoreCase(str1, str2) === 0;
-    }
-
-    // 可用于 Array.sort
-    function compareStringIgnoreCase(s1, s2) {
-        var n1 = s1.length;
-        var n2 = s2.length;
-        var min = Math.min(n1, n2);
-        for (var i = 0; i < min; i++) {
-            var c1 = s1.charAt(i);
-            var c2 = s2.charAt(i);
-            if (c1 !== c2) {
-                c1 = c1.toUpperCase();
-                c2 = c2.toUpperCase();
-                if (c1 !== c2) {
-                    c1 = c1.toLowerCase();
-                    c2 = c2.toLowerCase();
-                    if (c1 !== c2) {
-                        // No overflow because of numeric promotion
-                        return c1 - c2;
-                    }
-                }
-            }
-        }
-        return n1 - n2;
     }
 
     function showSearchResult(pages, resultName) {
@@ -622,16 +562,14 @@ function setupQuickSearch(root) {
     }
 
     function renderPages(pages, maxLines, resultName) {
-        document.getElementsByClassName('qsr__stats')[0].innerHTML = pages.length + " " + resultName;
+        au.el('.qsr__stats').innerHTML = pages.length + " " + resultName;
         renderQsrHtml(buildResultHtml(pages, maxLines, resultName));
 
         if (maxLines < pages.length) {
-            var showAllIcon = qsrList.getElementsByClassName('qsr__list__show_all__icon')[0];
-            showAllIcon.addEventListener('click', showMoreResult);
-
-            var showAllBtn = qsrList.getElementsByClassName('qsr__list__show_all__btn')[0];
-            showAllBtn.addEventListener('click', showMoreResult);
-            showAllBtn.classList.add('action_toggle');
+            au.el('.qsr__list__show_all__icon', qsrList).addEventListener('click', showMoreResult);
+            var btn = au.el('.qsr__list__show_all__btn', qsrList);
+            btn.addEventListener('click', showMoreResult);
+            btn.classList.add('action_toggle');
         }
     }
 
@@ -641,7 +579,7 @@ function setupQuickSearch(root) {
 
     function showRecentlyVisit() {
         if (recentlyVisitPages == null) {
-            var currentPath = pathname();
+            var currentPath = au.pathname();
             var pages = [];
             getVisitList().forEach(function (path) {
                 if (path === currentPath) {
@@ -676,35 +614,11 @@ function setupQuickSearch(root) {
         }
         // search page
         var queryString = path.substr(questionMarkIndex);
-        var s = parseQueryString(queryString).s;
+        var s = au.parseQueryString(queryString).s;
         if (s) {
             return 'Search: ' + s;
         }
         return path;
-    }
-
-    function parseQueryString(queryString) {
-        var params = {};
-        var parts = queryString.substr(1).split('&');
-        for (var i = 0; i < parts.length; i++) {
-            var keyValuePair = parts[i].split('=');
-            var key = decodeURIComponent(keyValuePair[0]);
-            var value = keyValuePair[1] ?
-                decodeURIComponent(keyValuePair[1].replace(/\+/g, ' ')) :
-                keyValuePair[1];
-
-            switch (typeof(params[key])) {
-                case 'undefined':
-                    params[key] = value;
-                    break; //first
-                case 'array':
-                    params[key].push(value);
-                    break; //third or more
-                default:
-                    params[key] = [params[key], value]; // second
-            }
-        }
-        return params;
     }
 
     function buildResultHtml(pages, maxLength, resultName) {
@@ -776,12 +690,12 @@ function setupQuickSearch(root) {
         var categoryField = 'category';
         var tagField = 'tags';
         var selectedClassName = 'cat_selected';
-        var categoryAndTags = document.getElementsByClassName('search_box__ct')[0];
+        var categoryAndTags = au.el('.search_box__ct');
         categoryAndTags.innerHTML = buildHtml(allPages, categoryField, '分类') + buildHtml(allPages, tagField, '标签');
-        var categoryList = document.getElementsByClassName('search_box__' + categoryField + '_list')[0];
-        var tagList = document.getElementsByClassName('search_box__' + tagField + '_list')[0];
-        const categoryTitle = document.getElementsByClassName('search_box__' + categoryField + '_list_title')[0];
-        const tagTitle = document.getElementsByClassName('search_box__' + tagField + '_list_title')[0];
+        var categoryList = au.el('.search_box__' + categoryField + '_list');
+        var tagList = au.el('.search_box__' + tagField + '_list');
+        const categoryTitle = au.el('.search_box__' + categoryField + '_list_title');
+        const tagTitle = au.el('.search_box__' + tagField + '_list_title');
         var lastSyncS;
         var ctOpened = false;
         const unSelectedExpressionToOption = {};
@@ -837,28 +751,23 @@ function setupQuickSearch(root) {
                 categoryTitle.addEventListener('click', function () {
                     cleanSelected(CategoryOption);
                 });
-
-                Array.prototype.forEach.call(categoryList.getElementsByTagName('li'), function (li) {
-                    li.addEventListener('click', toggleSelected);
-                });
+                au.els('li', categoryList).forEach(li => li.addEventListener('click', toggleSelected));
             }
 
             if (hasTags()) {
                 tagTitle.addEventListener('click', function () {
                     cleanSelected(TagOption);
                 });
-
-                Array.prototype.forEach.call(tagList.getElementsByTagName('li'), function (li) {
-                    li.addEventListener('click', toggleSelected);
-                });
+                au.els('li', tagList).forEach(li => li.addEventListener('click', toggleSelected));
             }
 
+            /* not auto close
             document.addEventListener('click', function (event) {
-                /* not auto close
                 if (!event.isFromSearchForm && !qsOpened) {
                     closeCt();
-                }*/
+                }
             });
+            */
 
             categoryAndTagsToggle.addEventListener('click', function () {
                 if (ctOpened) {
@@ -917,7 +826,7 @@ function setupQuickSearch(root) {
                 if (v !== 0) {
                     return v;
                 }
-                return compareStringIgnoreCase(counter1[field], counter2[field]);
+                return au.compareStringIgnoreCase(counter1[field], counter2[field]);
             });
 
             var html = '<div class="' + field + '_box">';
@@ -934,8 +843,8 @@ function setupQuickSearch(root) {
 
         function buildOptions() {
             if (hasCategories()) {
-                toArray(categoryList.getElementsByTagName('li')).forEach(function (dom) {
-                    var value = dom.getElementsByClassName('category')[0].innerText;
+                au.els('li', categoryList).forEach(function (dom) {
+                    var value = au.el('.category', dom).innerText;
                     var option = new CategoryOption(dom, value);
                     dom.ctOption = option;
                     unSelectedExpressionToOption[option.expression] = option;
@@ -943,8 +852,8 @@ function setupQuickSearch(root) {
             }
 
             if (hasTags()) {
-                toArray(tagList.getElementsByTagName('li')).forEach(function (dom) {
-                    var value = dom.getElementsByClassName('tag')[0].innerText;
+                au.els('li', tagList).forEach(function (dom) {
+                    var value = au.el('.tag', dom).innerText;
                     var option = new TagOption(dom, value);
                     dom.ctOption = option;
                     unSelectedExpressionToOption[option.expression] = option;
@@ -965,7 +874,7 @@ function setupQuickSearch(root) {
 
             // 选中
             const multiEnabled = multiSelectEnabled(event);
-            forEach(selectedExpressionToOption, function (k, v) {
+            au.each(selectedExpressionToOption, function (k, v) {
                 if (multiEnabled) {
                     if (v instanceof TagOption) {
                         return;
@@ -999,7 +908,7 @@ function setupQuickSearch(root) {
 
         function cleanSelected(optionFn) {
             let changed = false;
-            forEach(selectedExpressionToOption, function (k, v) {
+            au.each(selectedExpressionToOption, function (k, v) {
                 if (v instanceof optionFn) {
                     moveToUnSelected(v);
                     changed = true;
@@ -1051,7 +960,7 @@ function setupQuickSearch(root) {
             });
 
             // 把选中的全加上
-            forEach(selectedExpressionToOption, function (k) {
+            au.each(selectedExpressionToOption, function (k) {
                 s = k + ' ' + s;
             });
 
@@ -1068,7 +977,7 @@ function setupQuickSearch(root) {
             lastSyncS = s;
 
             // 把选中的移到未选中
-            forEach(selectedExpressionToOption, function (k, v) {
+            au.each(selectedExpressionToOption, function (k, v) {
                 unSelectedExpressionToOption[k] = v;
                 delete selectedExpressionToOption[k];
             });
@@ -1082,7 +991,7 @@ function setupQuickSearch(root) {
             });
 
             // 执行 unSelect
-            forEach(unSelectedExpressionToOption, function (k, v) {
+            au.each(unSelectedExpressionToOption, function (k, v) {
                 v.unSelect();
             });
         }
@@ -1096,23 +1005,6 @@ function setupQuickSearch(root) {
                 }
             }
             return stringBuilder.join(' ');
-        }
-
-        function forEach(map, fn) {
-            for (const k in map) {
-                if (map.hasOwnProperty(k)) {
-                    fn(k, map[k]);
-                }
-            }
-        }
-
-        function toArray(elements) {
-            // elements 不是正常的数组，如果在遍历过程中对 element 进行修改导致不符合之前的查询条件，
-            // 该 element 会自动从 elements 中移除，导致遍历漏掉之后的元素。
-            // 将 elements 转为正常的数组可避免这种情况
-            return Array.prototype.map.call(elements, function (e) {
-                return e;
-            });
         }
 
         function autoSyncFromInput() {
@@ -1136,22 +1028,22 @@ function setupQuickSearch(root) {
 }
 
 function checkLogout() {
-    if (getCookie(logoutCookieName)) {
+    if (au.getCookie(logoutCookieName)) {
         localStorage.removeItem(lsRecentVisitKey);
-        deleteCookie(logoutCookieName);
+        au.deleteCookie(logoutCookieName);
     }
 }
 
 function updateVisitList() {
     // 确定 currentPath
-    var currentPath = pathname();
+    var currentPath = au.pathname();
     if (ctx.length > 0) {
         currentPath = currentPath.substr(ctx.length);
     }
     if (currentPath === '/' || currentPath === '/login' || currentPath === '/help') {
         return;
     }
-    if (document.getElementsByClassName('error_page').length > 0) {
+    if (au.el('.error_page')) {
         return;
     }
     if (currentPath === '/search') {

@@ -23,6 +23,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static xyz.liuw.autumn.data.ResourceLoader.STATIC_ROOT;
@@ -35,8 +38,8 @@ import static xyz.liuw.autumn.data.ResourceLoader.STATIC_ROOT;
 public class StaticService {
     private static Logger logger = LoggerFactory.getLogger(StaticService.class);
     private static StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
-    private volatile JsCache jsCache;
-    private volatile CssCache cssCache;
+    private volatile WebPageReferenceData jsCache;
+    private volatile WebPageReferenceData cssCache;
     private volatile Page helpPage;
     private String codeBlockLineNumberJs;
     private String codeBlockHighlightJs;
@@ -48,6 +51,9 @@ public class StaticService {
 
     @Value("${autumn.code-block-highlighting.enabled}")
     private boolean codeBlockHighlightEnabled;
+
+    @Value("${autumn.highlightjs-version}")
+    private String highlightjsVersion;
 
     @Value("${autumn.code-block-highlighting.languages}")
     private List<String> highlightLanguages;
@@ -134,11 +140,13 @@ public class StaticService {
 
     private boolean refreshJsCache() {
         boolean changed = false;
-        ResourceLoader.ResourceCache scriptJs = getStaticResourceCache("/js/script.js");
-        ResourceLoader.ResourceCache quickSearchJs = getStaticResourceCache("/js/quick_search.js");
 
-        if (jsCache == null || jsCache.hasChanged(scriptJs.getMd5(), quickSearchJs.getMd5())) {
-            jsCache = createJsCache(scriptJs, quickSearchJs);
+        List<ResourceLoader.ResourceCache> sourceList = Stream.of("/js/script.js", "/js/quick_search.js", "/js/util.js")
+                .map(this::getStaticResourceCache).collect(Collectors.toList());
+
+        List<Long> sourceTimeList = sourceList.stream().map(ResourceLoader.ResourceCache::getLastModified).collect(Collectors.toList());
+        if (jsCache == null || jsCache.checkChanged(sourceTimeList)) {
+            jsCache = createJsCache(sourceList);
             logger.info("jsCache updated");
             changed = true;
         }
@@ -146,27 +154,22 @@ public class StaticService {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private JsCache createJsCache(ResourceLoader.ResourceCache scriptJs,
-                                  ResourceLoader.ResourceCache quickSearchJs) {
+    private WebPageReferenceData createJsCache(List<ResourceLoader.ResourceCache> sourceList) {
 
         // 如果把 tree.js 也加进来：
         // 每次浏览器打开页面少发一个请求
-        // 如果 tree.js 更新，那么其余 js 也跟着重新加载。tree.js 更新相对频繁，大约一周 2 次
-
-        String scriptJsContent = new String(scriptJs.getContent(), UTF_8)
-                .replaceFirst("\"use strict\";\n", "")
-                .trim();
-
-        String quickSearchJsContent = new String(quickSearchJs.getContent(), UTF_8)
-                .replaceFirst("\"use strict\";\n", "")
-                .trim();
+        // 如果 tree.js 更新，那么其余 js 也跟着重新加载。tree.js 更新相对频繁
 
         StringBuilder stringBuilder = stringBuilderHolder.get();
         stringBuilder.append("\"use strict\";\n")
-                .append("(function () {\n")
-                .append(scriptJsContent).append("\n")
-                .append(quickSearchJsContent).append("\n")
-                .append("})();\n");
+                .append("(function () {\n");
+        sourceList.forEach(resourceCache ->
+                stringBuilder.append(
+                        new String(resourceCache.getContent(), UTF_8)
+                                .replaceFirst("\"use strict\";\n", "")
+                                .trim())
+                        .append("\n"));
+        stringBuilder.append("})();\n");
         if (codeBlockHighlightEnabled) {
             stringBuilder.append(getCodeBlockHighlightJs()).append("\n");
         }
@@ -180,38 +183,34 @@ public class StaticService {
         String md5 = DigestUtils.md5DigestAsHex(jsBytes);
         String etag = WebUtil.getEtag(md5);
 
-        JsCache jsCache = new JsCache();
+        WebPageReferenceData jsCache = new WebPageReferenceData();
         jsCache.setContent(jsBytes);
         jsCache.setEtag(etag);
         jsCache.setVersionKeyValue(WebUtil.getVersionKeyValue(md5));
-        jsCache.setScriptJsMd5(scriptJs.getMd5());
-        jsCache.setQuickSearchJsMd5(quickSearchJs.getMd5());
         return jsCache;
     }
 
     private boolean refreshCssCache() {
-        ResourceLoader.ResourceCache normalizeCss = getStaticResourceCache("/css/normalize.css");
-        ResourceLoader.ResourceCache styleCss = getStaticResourceCache("/css/style.css");
-        if (cssCache != null && cssCache.checkNotModified(normalizeCss.getMd5(), styleCss.getMd5())) {
+        List<ResourceLoader.ResourceCache> sourceList = Stream.of("/css/normalize.css", "/css/style.css")
+                .map(this::getStaticResourceCache).collect(Collectors.toList());
+        List<Long> sourceTimeList = sourceList.stream().map(ResourceLoader.ResourceCache::getLastModified).collect(Collectors.toList());
+        if (cssCache != null && cssCache.checkChanged(sourceTimeList)) {
             return false;
         }
 
         StringBuilder stringBuilder = stringBuilderHolder.get();
-        stringBuilder.append(new String(normalizeCss.getContent(), UTF_8)).append("\n")
-                .append(new String(styleCss.getContent(), UTF_8)).append("\n");
+        sourceList.forEach(resourceCache ->
+                stringBuilder.append(new String(resourceCache.getContent(), UTF_8)).append("\n"));
         if (codeBlockHighlightEnabled) {
             stringBuilder.append(getCodeBlockHighlightCss()).append("\n");
         }
-        String cssText = stringBuilder.toString();
 
-        CssCache cssCache = new CssCache();
-        cssCache.setContent(cssText.getBytes(UTF_8));
+        WebPageReferenceData cssCache = new WebPageReferenceData();
+        cssCache.setContent(stringBuilder.toString().getBytes(UTF_8));
         String md5 = DigestUtils.md5DigestAsHex(cssCache.getContent());
         String etag = WebUtil.getEtag(md5);
         cssCache.setEtag(etag);
         cssCache.setVersionKeyValue(WebUtil.getVersionKeyValue(md5));
-        cssCache.setNormalizeCssMd5(normalizeCss.getMd5());
-        cssCache.setStyleCssMd5(styleCss.getMd5());
         this.cssCache = cssCache;
         logger.info("cssCache updated");
         return true;
@@ -239,12 +238,12 @@ public class StaticService {
             return codeBlockHighlightJs;
         }
 
-        String hljsContent = resourceLoader.getWebJarResourceAsString("/highlightjs/9.8.0/highlight.js");
+        String hljsContent = resourceLoader.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/highlight.js");
 
         StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
         stringBuilder.append(hljsContent).append("\n");
         highlightLanguages.forEach(language -> {
-            String text = resourceLoader.getWebJarResourceAsString("/highlightjs/9.8.0/languages/" + language + ".js");
+            String text = resourceLoader.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/languages/" + language + ".js");
             String js = text.substring(text.indexOf("function"));
             // hljs.registerLanguage('language', function(hljs){...});
             stringBuilder.append("hljs.registerLanguage('").append(language).append("', ").append(js).append(");\n");
@@ -272,7 +271,7 @@ public class StaticService {
             return (codeBlockHighlightCss = "");
         }
 
-        String text = resourceLoader.getWebJarResourceAsString("/highlightjs/9.8.0/styles/" + codeBlockHighlightStyle + ".css");
+        String text = resourceLoader.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/styles/" + codeBlockHighlightStyle + ".css");
         return codeBlockHighlightCss = text;
     }
 
@@ -280,47 +279,20 @@ public class StaticService {
         this.staticChangedListeners.add(listener);
     }
 
-    static class CssCache extends WebPageReferenceData {
-        private String normalizeCssMd5;
-        private String styleCssMd5;
-
-        boolean checkNotModified(String normalizeCssMd5, String styleCssMd5) {
-            return this.normalizeCssMd5.equals(normalizeCssMd5) && this.styleCssMd5.equals(styleCssMd5);
-        }
-
-        void setNormalizeCssMd5(String normalizeCssMd5) {
-            this.normalizeCssMd5 = normalizeCssMd5;
-        }
-
-        void setStyleCssMd5(String styleCssMd5) {
-            this.styleCssMd5 = styleCssMd5;
-        }
-    }
-
-    static class JsCache extends WebPageReferenceData {
-
-        private String quickSearchJsMd5;
-
-        private String scriptJsMd5;
-
-        boolean hasChanged(String scriptJsMd5, String quickSearchJsMd5) {
-            return !StringUtils.equals(this.scriptJsMd5, scriptJsMd5)
-                    || !StringUtils.equals(this.quickSearchJsMd5, quickSearchJsMd5);
-        }
-
-        void setQuickSearchJsMd5(String quickSearchJsMd5) {
-            this.quickSearchJsMd5 = quickSearchJsMd5;
-        }
-
-        void setScriptJsMd5(String scriptJsMd5) {
-            this.scriptJsMd5 = scriptJsMd5;
-        }
-    }
-
     public static class WebPageReferenceData {
         private String versionKeyValue;
         private byte[] content;
         private String etag;
+        private long time;
+
+        WebPageReferenceData() {
+            time = System.currentTimeMillis();
+        }
+
+        boolean checkChanged(List<Long> sourceTimeList) {
+            Optional<Long> optionalLong = sourceTimeList.stream().max(Long::compareTo);
+            return optionalLong.isPresent() && optionalLong.get() > time;
+        }
 
         String getVersionKeyValue() {
             return versionKeyValue;

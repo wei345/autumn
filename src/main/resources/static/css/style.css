@@ -873,7 +873,7 @@ ul.header__row_1__tools {
         .multiple_columns .fixed .header {
             position: -webkit-sticky;
             position: sticky;
-            top: 0;
+            top: -8px;
             background: #fff;
             z-index: 1; /* 在 Sidebar 和 TOC 之上 */
         }

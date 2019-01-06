@@ -42,37 +42,46 @@ public class JsCssCompressor {
         }
 
         boolean outToFile = false;
-        Path inputJs, outputJs = null;
-        inputJs = Files.createTempFile("autumn-", ".js");
+        Path inputFile, outputFile = null;
+        inputFile = Files.createTempFile("autumn-", ".js");
         if (outToFile) {
-            outputJs = Files.createTempFile("autumn-", ".js");
+            outputFile = Files.createTempFile("autumn-", ".js");
         }
 
-        FileUtil.write(input, inputJs.toFile());
+        FileUtil.write(input, inputFile.toFile());
 
         // 有很多参数，见 closure-compiler.jar --help
         List<String> commands = new ArrayList<>(10);
         commands.add("java");
         commands.add("-jar");
         commands.add(jar);
+        commands.add("--rewrite_polyfills"); // 减少注入的 $jscomp 代码
+        commands.add("false");
         commands.add("--js");
-        commands.add(inputJs.toString());
+        commands.add(inputFile.toString());
         if (outToFile) {
             commands.add("--js_output_file");
-            commands.add(outputJs.toString());
+            commands.add(outputFile.toString());
         }
+        commands.add("--language_in");
+        commands.add("ECMASCRIPT_2015"); // ES6
+        commands.add("--language_out");
+        commands.add("ECMASCRIPT_2015");
 
         logger.info("Closure Compiler compressing... {} chars", input.length());
+        if (logger.isDebugEnabled()) {
+            logger.debug(StringUtils.join(commands, ' '));
+        }
         CommandExecutor.Result result = CommandExecutor.execute(commands.toArray(new String[0]));
 
-        String resultJs = outToFile ? FileUtil.toString(outputJs.toFile()) : result.getStdout();
+        String resultJs = outToFile ? FileUtil.toString(outputFile.toFile()) : result.getStdout();
         if (resultJs == null) {
             resultJs = "";
         }
 
-        Files.delete(inputJs);
+        Files.delete(inputFile);
         if (outToFile) {
-            Files.delete(outputJs);
+            Files.delete(outputFile);
         }
 
         if (result.hasError()) {

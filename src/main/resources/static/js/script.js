@@ -1,4 +1,5 @@
 "use strict";
+var au = util();
 var ctx = autumn.ctx;
 var treeVersionKeyValue = autumn.treeVersionKeyValue;
 var lsRecentVisitKey = 'autumn.recently_visit';
@@ -8,16 +9,16 @@ var logoutCookieName = 'logout';
 var isMobi = /Mobi/.test(navigator.userAgent);
 var alwaysUnfoldRoot = false;
 var multipleSelectionEnabled = false;
-var container = document.getElementsByClassName('container')[0];
-var main = document.getElementsByClassName('main')[0];
-var content = document.getElementsByClassName('content')[0];
+var container = au.el('.container');
+var main = au.el('.main');
+var content = au.el('.content');
 var treeReady = false;
 var treeFirstShow = true;
 var isFixed = false;
 var fixedClassName = 'fixed';
 const lsFixedKey = 'autumn.fixed';
-var toggleSidebar = emptyFn;
-var toggleToc = emptyFn;
+var toggleSidebar = au.emptyFn;
+var toggleToc = au.emptyFn;
 window.addEventListener('load', function () {
     detectClient();
     bindFixedToggle();
@@ -30,61 +31,6 @@ window.addEventListener('load', function () {
     updateVisitList();
 });
 
-function emptyFn() {
-}
-
-/**
- * @returns {string} 首页 /，否则 /xxx
- */
-function pathname() {
-    var pathname = location.pathname;
-    if (!pathname) {
-        pathname = /^(\w+?):\/+?[^\/]+(\/[^?]*)/.exec(location.href)[2];
-    }
-    if (!pathname) {
-        return '/';
-    }
-    return decodeURIComponent(pathname);
-}
-
-function ajax(method, url, success, error) {
-    var r = new XMLHttpRequest();
-    r.open(method, url, true);
-    r.onreadystatechange = function () {
-        if (r.readyState !== 4) return;
-        if (r.status === 200) {
-            if (typeof success === 'function') success(r.responseText);
-        } else {
-            if (typeof error === 'function') error(r.responseText);
-        }
-    };
-    r.send("");
-}
-
-// Safari 不支持 classList.replace
-function replaceClass(dom, cls, replacement) {
-    dom.className = dom.className.replace(new RegExp('\\b' + escapeRegExp(cls) + '\\b', 'g'), replacement);
-}
-
-function getCookie(name) {
-    var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
-    return v ? v[2] : null;
-}
-
-function setCookie(name, value, seconds) {
-    var d = new Date();
-    d.setTime(d.getTime() + 1000 * seconds);
-    document.cookie = name + '=' + value + ';path=' + ctx + '/;expires=' + d.toGMTString();
-}
-
-function deleteCookie(name) {
-    setCookie(name, '', -1);
-}
-
-function escapeRegExp(str) {
-    return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
-}
-
 function detectClient() {
     var html = document.querySelector('html');
     html.classList.add('js');
@@ -93,14 +39,14 @@ function detectClient() {
 }
 
 function bindSidebarToggle() {
-    var toggle = document.getElementsByClassName('sidebar_toggle')[0];
-    var sidebar = document.getElementsByClassName('sidebar')[0];
-    var toolbar = document.getElementsByClassName('header__toolbar')[0];
+    var toggle = au.el('.sidebar_toggle');
+    var sidebar = au.el('.sidebar');
+    var toolbar = au.el('.header__toolbar');
     if (!toggle || !sidebar) {
         return;
     }
     var lsKey;
-    switch (pathname()) {
+    switch (au.pathname()) {
         case ctx + '/':
             lsKey = 'autumn.home.sidebar.display';
             break;
@@ -142,13 +88,13 @@ function bindSidebarToggle() {
 
 function bindTocToggle() {
     // CSS 已设置 TOC body 默认隐藏
-    var toc = document.getElementsByClassName('toc')[0];
+    var toc = au.el('.toc');
     if (!toc) {
         return;
     }
-    var toggle = toc.getElementsByTagName('h3')[0];
+    var toggle = au.el('h3', toc);
     var tocBody = toggle.nextElementSibling;
-    if (!toggle || !tocBody || tocBody.getElementsByTagName('li').length < 2) {
+    if (!toggle || !tocBody || au.els('li', tocBody).length < 2) {
         if (toggle) {
             toggle.style.display = 'none';
         }
@@ -182,7 +128,7 @@ function bindTocToggle() {
 }
 
 function bindShortcut() {
-    var searchInput = document.getElementsByClassName('header__row_1__search_input')[0];
+    var searchInput = au.el('.header__row_1__search_input');
     document.addEventListener('keydown', function (event) {
         if (event.target === document.body && !event.altKey && !event.ctrlKey && !event.metaKey) {
             switch (event.key) {
@@ -209,10 +155,10 @@ function bindShortcut() {
                     scroll(0, document.scrollingElement.scrollHeight);
                     break;
                 case 'u':
-                    document.scrollingElement.scrollTop -= getViewportHeight() / 2;
+                    document.scrollingElement.scrollTop -= au.getViewportHeight() / 2;
                     break;
                 case 'd':
-                    document.scrollingElement.scrollTop += getViewportHeight() / 2;
+                    document.scrollingElement.scrollTop += au.getViewportHeight() / 2;
                     break;
             }
         }
@@ -220,12 +166,12 @@ function bindShortcut() {
 }
 
 function buildTree(then) {
-    var treeBox = document.getElementsByClassName('tree_box')[0];
+    var treeBox = au.el('.tree_box');
 
     if (!treeBox) {
         return; // 可能在登录页
     }
-    ajax('GET', ctx + '/tree.json?' + treeVersionKeyValue, function (text) {
+    au.ajax('GET', ctx + '/tree.json?' + treeVersionKeyValue, function (text) {
         var root = JSON.parse(text);
         unfoldCurrentPath(root);
         treeBox.innerHTML = buildTreeHtml([root]);
@@ -238,7 +184,7 @@ function buildTree(then) {
     });
 
     function unfoldCurrentPath(root) {
-        var path = pathname().substr(ctx.length);
+        var path = au.pathname().substr(ctx.length);
         var current;
         if (path === '/') {
             current = root;
@@ -315,19 +261,16 @@ function buildTree(then) {
     }
 
     function bindNodeToggle(tree) {
-        var els = tree.getElementsByClassName('tree_node_dir');
-        for (var i = 0; i < els.length; i++) {
-            var t = els[i].getElementsByClassName('tree_node_header')[0];
-            t.addEventListener('click', toggle);
-        }
+        au.els('.tree_node_dir', tree).forEach(el =>
+            au.el('.tree_node_header', el).addEventListener('click', toggle));
     }
 
     function toggle(event) {
         var node = event.currentTarget.parentNode; // tree_node
         if (node.classList.contains('tree_node_folded')) {
-            replaceClass(node, 'tree_node_folded', 'tree_node_unfolded');
+            au.replaceClass(node, 'tree_node_folded', 'tree_node_unfolded');
         } else {
-            replaceClass(node, 'tree_node_unfolded', 'tree_node_folded');
+            au.replaceClass(node, 'tree_node_unfolded', 'tree_node_folded');
         }
     }
 }
@@ -338,76 +281,16 @@ function selectedNodeScrollIntoViewIfTreeFirstShow() {
         if (getComputedStyle(main).getPropertyValue('flex-direction') === 'row' && !isFixed) {
             return;
         }
-        var selected = document.getElementsByClassName('tree_node_header_selected')[0];
+        var selected = au.el('.tree_node_header_selected');
         if (!selected) {
             return;
         }
-        scrollToCenter(selected);
+        au.scrollToCenter(selected);
     }
-}
-
-function scrollToTop(el) {
-    scrollToRectTop(el, 0);
-}
-
-function scrollToCenter(el) {
-    var expectRectTop = (getViewportHeight() / 2) - (el.clientHeight / 2);
-    scrollToRectTop(el, expectRectTop);
-}
-
-function scrollToRectTop(el, expectRectTop) {
-    // 使用 scroll，不使用 selected.scrollIntoView({block: 'center'}) ，
-    // 因为如果 selected 在页面底部，scrollIntoView 会"过量滚动"，导致 body 也向上滚动一段距离，
-    // 另外，Safari 不支持 scrollIntoView 选项。
-    var rect = el.getBoundingClientRect(); // 相对于 Viewport 左上角的坐标
-    if (Math.abs(rect.top - expectRectTop) < 16) {
-        return;
-    }
-    var scrollEl = getScrollParent(el);
-    var maxScrollTop = scrollEl.scrollHeight - scrollEl.clientHeight;
-    if (maxScrollTop === 0) { // 手机 chrome 可能为 0
-        maxScrollTop = scrollEl.scrollHeight - getViewportHeight();
-    }
-    var expectScrollTop = scrollEl.scrollTop + (rect.top - expectRectTop);
-    var scrollTop = Math.max(0, Math.min(maxScrollTop, expectScrollTop));
-    scrollEl.scroll(0, scrollTop);
-}
-
-function getScrollParent(node) {
-    if (node === document.body) { // body 没有滚动条
-        return document.scrollingElement;
-    }
-
-    let overflowY = window.getComputedStyle(node).overflowY;
-    let isScrollable = overflowY !== 'visible' && overflowY !== 'hidden';
-
-    if (isScrollable && node.scrollHeight > node.clientHeight) {
-        return node;
-    } else {
-        return getScrollParent(node.parentNode);
-    }
-}
-
-function isElementInViewport(el) {
-    var rect = el.getBoundingClientRect();
-    return (
-        rect.top >= 0 &&
-        rect.left >= 0 &&
-        rect.bottom <= getViewportHeight() &&
-        rect.right <= getViewportWidth()
-    );
-}
-
-function getViewportHeight() {
-    return window.innerHeight || document.documentElement.clientHeight;
-}
-
-function getViewportWidth() {
-    return window.innerWidth || document.documentElement.clientWidth;
 }
 
 function anchorLink() {
-    var page = document.getElementsByClassName('page')[0];
+    var page = au.el('.page');
     if (!page) {
         return;
     }
@@ -425,7 +308,7 @@ function anchorLink() {
         if (levels[tagName]) {
             var a = document.createElement('a');
             if (firstHeading && i < 2 && tagName === 'h1') {
-                a.href = pathname();
+                a.href = au.pathname();
             } else {
                 a.href = ('#' + node.id);
             }
@@ -458,7 +341,7 @@ function createAnchorIcon() {
 
 function bindFixedToggle() {
     toggleFixed(localStorage.getItem(lsFixedKey) === '1');
-    const toggle = document.getElementsByClassName('search_icon')[0];
+    const toggle = au.el('.search_icon');
     if (!toggle) {
         return;
     }
