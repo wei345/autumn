@@ -3,6 +3,7 @@ package xyz.liuw.autumn.search;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 import xyz.liuw.autumn.util.HtmlUtil;
+import xyz.liuw.autumn.util.Kmp;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,7 +32,7 @@ class ExactMatcher extends AbstractPageHitMatcher {
         }
         List<Hit> hits = new ArrayList<>();
         int i = 0, start;
-        while ((start = StringUtils.indexOfIgnoreCase(source, search, i)) >= 0) {
+        while ((start = Kmp.kmpIgnoreCase(source, search, i)) >= 0) {
             i = start + search.length();
             hits.add(new Hit(start, i, search));
         }

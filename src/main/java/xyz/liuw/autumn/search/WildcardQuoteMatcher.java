@@ -3,6 +3,7 @@ package xyz.liuw.autumn.search;
 import com.google.common.annotations.VisibleForTesting;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import org.springframework.lang.Nullable;
+import xyz.liuw.autumn.util.Kmp;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,7 +49,7 @@ class WildcardQuoteMatcher extends AbstractPageHitMatcher {
                     continue;
                 }
 
-                if ((found = indexOfIgnoreCase(source, search, start)) == -1) {
+                if ((found = Kmp.kmpIgnoreCase(source, search, start)) == -1) {
                     return hits;
                 }
 
