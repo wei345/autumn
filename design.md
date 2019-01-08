@@ -238,3 +238,16 @@ Space 可以对应特定域名。
 * [Googlebot](https://www.distilnetworks.com/bot-directory/bot/googlebot/)
 * [Yahoo! Slurp](https://www.distilnetworks.com/bot-directory/bot/yahoo-slurp/)
 
+### SOMEDAY 分类层级
+
+在 .autumn 定义分类层级，例如：
+
+```text
+- java
+  - spring
+- linux
+  - centos
+- db
+  - mysql
+  - redis
+```
