@@ -39,7 +39,10 @@ public class Kmp {
         return -1;
     }
 
-    // b 表示模式串
+    /**
+     * @param b 模式串
+     */
+    // 不必加缓存，即使 b.length() == 80，加缓存也不会提高搜索速度。
     private static int[] getNexts(String b) {
         int m = b.length();
         int[] next = new int[m];

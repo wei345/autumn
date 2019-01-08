@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# 参考 https://github.com/vipshop/vjtools/blob/master/vjstar/src/main/script/jvm-options/jvm-options.sh
-
 cd "$(dirname $0)/.."
 readonly COMMAND="$1"
 
@@ -11,8 +9,8 @@ readonly JAR_FILE="${WORKING_DIR}/target/autumn.jar"
 readonly MAIN_CLASS="xyz.liuw.autumn.Application"
 readonly APP_ARGS="--spring.profiles.active=production,logfile"
 
-# 1.8.x -> 8, 9.x -> 9, 10.x -> 10 ...
-get_java_major_version() {
+# e.g. 1.8.0_131 -> 8, 9 -> 9, 10.0.1 -> 10 ...
+java_major_version() {
     local version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
     local major_version=$(echo "${version}" | awk -F. '{print $1}')
     if [[ "${major_version}" -eq 1 ]]; then
@@ -21,20 +19,18 @@ get_java_major_version() {
     echo "${major_version}"
 }
 
-readonly JAVA_VERSION=$(get_java_major_version)
-
+# JVM 选项参考 https://github.com/vipshop/vjtools/blob/master/vjstar/src/main/script/jvm-options/jvm-options.sh
 readonly MEM_OPTS="-Xms150m -Xmx150m -XX:NewRatio=1"
 readonly OPTIMIZE_OPTS="-XX:-UseBiasedLocking -XX:AutoBoxCacheMax=20000 -Djava.security.egd=file:/dev/./urandom"
 readonly SHOOTING_OPTS="-XX:+PrintCommandLineFlags -XX:-OmitStackTraceInFastThrow -XX:ErrorFile=${LOG_DIR}/hs_err_%p.log"
 readonly OTHER_OPTS="-Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8"
-# 避免出现 "illegal reflective access" 警告，见 https://stackoverflow.com/questions/52185626/illegal-reflective-access-when-i-stop-springboot-web-application-with-tomcat-9-a
-readonly ADD_OPENS="--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED"
-JAVA_OPTS="${MEM_OPTS} ${OPTIMIZE_OPTS} ${SHOOTING_OPTS} ${OTHER_OPTS}"
-if [[ "$JAVA_VERSION" -ge 9 ]]; then
-  JAVA_OPTS="${ADD_OPENS} ${JAVA_OPTS}"
+if [[ "$(java_major_version)" -ge 9 ]]; then
+  # --add-opens 避免出现 "illegal reflective access" 警告，见 https://stackoverflow.com/questions/52185626/illegal-reflective-access-when-i-stop-springboot-web-application-with-tomcat-9-a
+  readonly ADD_OPENS="--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED"
+else
+  readonly ADD_OPENS=""
 fi
-
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/home/admin/apr/lib"
+readonly JAVA_OPTS="${ADD_OPENS} ${MEM_OPTS} ${OPTIMIZE_OPTS} ${SHOOTING_OPTS} ${OTHER_OPTS}"
 
 before_start() {
     mvn -v || exit 1

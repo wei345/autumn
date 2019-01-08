@@ -24,13 +24,10 @@ public class Searcher {
         long start = System.currentTimeMillis();
 
         Set<SearchingPage> searchResult = doSearch(input, pages);
-
         List<SearchingPage> sortedResult = Sorting.sort(searchResult);
-
         highlighter.highlightSearchingPage(sortedResult);
 
         long cost = System.currentTimeMillis() - start;
-
         return new SearchResult(sortedResult, cost, pages.size());
     }
 
