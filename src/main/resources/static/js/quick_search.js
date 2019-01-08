@@ -27,6 +27,7 @@ function setupQuickSearch(treeRoot) {
     setupCt();
     bindSearchInputEvent();
     bindQuickSearchCloseEvent();
+    updateBtnClearSearchVisible(); // 搜索页有初始值
 
     function bindSearchInputEvent() {
         searchInput.addEventListener('focus', function () {
