@@ -691,8 +691,7 @@ ul.header__row_1__tools {
 }
 
 .pagination a, .pagination > .pn {
-    padding-left: 5px;
-    padding-right: 5px;
+    padding: 10px 5px;
     text-decoration: none;
 }
 
