@@ -1,34 +1,34 @@
 # Autumn
 
-将 Markdown 文件目录映射为网站，有简单的访问控制，有好用的搜索功能。
+映射 Markdown 文件目录为网站，有简单的访问控制，有好用的搜索功能。
 
 ## 环境需求
 
-Build 环境：
-
+* Java 8+
 * Maven 3.5
-* Java 8+
+* Redis 4 (可选)
 
-运行环境：
+## 安装
 
-* Java 8+
-* Redis 4 - 可选，默认不启用，可通过修改配置文件启用，详见 application.properties。
+```bash
+git clone git@github.com:wei345/autumn.git
+cd autumn
+```
 
-## 配置
-
-只有一个配置文件 src/main/resources/application.properties，默认配置可以直接运行。
-可以直接修改 application.properties，也可以创建 src/main/resources/__application-production.properties__
-或设置 VM options (`-Dname=value`) 或设置 Program arguments (`--name=value`) 来覆盖 application.properties 里对应的配置。
-
-正常使用的话，需要设置 `autumn.data-dir`，`autumn.users` 和 `autumn.aes.key`。
-
-`autumn.data-dir`：见下面「数据目录」。
-
-生成用户密码:
+生成密码:
 
 ```bash
 mvn -q -DskipTests=false -Dtest=xyz.liuw.autumn.service.UserServiceTest#generateUser test
 ```
+
+输出：
+
+```text
+1 Username 44c0adba2f8c39be8263b88c137b393d6eb99c723efa9d79cd6cb69f230ccb9e2474cddcff7710ef15a34b16c6179c02e1ff9a8151eff4ff17da356bedd50242 dPiP77yBNrR18s4J;
+password: FUcqWQcbO5nDQxOm
+```
+
+其中 `Username` 可以随意修改。
 
 生成 AES key:
 
@@ -36,34 +36,54 @@ mvn -q -DskipTests=false -Dtest=xyz.liuw.autumn.service.UserServiceTest#generate
 mvn -q -DskipTests=false -Dtest=xyz.liuw.autumn.AesTest#generateKey test
 ```
 
-## 运行
+输出：
 
-```bash
-mvn clean package
-java -jar target/autumn.jar
+```text
+2FDFCEF1DAA8E567549C52C10422BE09A81CC80B0A05BFE8CF75F223BD87DEB6
 ```
 
-或：
+新建文件 src/main/resources/application-production.properties，将上面生成的内容添到文件中：
+
+```properties
+autumn.users=1 test 44c0adba2f8c39be8263b88c137b393d6eb99c723efa9d79cd6cb69f230ccb9e2474cddcff7710ef15a34b16c6179c02e1ff9a8151eff4ff17da356bedd50242 dPiP77yBNrR18s4J;
+autumn.aes.key=2FDFCEF1DAA8E567549C52C10422BE09A81CC80B0A05BFE8CF75F223BD87DEB6
+```
+
+启动：
 
 ```bash
 mvn clean compile exec:java
 ```
 
-或在 IDE 中运行 main class：
+或（后台运行）：
 
-```text
-xyz.liuw.autumn.Application
+```bash
+bin/start.sh
 ```
 
-启动后，可以用浏览器访问 http://localhost:7000 。
+可以用浏览器访问首页 http://localhost:7000 。
+
+访问登录页 http://localhost:7000/login ，可以用配置文件里设置的用户名 `test` 和前面生成的密码 `FUcqWQcbO5nDQxOm` 登录。
+
+停止：
+
+```bash
+bin/autumn.sh stop
+```
+
+## 配置
+
+更多配置及默认值见 src/main/resources/application.properties。
+
+最重要的几项配置是：`autumn.data-dir`，`autumn.users` 和 `autumn.aes.key`。
 
 ## 数据目录
 
 数据目录（`autumn.data-dir`）里可以有 .md 文件和其他任意格式文件，可以有子目录。
 
-.md 文件，例如 `${autumn.data-dir}/a/b/c.md` 会被映射为网页 `http://localhost:7000/a/b/c`。
+.md 文件被映射为网页。例如 `${autumn.data-dir}/a/b/c.md` 会被映射为网页 `http://localhost:7000/a/b/c`。
 
-其他格式文件，例如 `${autumn.data-dir}/a/b/c.png` 会被映射为 `http://localhost:7000/a/b/c.png`，系统会自动设置正确的 Content-Type。
+其他文件被视为静态文件，系统会设置正确的 Content-Type。例如 `${autumn.data-dir}/a/b/c.png` 会被映射为 `http://localhost:7000/a/b/c.png`。
 
 .md 文件格式约定：
 
@@ -112,7 +132,6 @@ published: true
 * tag。例如 `t:tag1` 匹配标记为标签 `tag1` 的页面。
 
 在一次搜索中可以任意组合使用以上功能，例如：`t:tag1 word1 -word2` 匹配标记为 `tag1` 并且包含 `word1` 并且不包含 `word2` 的页面。
-
 
 ## 生产环境部署
 
