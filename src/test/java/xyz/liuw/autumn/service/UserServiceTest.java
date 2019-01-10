@@ -9,7 +9,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static xyz.liuw.autumn.service.UserService.passwordDigest1;
+import static xyz.liuw.autumn.service.UserService.passwordDigest2;
 
 /**
  * @author liuwei
@@ -24,8 +27,7 @@ public class UserServiceTest {
         String username = "Username";
         String salt = RandomUtil.randomStringFixLength(16);
         String plainPassword = RandomUtil.randomStringFixLength(16);
-        String s = plainPassword + salt;
-        @SuppressWarnings("UnstableApiUsage") String password = Hashing.sha512().hashString(s, StandardCharsets.UTF_8).toString();
+        String password = passwordDigest2(passwordDigest1(plainPassword, salt), salt);
 
         // print
         String userString = 1 + " " + username + " " + password + " " + salt + ";";
@@ -36,12 +38,12 @@ public class UserServiceTest {
         UserService userService = new UserService();
         userService.setUsers(userString);
         assertThat(userService.getUser(username)).isNotNull();
-        UserService.User user = userService.checkPassword(username, plainPassword);
+        UserService.User user = userService.checkPlainPassword(username, plainPassword);
         assertThat(user.getUsername()).isEqualTo(username);
     }
 
     @Test
-    public void test() {
+    public void testSpeed() {
         String raw = UUID.randomUUID().toString();
 
         // 都是 0 ms
@@ -51,7 +53,6 @@ public class UserServiceTest {
             timing("sha256", () -> Hashing.sha256().hashString(raw, StandardCharsets.UTF_8).toString());
             timing("sha512", () -> Hashing.sha512().hashString(raw, StandardCharsets.UTF_8).toString());
         }
-
     }
 
     private <T> T timing(String name, Supplier<T> supplier) {
@@ -62,6 +63,17 @@ public class UserServiceTest {
         System.out.println(name + " cost " + cost + " ms");
         System.out.println();
         return v;
+    }
+
+    @Test
+    public void testKey() {
+        String salt = RandomUtil.randomStringFixLength(16);
+        String plainPassword = RandomUtil.randomStringFixLength(16);
+        byte[] key = salt.getBytes(UTF_8);
+        assertThat(Hashing.hmacSha1(key).hashString(plainPassword, UTF_8).toString()).isNotEqualTo(Hashing.sha1().hashString(plainPassword, UTF_8).toString());
+        assertThat(Hashing.hmacSha1(key).hashString(plainPassword, UTF_8).toString()).isNotEqualTo(Hashing.sha1().hashString(plainPassword + salt, UTF_8).toString());
+        assertThat(Hashing.hmacSha256(key).hashString(plainPassword, UTF_8).toString()).isNotEqualTo(Hashing.sha256().hashString(plainPassword, UTF_8).toString());
+        assertThat(Hashing.hmacSha256(key).hashString(plainPassword, UTF_8).toString()).isNotEqualTo(Hashing.sha256().hashString(plainPassword + salt, UTF_8).toString());
     }
 
     /* 未用

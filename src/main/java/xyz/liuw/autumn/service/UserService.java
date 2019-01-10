@@ -7,6 +7,7 @@ import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 import com.vip.vjtools.vjkit.security.CryptoUtil;
 import com.vip.vjtools.vjkit.text.EncodeUtil;
+import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -21,16 +22,18 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/22.
  */
+@SuppressWarnings({"UnstableApiUsage", "WeakerAccess"})
 @Component
 public class UserService {
 
@@ -81,7 +84,7 @@ public class UserService {
      * @return 如果登录成功，则返回 true，否则返回 false
      */
     public boolean login(String username, String plainPassword, HttpServletRequest request, HttpServletResponse response) {
-        User user = checkPassword(username, plainPassword);
+        User user = checkPlainPassword(username, plainPassword);
         if (user == null) {
             return false;
         }
@@ -101,10 +104,18 @@ public class UserService {
     }
 
     private void setRememberMe(User user, String plainPassword, HttpServletRequest request, HttpServletResponse response) {
-        // id|password|timeOnSeconds
-        String raw = REMEMBER_ME_VERSION + SEPARATOR + user.getId() + SEPARATOR + plainPassword + SEPARATOR + System.currentTimeMillis() / 1000;
+        // version|id|passwordDigest1|timeOnSeconds
+        String raw = StringBuilderHolder.getGlobal()
+                .append(REMEMBER_ME_VERSION)
+                .append(SEPARATOR)
+                .append(user.getId())
+                .append(SEPARATOR)
+                .append(passwordDigest1(plainPassword, user.getSalt()))
+                .append(SEPARATOR)
+                .append(System.currentTimeMillis() / 1000)
+                .toString();
         String encrypted = EncodeUtil.encodeBase64(
-                CryptoUtil.aesEncrypt(raw.getBytes(StandardCharsets.UTF_8), aesKey));
+                CryptoUtil.aesEncrypt(raw.getBytes(UTF_8), aesKey));
         CookieGenerator cg = new CookieGenerator();
         cg.setCookieName(REMEMBER_ME_COOKIE_NAME);
         cg.setCookieMaxAge(rememberMeSeconds);
@@ -156,7 +167,7 @@ public class UserService {
             }
             long id = Long.parseLong(tokenizer.nextToken());
             String password = tokenizer.nextToken();
-            User user = checkPassword(id, password);
+            User user = checkRememberMePassword(id, password);
             if (user == null) {
                 return USER_NOT_EXIST_OR_PASSWORD_ERROR;
             }
@@ -196,34 +207,48 @@ public class UserService {
     /**
      * @return 如果 username 和 password 验证通过，则返回 User 对象，否则返回 null
      */
-    private User checkPassword(Long id, String password) {
+    private User checkRememberMePassword(Long id, String passwordDigest1) {
         User user = idToUser.get(id);
-        return checkPassword(user, password);
+        if (user == null) {
+            return null;
+        }
+        return checkPasswordDigest1(user, passwordDigest1);
     }
 
     /**
      * @return 如果 username 和 password 验证通过，则返回 User 对象，否则返回 null
      */
     @VisibleForTesting
-    User checkPassword(String username, String password) {
+    User checkPlainPassword(String username, String plainPassword) {
         User user = users.get(username);
-        return checkPassword(user, password);
+        if (user == null) {
+            return null;
+        }
+        return checkPasswordDigest1(user, passwordDigest1(plainPassword, user.getSalt()));
     }
 
     /**
      * @return 如果 username 和 password 验证通过，则返回 User 对象，否则返回 null
      */
-    private User checkPassword(User user, String password) {
-        if (user == null) {
-            return null;
-        }
-        String s = password + user.getSalt();
-        @SuppressWarnings("UnstableApiUsage") String sha = Hashing.sha512().hashString(s, StandardCharsets.UTF_8).toString();
-        if (sha.equals(user.getPassword())) {
+    private User checkPasswordDigest1(User user, String passwordDigest1) {
+        String s = passwordDigest2(passwordDigest1, user.getSalt());
+        if (s.equals(user.getPassword())) {
             return user;
         } else {
             return null;
         }
+    }
+
+    @VisibleForTesting
+    static String passwordDigest1(String plainPassword, String salt) {
+        byte[] key = salt.getBytes(UTF_8);
+        return Hashing.hmacSha1(key).hashString(plainPassword, UTF_8).toString();
+    }
+
+    @VisibleForTesting
+    static String passwordDigest2(String passwordDigest1, String salt) {
+        byte[] key = salt.getBytes(UTF_8);
+        return Hashing.hmacSha512(key).hashString(passwordDigest1, UTF_8).toString();
     }
 
     @VisibleForTesting
