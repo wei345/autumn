@@ -306,7 +306,7 @@ input.header__row_1__search_input {
 }
 
 .btn:hover {
-    background-color: rgba(60,64,67,0.08);
+    background-color: rgba(60, 64, 67, 0.08);
     border-radius: 50%;
 }
 
@@ -684,6 +684,24 @@ ul.header__row_1__tools {
 .center_position {
     max-width: 600px;
     margin: 0 auto;
+}
+
+.pagination {
+    margin-bottom: 26px;
+}
+
+.pagination a, .pagination > .pn {
+    padding-left: 5px;
+    padding-right: 5px;
+    text-decoration: none;
+}
+
+.pagination a:first-child {
+    padding-left: 0;
+}
+
+.pagination a:hover .pn {
+    text-decoration: underline;
 }
 
 @media (min-width: 640px) {

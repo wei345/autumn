@@ -2,11 +2,13 @@ package xyz.liuw.autumn.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
+import xyz.liuw.autumn.domain.Pagination;
 import xyz.liuw.autumn.search.SearchResult;
 import xyz.liuw.autumn.service.RateLimitService;
 import xyz.liuw.autumn.service.SearchService;
@@ -39,10 +41,21 @@ public class SearchController {
     @Autowired
     private RateLimitService rateLimitService;
 
+    @Value("${autumn.search.page-size}")
+    private int pageSize;
+
     @RequestMapping(value = "/search", method = RequestMethod.GET)
-    public Object search(String s, Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public Object search(String s,
+                         Integer offset,
+                         Map<String, Object> model,
+                         HttpServletRequest request,
+                         HttpServletResponse response) throws IOException {
         if (StringUtils.isBlank(s)) {
             return new RedirectView("/", true, false);
+        }
+
+        if (offset == null || offset < 0) {
+            offset = 0;
         }
 
         if (s.length() > maxSearchStrLength) {
@@ -50,9 +63,16 @@ public class SearchController {
         }
 
         if (rateLimitService.acquireSearch(WebUtil.getClientIpAddress(request))) {
-            SearchResult sr = searchService.search(s);
+            String q = s;
+            SearchResult sr = searchService.search(s, offset, pageSize);
             model.put("s", htmlEscape(s));
             model.put("sr", sr);
+            model.put("pagination",
+                    new Pagination(
+                            offset,
+                            pageSize,
+                            sr.getTotal(),
+                            (pageNumber, offset1) -> "/search?s=" + q + "&offset=" + offset1));
             return templateService.merge(model, "search_result");
         }
         request.setAttribute("s", htmlEscape(s));

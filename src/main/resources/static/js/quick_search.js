@@ -1048,7 +1048,8 @@ function updateVisitList() {
         if (queryString.length <= 3) {
             return;
         }
-        currentPath += queryString;
+        var params = au.parseQueryString(queryString);
+        currentPath += '?s=' + encodeURIComponent(params.s);
     }
 
     // 更新

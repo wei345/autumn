@@ -20,15 +20,18 @@ public class Searcher {
 
     private Highlighter highlighter = new Highlighter();
 
-    public SearchResult search(String input, Collection<Page> pages) {
-        long start = System.currentTimeMillis();
+    public SearchResult search(String input, Collection<Page> source, int offset, int count) {
+        long startTime = System.currentTimeMillis();
 
-        Set<SearchingPage> searchResult = doSearch(input, pages);
+        Set<SearchingPage> searchResult = doSearch(input, source);
         List<SearchingPage> sortedResult = Sorting.sort(searchResult);
-        highlighter.highlightSearchingPage(sortedResult);
+        int fromIndex = Math.min(offset, sortedResult.size());
+        int toIndex = Math.min(offset + count, sortedResult.size());
+        List<SearchingPage> result = sortedResult.subList(fromIndex, toIndex);
+        highlighter.highlightSearchingPage(result);
 
-        long cost = System.currentTimeMillis() - start;
-        return new SearchResult(sortedResult, cost, pages.size());
+        long cost = System.currentTimeMillis() - startTime;
+        return new SearchResult(result, cost, sortedResult.size());
     }
 
     private Set<SearchingPage> doSearch(String input, Collection<Page> pages) {

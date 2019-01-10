@@ -22,10 +22,10 @@ public class SearchServiceTest {
     @Test
     public void search() {
 
-        SearchResult sr = searchService.search("java spring"); // 搜索 1100+ Page，找到 133 结果，90 ms
+        SearchResult sr = searchService.search("java spring", 0, Integer.MAX_VALUE); // 搜索 1100+ Page，找到 133 结果，90 ms
         System.out.println(sr.getPages().size() + "|" + sr.getPages());
-        searchService.search("java spring"); // 有 Page 级缓存，1 ms
-        searchService.search("java spring"); // 1 ms
+        searchService.search("java spring", 0, Integer.MAX_VALUE); // 有 Page 级缓存，1 ms
+        searchService.search("java spring", 0, Integer.MAX_VALUE); // 1 ms
 
     }
 }

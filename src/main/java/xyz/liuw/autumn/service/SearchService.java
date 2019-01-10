@@ -30,10 +30,10 @@ public class SearchService {
 
     private Highlighter highlighter = new Highlighter();
 
-    public SearchResult search(String input) {
+    public SearchResult search(String input, int offset, int count) {
         Map<String, Page> pageMap = dataService.getPageMap();
-        SearchResult sr = searcher.search(input, pageMap.values());
-        logger.info("Search '{}', {} results in {} ms", input, sr.getPages().size(), sr.getTimeCost());
+        SearchResult sr = searcher.search(input, pageMap.values(), offset, count);
+        logger.info("Search '{}', {} results in {} ms", input, sr.getTotal(), sr.getTimeCost());
         return sr;
     }
 

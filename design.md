@@ -78,9 +78,8 @@
 * 缓存中间结果和最终结果
 * 排序
 * 展示结果
-* TODO 搜索结果分页？
 * TODO 搜索结果缓存
-* TODO 优化：记录搜索词-点击的页面-次数
+* SOMEDAY 优化：记录搜索词-点击的页面-次数
 
 Media 没多少，不搜。
 
@@ -114,7 +113,6 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 ### 异常
 
 * 处理请求发生异常时，显示 templates/error 里和状态码对应的错误页面，用户不会看到 Tomcat 错误页面。
-* TODO 开发时 Sprig boot reload 时访问页面会看到 tomcat 500
 
 ### Production Ready
 

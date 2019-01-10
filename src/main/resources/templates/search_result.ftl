@@ -2,7 +2,7 @@
 <#include "inc/content_open.ftl">
     <div class="sr center_position">
         <#if (sr)??>
-            <div class="sr_stats">${sr.pages?size!} results (${sr.timeCost!} ms)</div>
+            <div class="sr_stats">${sr.total!} results (${sr.timeCost!} ms)</div>
             <div class="sr_pages">
                 <#list sr.pages as sp>
                     <div class="sr_page">
@@ -20,6 +20,7 @@
                     </div>
                 </#list>
             </div>
+            <#include "inc/pagination.ftl">
         <#else>
             <p>${message!}</p>
         </#if>
