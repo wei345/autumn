@@ -36,7 +36,6 @@ function detectClient() {
     var html = document.querySelector('html');
     html.classList.add('js');
     html.classList.add(isMobi ? 'mobi' : 'desktop');
-    document.body.classList.add('multiple_columns');
 }
 
 function bindSidebarToggle() {

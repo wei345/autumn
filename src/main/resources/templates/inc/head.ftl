@@ -27,5 +27,5 @@
     <link rel="icon" href="${faviconUrl!}" type="image/x-icon"/>
     <link rel="stylesheet" href="${ctx!}/css/all.css?${cssVersionKeyValue!}"/>
 </head>
-<body>
+<body class="multiple_columns">
 <div class="container">
