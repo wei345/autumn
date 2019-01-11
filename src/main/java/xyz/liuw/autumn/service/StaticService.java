@@ -191,7 +191,7 @@ public class StaticService {
     }
 
     private boolean refreshCssCache() {
-        List<ResourceLoader.ResourceCache> sourceList = Stream.of("/css/normalize.css", "/css/style.css")
+        List<ResourceLoader.ResourceCache> sourceList = Stream.of("/css/lib/normalize.css", "/css/style.css")
                 .map(this::getStaticResourceCache).collect(Collectors.toList());
         List<Long> sourceTimeList = sourceList.stream().map(ResourceLoader.ResourceCache::getLastModified).collect(Collectors.toList());
         if (cssCache != null && !cssCache.checkChanged(sourceTimeList)) {

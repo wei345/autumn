@@ -1,2 +1,2 @@
-highlightjs-line-numbers.js linguist-vendored
-normalize.css linguist-vendored
+/src/main/resources/static/js/lib linguist-vendored
+/src/main/resources/static/css/lib linguist-vendored
