@@ -5,6 +5,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
+import com.google.common.io.BaseEncoding;
 import com.vip.vjtools.vjkit.security.CryptoUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.CookieGenerator;
 import xyz.liuw.autumn.util.WebUtil;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,7 +30,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static com.vip.vjtools.vjkit.security.CryptoUtil.aesEncrypt;
-import static com.vip.vjtools.vjkit.text.EncodeUtil.*;
+import static com.vip.vjtools.vjkit.text.EncodeUtil.decodeHex;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -41,21 +43,13 @@ public class UserService {
 
     // 改变这个值会使所有已登录 Cookie 失效
     private static final int REMEMBER_ME_VERSION = 2;
-
-    private static final String REMEMBER_ME_COOKIE_NAME = "ME";
-
     private static final String LOGOUT_COOKIE_NAME = "logout";
-
     private static final String SEPARATOR = "|";
-
     private static final User USER_REMEMBER_ME_PARSE_ERROR = new User();
-
     private static final User USER_NOT_EXIST_OR_PASSWORD_ERROR = new User();
-
     private static Logger logger = LoggerFactory.getLogger(UserService.class);
-
     private static ThreadLocal<User> userThreadLocal = new ThreadLocal<>();
-
+    private String rememberMeCookieName;
     private byte[] aesKey;
 
     @SuppressWarnings("FieldCanBeLocal")
@@ -67,7 +61,6 @@ public class UserService {
 
     @Autowired
     private WebUtil webUtil;
-
     private Cache<String, User> rememberMeToUserCache = CacheBuilder.newBuilder()
             .expireAfterWrite(30, TimeUnit.SECONDS)
             .maximumSize(10_000)
@@ -87,7 +80,23 @@ public class UserService {
         return Hashing.hmacSha512(salt).hashBytes(passwordDigest1).asBytes();
     }
 
+    private static byte[] decodeBase64UrlSafe(String base64String) {
+        return BaseEncoding.base64Url().decode(base64String);
+    }
+
+    private static String encodeBase64UrlSafe(byte[] bytes) {
+        return BaseEncoding.base64Url().omitPadding().encode(bytes);
+    }
+
+    @PostConstruct
+    private void init() {
+        rememberMeCookieName = webUtil.getPrefix() + "me";
+    }
+
     public void setCurrentUser(HttpServletRequest request, HttpServletResponse response) {
+        /// TODO 2019-01-15 之后删除这行代码
+        deleteCookie("ME", request, response);
+        ///
         User user = getRememberMeUser(request, response);
         userThreadLocal.set(user);
     }
@@ -105,7 +114,7 @@ public class UserService {
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {
-        deleteCookie(REMEMBER_ME_COOKIE_NAME, request, response);
+        deleteCookie(rememberMeCookieName, request, response);
 
         // 设置 logout cookie，JavaScript 检查该 cookie，清理客户端用户数据，然后删除该 cookie
         String value = String.valueOf(System.currentTimeMillis());
@@ -128,7 +137,7 @@ public class UserService {
                 .toString();
         String encrypted = encodeBase64UrlSafe(aesEncrypt(raw.getBytes(UTF_8), aesKey));
         CookieGenerator cg = new CookieGenerator();
-        cg.setCookieName(REMEMBER_ME_COOKIE_NAME);
+        cg.setCookieName(rememberMeCookieName);
         cg.setCookieMaxAge(rememberMeSeconds);
         cg.setCookieHttpOnly(true);
         addCookie(cg, encrypted, request, response);
@@ -138,7 +147,7 @@ public class UserService {
      * @return 如果 rememberMe 验证成功，返回 User 对象，否则返回 null
      */
     private User getRememberMeUser(HttpServletRequest request, HttpServletResponse response) {
-        Cookie cookie = getCookie(REMEMBER_ME_COOKIE_NAME, request);
+        Cookie cookie = getCookie(rememberMeCookieName, request);
         if (cookie == null) {
             return null;
         }

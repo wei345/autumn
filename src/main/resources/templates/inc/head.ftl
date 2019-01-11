@@ -14,6 +14,7 @@
     <script>
         var autumn = {
             ctx: '${ctx!}',
+            prefix: '${prefix!}',
             treeVersionKeyValue: '${treeVersionKeyValue!}'
         };
     </script>

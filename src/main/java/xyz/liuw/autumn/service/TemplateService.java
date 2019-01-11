@@ -33,6 +33,7 @@ public class TemplateService {
     private static final String FAVICON_URL = "faviconUrl";
     private static final String LOGGED = "logged";
     private static final String CTX = "ctx";
+    private static final String PREFIX = "prefix";
     private static final String GOOGLE_ANALYTICS_ID = "googleAnalyticsId";
     private static final String SITE_TITLE = "siteTitle";
     private static Logger logger = LoggerFactory.getLogger(TemplateService.class);
@@ -104,6 +105,7 @@ public class TemplateService {
         model.put(LOGGED, isLogged());
         model.put(GOOGLE_ANALYTICS_ID, googleAnalyticsId);
         model.put(SITE_TITLE, siteTitle);
+        model.put(PREFIX, webUtil.getPrefix());
     }
 
     /**
@@ -119,6 +121,7 @@ public class TemplateService {
         request.setAttribute(LOGGED, isLogged());
         request.setAttribute(GOOGLE_ANALYTICS_ID, googleAnalyticsId);
         request.setAttribute(SITE_TITLE, siteTitle);
+        request.setAttribute(PREFIX, webUtil.getPrefix());
     }
 
     private void refreshTemplateLastChanged() {

@@ -1,8 +1,9 @@
 "use strict";
 var au = util();
 var ctx = autumn.ctx;
+var prefix = autumn.prefix;
 var treeVersionKeyValue = autumn.treeVersionKeyValue;
-var lsRecentVisitKey = 'autumn.recently_visit';
+var lsRecentVisitKey = prefix + 'recently_visit';
 var recentlyVisitMaxCount = 100;
 var recentlyVisitPages;
 var logoutCookieName = 'logout';
@@ -16,7 +17,7 @@ var treeReady = false;
 var treeFirstShow = true;
 var isFixed = false;
 var fixedClassName = 'fixed';
-const lsFixedKey = 'autumn.fixed';
+var lsFixedKey = prefix + 'fixed';
 var toggleSidebar = au.emptyFn;
 var toggleToc = au.emptyFn;
 window.addEventListener('load', function () {
@@ -48,13 +49,13 @@ function bindSidebarToggle() {
     var lsKey;
     switch (au.pathname()) {
         case ctx + '/':
-            lsKey = 'autumn.home.sidebar.display';
+            lsKey = prefix + 'home.sidebar.display';
             break;
         case ctx + '/search':
-            lsKey = 'autumn.search.sidebar.display';
+            lsKey = prefix + 'search.sidebar.display';
             break;
         default:
-            lsKey = 'autumn.sidebar.display';
+            lsKey = prefix + 'sidebar.display';
             break;
     }
     if (getComputedStyle(main).getPropertyValue('flex-direction') === 'row') {
@@ -101,7 +102,7 @@ function bindTocToggle() {
         return;
     }
     toggle.classList.add('no_selection', 'action_toggle');
-    var lsKey = 'autumn.toc.display';
+    var lsKey = prefix + 'toc.display';
     internalToggleToc(localStorage.getItem(lsKey) !== '0');
     toggle.addEventListener('click', toggleTocAndRemember);
     toggleToc = toggleTocAndRemember;
