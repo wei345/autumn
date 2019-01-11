@@ -8,6 +8,8 @@
 * Maven 3.5
 * Redis 4 (可选)
 
+Java 8 需要启用 256 AES key，下载 [Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files](https://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html) 安装到 ${java.home}/jre/lib/security/。Java 9 及以上默认可以使用 256 AES key，不需要额外设置。
+
 ## 安装
 
 ```bash
@@ -15,20 +17,20 @@ git clone git@github.com:wei345/autumn.git
 cd autumn
 ```
 
+或下载 [master.zip](https://github.com/wei345/autumn/archive/master.zip)，解压缩，进入 autumn-master 目录。
+
 生成密码:
 
 ```bash
 mvn -q -DskipTests=false -Dtest=xyz.liuw.autumn.service.UserServiceTest#generateUser test
 ```
 
-输出：
+输出示例：
 
 ```text
-1 Username 44c0adba2f8c39be8263b88c137b393d6eb99c723efa9d79cd6cb69f230ccb9e2474cddcff7710ef15a34b16c6179c02e1ff9a8151eff4ff17da356bedd50242 dPiP77yBNrR18s4J;
-password: FUcqWQcbO5nDQxOm
+1 Username 1B62BCEB123EB08F73BE3970394C23973FADF75CDCEE153A27FD2EC808805ED29BCC77CDCB966E4C775347D55E82753510D9E8154387BB7286D8CBAF9E68324A 75F0FF8B5CF34B050491DBB9F0BBF85F;
+password: l3RfN05UhyFm4IYc
 ```
-
-其中 `Username` 可以随意修改。
 
 生成 AES key:
 
@@ -36,16 +38,18 @@ password: FUcqWQcbO5nDQxOm
 mvn -q -DskipTests=false -Dtest=xyz.liuw.autumn.AesTest#generateKey test
 ```
 
-输出：
+输出示例：
 
 ```text
 2FDFCEF1DAA8E567549C52C10422BE09A81CC80B0A05BFE8CF75F223BD87DEB6
 ```
 
-新建文件 src/main/resources/application-production.properties，将上面生成的内容添到文件中：
+新建文件 src/main/resources/application-local.properties，用前面输出的内容配置 `autumn.users` 和 `autumn.aes.key`，用户名 `Username` 可以随意修改，我这里把它改为 `test`。
+
+例如：
 
 ```properties
-autumn.users=1 test 44c0adba2f8c39be8263b88c137b393d6eb99c723efa9d79cd6cb69f230ccb9e2474cddcff7710ef15a34b16c6179c02e1ff9a8151eff4ff17da356bedd50242 dPiP77yBNrR18s4J;
+autumn.users=1 test 1B62BCEB123EB08F73BE3970394C23973FADF75CDCEE153A27FD2EC808805ED29BCC77CDCB966E4C775347D55E82753510D9E8154387BB7286D8CBAF9E68324A 75F0FF8B5CF34B050491DBB9F0BBF85F;
 autumn.aes.key=2FDFCEF1DAA8E567549C52C10422BE09A81CC80B0A05BFE8CF75F223BD87DEB6
 ```
 
@@ -63,7 +67,7 @@ bin/start.sh
 
 可以用浏览器访问首页 http://localhost:7000 。
 
-访问登录页 http://localhost:7000/login ，可以用配置文件里设置的用户名 `test` 和前面生成的密码 `FUcqWQcbO5nDQxOm` 登录。
+访问登录页 http://localhost:7000/login ，可以用配置文件里设置的用户名 `test` 和前面生成的密码登录。（前面输出示例中密码为 `l3RfN05UhyFm4IYc`）
 
 停止：
 
@@ -81,9 +85,9 @@ bin/autumn.sh stop
 
 数据目录（`autumn.data-dir`）里可以有 .md 文件和其他任意格式文件，可以有子目录。
 
-.md 文件被映射为网页。例如 `${autumn.data-dir}/a/b/c.md` 会被映射为网页 `http://localhost:7000/a/b/c`。
+.md 文件会被映射为网页。例如 `${autumn.data-dir}/a/b/c.md` 会被映射为网页 `http://localhost:7000/a/b/c`。
 
-其他文件被视为静态文件，系统会设置正确的 Content-Type。例如 `${autumn.data-dir}/a/b/c.png` 会被映射为 `http://localhost:7000/a/b/c.png`。
+其他文件会被视为静态文件。例如 `${autumn.data-dir}/a/b/c.png` 会被映射为 `http://localhost:7000/a/b/c.png`。
 
 .md 文件格式约定：
 
@@ -135,7 +139,7 @@ published: true
 
 ## 生产环境部署
 
-创建配置文件 src/main/resources/application-production.properties（也可以将其他文件 link 到这个位置），该文件应该包含以下配置：
+创建配置文件 src/main/resources/application-prod.properties（也可以将其他文件 link 到这个位置），该文件应该包含以下配置：
 
 ```properties
 # /path/to/data

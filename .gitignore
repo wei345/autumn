@@ -1,6 +1,7 @@
+.DS_Store
 .idea
 *.iml
 /target
-.DS_Store
-application-production.properties
 /logs
+application-prod.properties
+application-local.properties

@@ -7,7 +7,7 @@ readonly WORKING_DIR="$(pwd)"
 readonly LOG_DIR="./logs"
 readonly JAR_FILE="${WORKING_DIR}/target/autumn.jar"
 readonly MAIN_CLASS="xyz.liuw.autumn.Application"
-readonly APP_ARGS="--spring.profiles.active=production,logfile"
+readonly APP_ARGS="--spring.profiles.include=logfile"
 
 # e.g. 1.8.0_131 -> 8, 9 -> 9, 10.0.1 -> 10 ...
 java_major_version() {
