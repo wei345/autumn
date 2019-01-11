@@ -108,15 +108,13 @@ function bindTocToggle() {
 
     function internalToggleToc(show) {
         if (show == null) {
-            show = tocBody.classList.toggle('show');
+            show = content.classList.toggle('show_toc');
         } else {
-            tocBody.classList.toggle('show', show);
+            content.classList.toggle('show_toc', show);
         }
         if (show) {
-            content.classList.add('show_toc');
             toggle.innerText = 'Table of Contents';
         } else {
-            content.classList.remove('show_toc');
             toggle.innerText = 'TOC';
         }
         return show;

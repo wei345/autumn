@@ -62,7 +62,7 @@ public class FlexmarkMarkdownParser implements MarkdownParser {
                 .set(TocExtension.LEVELS, 127)
                 .set(TocExtension.DIV_CLASS, "toc") // 顶层元素 div.toc
                 .set(TocExtension.TITLE_LEVEL, 3) // <h3>title</h3>
-                .set(TocExtension.TITLE, "Table of Contents");
+                .set(TocExtension.TITLE, "TOC");
 
         parser = Parser.builder(options).build();
         renderer = HtmlRenderer.builder(options).build();

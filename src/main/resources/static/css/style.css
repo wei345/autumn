@@ -320,7 +320,7 @@ input.header__row_1__search_input {
 
 .sidebar_toggle {
     cursor: pointer;
-    display: none;
+    display: inline-block;
 }
 
 .action_toggle:hover {
@@ -330,10 +330,6 @@ input.header__row_1__search_input {
 
 .mobi .action_toggle:hover {
     text-decoration: none;
-}
-
-.js .sidebar_toggle {
-    display: inline-block;
 }
 
 .main {
@@ -421,12 +417,8 @@ input.header__row_1__search_input {
 }
 
 .toc {
-    display: none;
-    margin: 1em 0;
-}
-
-.js .toc {
     display: block;
+    margin: 1em 0;
 }
 
 .toc h3 {
@@ -446,6 +438,10 @@ input.header__row_1__search_input {
 .toc > ul {
     display: none;
     padding-left: 0;
+}
+
+.show_toc .toc > ul {
+    display: block;
 }
 
 .toc ul li {
