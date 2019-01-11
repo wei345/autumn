@@ -9,6 +9,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+import static com.vip.vjtools.vjkit.text.EncodeUtil.decodeHex;
+import static com.vip.vjtools.vjkit.text.EncodeUtil.encodeHex;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static xyz.liuw.autumn.service.UserService.passwordDigest1;
@@ -25,9 +27,10 @@ public class UserServiceTest {
     public void generateUser() {
         // generate
         String username = "Username";
-        String salt = RandomUtil.randomStringFixLength(16);
+        String salt = encodeHex(Hashing.md5().hashString(RandomUtil.randomStringFixLength(1024), UTF_8).asBytes());
+        byte[] saltBytes = decodeHex(salt);
         String plainPassword = RandomUtil.randomStringFixLength(16);
-        String password = passwordDigest2(passwordDigest1(plainPassword, salt), salt);
+        String password = encodeHex(passwordDigest2(passwordDigest1(plainPassword, saltBytes), saltBytes));
 
         // print
         String userString = 1 + " " + username + " " + password + " " + salt + ";";

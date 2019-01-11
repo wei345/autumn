@@ -6,7 +6,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 import com.vip.vjtools.vjkit.security.CryptoUtil;
-import com.vip.vjtools.vjkit.text.EncodeUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -22,11 +21,14 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static com.vip.vjtools.vjkit.security.CryptoUtil.aesEncrypt;
+import static com.vip.vjtools.vjkit.text.EncodeUtil.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -75,6 +77,16 @@ public class UserService {
         return userThreadLocal.get() != null;
     }
 
+    @VisibleForTesting
+    static byte[] passwordDigest1(String plainPassword, byte[] salt) {
+        return Hashing.hmacSha1(salt).hashString(plainPassword, UTF_8).asBytes();
+    }
+
+    @VisibleForTesting
+    static byte[] passwordDigest2(byte[] passwordDigest1, byte[] salt) {
+        return Hashing.hmacSha512(salt).hashBytes(passwordDigest1).asBytes();
+    }
+
     public void setCurrentUser(HttpServletRequest request, HttpServletResponse response) {
         User user = getRememberMeUser(request, response);
         userThreadLocal.set(user);
@@ -110,12 +122,11 @@ public class UserService {
                 .append(SEPARATOR)
                 .append(user.getId())
                 .append(SEPARATOR)
-                .append(passwordDigest1(plainPassword, user.getSalt()))
+                .append(encodeBase64UrlSafe(passwordDigest1(plainPassword, user.getSaltBytes())))
                 .append(SEPARATOR)
                 .append(System.currentTimeMillis() / 1000)
                 .toString();
-        String encrypted = EncodeUtil.encodeBase64(
-                CryptoUtil.aesEncrypt(raw.getBytes(UTF_8), aesKey));
+        String encrypted = encodeBase64UrlSafe(aesEncrypt(raw.getBytes(UTF_8), aesKey));
         CookieGenerator cg = new CookieGenerator();
         cg.setCookieName(REMEMBER_ME_COOKIE_NAME);
         cg.setCookieMaxAge(rememberMeSeconds);
@@ -158,7 +169,7 @@ public class UserService {
      */
     private @NotNull User parseRememberMeForUser(String rememberMe) {
         try {
-            String decrypted = CryptoUtil.aesDecrypt(EncodeUtil.decodeBase64(rememberMe), aesKey);
+            String decrypted = CryptoUtil.aesDecrypt(decodeBase64UrlSafe(rememberMe), aesKey);
             StringTokenizer tokenizer = new StringTokenizer(decrypted, SEPARATOR);
             int version = Integer.parseInt(tokenizer.nextToken());
             if (version != REMEMBER_ME_VERSION) {
@@ -167,7 +178,7 @@ public class UserService {
             }
             long id = Long.parseLong(tokenizer.nextToken());
             String password = tokenizer.nextToken();
-            User user = checkRememberMePassword(id, password);
+            User user = checkRememberMePassword(id, decodeBase64UrlSafe(password));
             if (user == null) {
                 return USER_NOT_EXIST_OR_PASSWORD_ERROR;
             }
@@ -207,7 +218,7 @@ public class UserService {
     /**
      * @return 如果 username 和 password 验证通过，则返回 User 对象，否则返回 null
      */
-    private User checkRememberMePassword(Long id, String passwordDigest1) {
+    private User checkRememberMePassword(Long id, byte[] passwordDigest1) {
         User user = idToUser.get(id);
         if (user == null) {
             return null;
@@ -224,31 +235,18 @@ public class UserService {
         if (user == null) {
             return null;
         }
-        return checkPasswordDigest1(user, passwordDigest1(plainPassword, user.getSalt()));
+        return checkPasswordDigest1(user, passwordDigest1(plainPassword, user.getSaltBytes()));
     }
 
     /**
      * @return 如果 username 和 password 验证通过，则返回 User 对象，否则返回 null
      */
-    private User checkPasswordDigest1(User user, String passwordDigest1) {
-        String s = passwordDigest2(passwordDigest1, user.getSalt());
-        if (s.equals(user.getPassword())) {
+    private User checkPasswordDigest1(User user, byte[] passwordDigest1) {
+        if (Arrays.equals(user.getPasswordBytes(), passwordDigest2(passwordDigest1, user.getSaltBytes()))) {
             return user;
         } else {
             return null;
         }
-    }
-
-    @VisibleForTesting
-    static String passwordDigest1(String plainPassword, String salt) {
-        byte[] key = salt.getBytes(UTF_8);
-        return Hashing.hmacSha1(key).hashString(plainPassword, UTF_8).toString();
-    }
-
-    @VisibleForTesting
-    static String passwordDigest2(String passwordDigest1, String salt) {
-        byte[] key = salt.getBytes(UTF_8);
-        return Hashing.hmacSha512(key).hashString(passwordDigest1, UTF_8).toString();
     }
 
     @VisibleForTesting
@@ -258,7 +256,7 @@ public class UserService {
 
     @Value("${autumn.aes.key}")
     private void setAesKey(String aesKey) {
-        this.aesKey = EncodeUtil.decodeHex(aesKey.toUpperCase());
+        this.aesKey = decodeHex(aesKey);
     }
 
     @VisibleForTesting
@@ -276,7 +274,7 @@ public class UserService {
             String username = parts[1];
             String password = parts[2];
             String salt = parts[3];
-            User user = new User(id, username, password, salt);
+            User user = new User(id, username, password, salt, decodeHex(password), decodeHex(salt));
             Validate.isTrue(users.get(username) == null, "Duplicate username '%s'", username);
             Validate.isTrue(idToUser.get(id) == null, "Duplicate id '%s'", id);
             users.put(username, user);
@@ -289,16 +287,20 @@ public class UserService {
         private String username;
         private String password;
         private String salt;
+        private byte[] passwordBytes;
+        private byte[] saltBytes;
 
         // used by Jackson deserialize
         public User() {
         }
 
-        public User(long id, String username, String password, String salt) {
+        public User(long id, String username, String password, String salt, byte[] passwordBytes, byte[] saltBytes) {
             this.id = id;
             this.username = username;
             this.password = password;
             this.salt = salt;
+            this.passwordBytes = passwordBytes;
+            this.saltBytes = saltBytes;
         }
 
         Long getId() {
@@ -331,6 +333,14 @@ public class UserService {
 
         public void setSalt(String salt) {
             this.salt = salt;
+        }
+
+        public byte[] getPasswordBytes() {
+            return passwordBytes;
+        }
+
+        public byte[] getSaltBytes() {
+            return saltBytes;
         }
     }
 }
