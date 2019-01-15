@@ -701,6 +701,26 @@ ul.header__row_1__tools {
     text-decoration: underline;
 }
 
+.breadcrumb {
+    margin-top: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.breadcrumb li {
+    display: inline-block;
+}
+
+.breadcrumb .separator {
+    color: #ccc;
+    margin-right: 5px;
+    margin-left: 5px;
+}
+
+.breadcrumb li:first-child .separator {
+    margin-left: 0;
+}
+
 @media (min-width: 640px) {
 
     /* layout */

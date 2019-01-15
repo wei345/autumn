@@ -27,6 +27,7 @@ public class PageService {
 
     private static final String PAGE_HTML = "pageHtml";
     private static final String TITLE = "title";
+    private static final String BREADCRUMB = "breadcrumb";
     private static Logger logger = LoggerFactory.getLogger(PageService.class);
     @Autowired
     private DataService dataService;
@@ -58,6 +59,7 @@ public class PageService {
                     logger.info("Building cache path={}", page.getPath());
                     model.put(TITLE, htmlEscape(page.getTitle()));
                     model.put(PAGE_HTML, getPageHtml(page, WebUtil.getInternalPath(request)));
+                    model.put(BREADCRUMB, dataService.getBreadcrumbLinks(page));
                     byte[] content = templateService.merge(model, view).getBytes(StandardCharsets.UTF_8);
                     String md5 = DigestUtils.md5DigestAsHex(content);
                     String etag = WebUtil.getEtag(md5);
@@ -83,6 +85,7 @@ public class PageService {
         html = searchService.highlightSearchStr(html, searchStrList);
         model.put(TITLE, htmlEscape(page.getTitle()));
         model.put(PAGE_HTML, html);
+        model.put(BREADCRUMB, dataService.getBreadcrumbLinks(page));
         return templateService.merge(model, view);
     }
 

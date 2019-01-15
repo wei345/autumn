@@ -2,12 +2,15 @@ package xyz.liuw.autumn.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import xyz.liuw.autumn.data.DataSource;
 import xyz.liuw.autumn.data.Media;
 import xyz.liuw.autumn.data.Page;
 import xyz.liuw.autumn.data.TreeJson;
+import xyz.liuw.autumn.domain.Link;
 
-import javax.annotation.PostConstruct;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import static xyz.liuw.autumn.service.UserService.isLogged;
@@ -29,18 +32,6 @@ public class DataService {
 
     @Autowired
     private StaticService staticService;
-
-
-    private volatile long mediaLastChanged;
-
-    @PostConstruct
-    private void init(){
-
-    }
-
-    private void refreshMediaLastChanged(){
-        mediaLastChanged = System.currentTimeMillis();
-    }
 
     public TreeJson getTreeJson() {
         return isLogged() ?
@@ -64,7 +55,7 @@ public class DataService {
         return null;
     }
 
-    public String getMediaVersionKeyValue(String path) {
+    String getMediaVersionKeyValue(String path) {
         Media media = dataSource.getAllData().getMediaMap().get(path);
         if (media != null) {
             return media.getVersionKeyValue();
@@ -127,4 +118,52 @@ public class DataService {
         return null;
     }
 
+    List<Link> getBreadcrumbLinks(Page page) {
+        Assert.notNull(page, "page is null");
+
+        LinkedList<Link> links = new LinkedList<>();
+        String path = page.getPath();
+        int lastSlash;
+        while ((lastSlash = path.lastIndexOf('/')) >= 0) {
+            String parent = path.substring(0, lastSlash);
+            links.addFirst(getBreadcrumbDirectoryLink(parent));
+            path = parent;
+        }
+
+        if (page.getPath().equals(links.getLast().getHref())) { // e.g. page.path is / or /a/b/index or /a/b/b
+            links.getLast().setHref(null);
+        } else {
+            links.addLast(new Link(page.getTitle()));
+        }
+
+        return links;
+    }
+
+    /**
+     * @param path e.g. /a/b
+     */
+    private Link getBreadcrumbDirectoryLink(String path) {
+        DataSource.Data data = isLogged() ? dataSource.getAllData() : dataSource.getPublishedData();
+        Map<String, Page> pageMap = data.getPageMap();
+
+        Page page = path.length() == 0 ?
+                data.getHomepage() :
+                pageMap.get(path);
+
+        // 查找 /path/index
+        if (page == null) {
+            page = pageMap.get(path + "/index");
+        }
+
+        // 查找 /path/name
+        String name = null;
+        if (page == null) {
+            name = path.substring(path.lastIndexOf('/') + 1);
+            page = pageMap.get(path + "/" + name);
+        }
+
+        return page == null ?
+                new Link(name) :
+                new Link(page.getTitle(), page.getPath());
+    }
 }
