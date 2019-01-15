@@ -262,6 +262,7 @@ img {
 }
 
 .header__row_1__search_box {
+    box-sizing: border-box;
     padding-top: .2em;
 }
 
@@ -316,6 +317,7 @@ input.header__row_1__search_input {
 
 .btn_clear_search:before {
     content: '×';
+    opacity: .54;
 }
 
 .sidebar_toggle {
@@ -571,11 +573,16 @@ input.header__row_1__search_input {
 }
 
 .search_box__ct_toggle:before {
-    content: '+';
+    content: '▾';
+    opacity: .54;
 }
 
 .search_box__ct_toggle.unfolded:before {
-    content: '−';
+    display: block;
+    -webkit-transform: rotate(180deg);
+    -moz-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
 }
 
 .qsr {
@@ -702,7 +709,6 @@ ul.header__row_1__tools {
 }
 
 .breadcrumb {
-    margin-top: 0;
     padding: 0;
     list-style: none;
 }
@@ -738,7 +744,7 @@ ul.header__row_1__tools {
         flex-direction: row;
     }
 
-    .multiple_columns .header {
+    .header {
         padding: 8px 2em 0;
     }
 
@@ -783,7 +789,7 @@ ul.header__row_1__tools {
     }
 
     /* toolbar */
-    .multiple_columns .header__toolbar {
+    .header__toolbar {
         padding: 0 0 0 2em;
         line-height: 1;
     }
@@ -808,7 +814,7 @@ ul.header__row_1__tools {
     }
 
     /* sidebar */
-    .row .column.sidebar {
+    .multiple_columns .row .column.sidebar {
         flex: 0 1 16em;
         margin-left: -1em;
     }
@@ -845,6 +851,10 @@ ul.header__row_1__tools {
 
     .multiple_columns .fixed .tree_box > ul {
         padding-bottom: 2em;
+    }
+
+    .multiple_columns .breadcrumb {
+        margin-top: 0;
     }
 
     /* toc */
@@ -884,13 +894,8 @@ ul.header__row_1__tools {
     }
 
     /* content */
-    .content {
-        box-sizing: border-box;
-        padding-top: 1em;
-    }
-
     .multiple_columns .content {
-        padding: 1em 0;
+        padding-top: 1em;
     }
 
     .multiple_columns .fixed .content {
@@ -919,7 +924,6 @@ ul.header__row_1__tools {
         }
 
         .multiple_columns .fixed .header__row_1__search_box {
-            box-sizing: border-box;
             height: 51px;
         }
 

@@ -763,13 +763,11 @@ function setupQuickSearch(treeRoot) {
                 au.els('li', tagList).forEach(li => li.addEventListener('click', toggleSelected));
             }
 
-            /* not auto close
             document.addEventListener('click', function (event) {
                 if (!event.isFromSearchForm && !qsOpened) {
                     closeCt();
                 }
             });
-            */
 
             ctToggle.addEventListener('click', function () {
                 if (ctOpened) {
