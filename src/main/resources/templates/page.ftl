@@ -1,6 +1,6 @@
 <#include "inc/content_open.ftl">
 <div class="page">
-    <#if breadcrumb?has_content>
+    <#if breadcrumb?? && breadcrumb?size &gt; 1>
     <ul class="breadcrumb"><#t>
         <#list breadcrumb as link>
             <li><#t>
