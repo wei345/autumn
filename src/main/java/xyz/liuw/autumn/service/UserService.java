@@ -94,9 +94,6 @@ public class UserService {
     }
 
     public void setCurrentUser(HttpServletRequest request, HttpServletResponse response) {
-        /// TODO 2019-01-15 之后删除这行代码
-        deleteCookie("ME", request, response);
-        ///
         User user = getRememberMeUser(request, response);
         userThreadLocal.set(user);
     }

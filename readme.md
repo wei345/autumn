@@ -2,24 +2,6 @@
 
 映射 Markdown 文件目录为网站，有简单的访问控制，有好用的搜索功能。
 
-### 有那么多现成的网站工具，为什么还要开发 Autumn？
-
-因为都不顺手。
-
-* Jekyll 不适合我。因为我只想公开一部分内容，而自己能够看到所有内容，还要有不依赖第三方的好用的搜索功能。
-* WordPress 不适合我。因为我不喜欢在网页的小窗口内编辑文本，不，大窗口也不喜欢，我更喜欢用强大的文本编辑器编辑文本。
-* DokuWiki 不适合我。原因同上。
-* 其他，试过一些，也不适合我。
-
-我曾经改造过 DokuWiki，用 git 同步数据，自动刷新索引，把文件扩展名从 .txt 改为 .md，增加 front matter 支持，Sidebar 可折叠等。DokuWiki 有很多我不需要的功能和逻辑，对于改造来说都是负担，改造成本很高，考虑到将来要支持 category、tags、blog，还有很高的改造成本。
-
-不如自己开发，比改造一个现有的东西更可控更省时间，所有东西都按照自己的口味来做，访问速度更快，用起来更顺手。
-
-### 为什么叫 Autumn？
-
-1. 秋天是我最喜欢的季节，我开发 Autumn 时正是秋天。
-2. 我打算长期使用和维护这个软件，所以要起一个久看不厌的名字。
-
 ## 环境需求
 
 * Java 8+
@@ -62,9 +44,9 @@ mvn -q -DskipTests=false -Dtest=xyz.liuw.autumn.AesTest#generateKey test
 2FDFCEF1DAA8E567549C52C10422BE09A81CC80B0A05BFE8CF75F223BD87DEB6
 ```
 
-新建文件 src/main/resources/application-local.properties，用前面输出的内容配置 `autumn.users` 和 `autumn.aes.key`，用户名 `Username` 可以随意修改，我这里把它改为 `test`。
+新建文件 src/main/resources/application-local.properties，用生成的密码和 AES key 配置 `autumn.users` 和 `autumn.aes.key`，其中 `Username` 可以随意修改，我这里把它改为 `test`。
 
-例如：
+配置示例：
 
 ```properties
 autumn.users=1 test 1B62BCEB123EB08F73BE3970394C23973FADF75CDCEE153A27FD2EC808805ED29BCC77CDCB966E4C775347D55E82753510D9E8154387BB7286D8CBAF9E68324A 75F0FF8B5CF34B050491DBB9F0BBF85F;
@@ -85,7 +67,7 @@ bin/start.sh
 
 可以用浏览器访问首页 http://localhost:7000 。
 
-访问登录页 http://localhost:7000/login ，可以用配置文件里设置的用户名 `test` 和前面生成的密码登录。（前面输出示例中密码为 `l3RfN05UhyFm4IYc`）
+登录页地址 http://localhost:7000/login ，可以用配置文件里设置的用户名 `test` 和生成的密码登录。（上面输出示例中密码为 `l3RfN05UhyFm4IYc`）
 
 停止：
 
@@ -122,7 +104,7 @@ published: true
 ...
 ```
 
-如果不符合以上格式，系统自动设置默认值。`created` 和 `modified` 默认值是文件修改时间，`published` 默认值是 `false`。
+如果不符合以上格式，系统会自动设置默认值。`created` 和 `modified` 默认值是文件修改时间，`published` 默认值是 `false`。
 
 ## 访问控制
 
@@ -209,3 +191,25 @@ cd /path/to/autumn
 git pull
 bin/start.sh
 ```
+
+## ...
+
+### 有那么多现成的网站工具，为什么还要自己开发？
+
+因为都不顺手。
+
+* Jekyll 不适合我。我只想公开一部分内容，自己能够看到全部内容，还想要不依赖第三方的好用的搜索功能。
+* WordPress 不适合我。我不喜欢在网页的小窗口内编辑文本，不，大窗口也不喜欢，我更喜欢用强大的文本编辑器编辑文本。
+* DokuWiki 不适合我。同上。
+* 其他，试过一些，也不适合我。
+
+我曾经改造过 DokuWiki，用 git 同步数据，自动刷新索引，把文件扩展名从 .txt 改为 .md，增加 front matter 支持，Sidebar 可折叠等。DokuWiki 有很多我不需要的功能和逻辑，对于改造来说都是负担，改造成本很高，考虑到将来要支持 category、tags、blog，还有很高的改造成本。
+
+不如自己开发，比改造一个现有的东西更可控更省时间，每一处都按照自己的喜好来做，访问速度更快，用起来更顺手。
+
+### 为什么叫 Autumn？
+
+因为，
+
+1. 秋天是我最喜欢的季节，我开发 Autumn 时正是秋天。
+2. 我打算长期使用和维护这个工具，所以要起一个没有时效性、久看不厌的名字。
