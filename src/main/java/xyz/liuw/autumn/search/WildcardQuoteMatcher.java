@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.apache.commons.lang3.StringUtils.indexOfIgnoreCase;
-
 /**
  * <code>*</code> 可以匹配 0 个或多个任意字符。
  * 所以 <code>*</code> 在开头或末尾，搜索结果是一样的，只是 Hit 范围不一样，对用户来说只是高亮的词不一样。

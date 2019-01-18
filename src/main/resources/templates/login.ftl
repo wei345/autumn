@@ -1,4 +1,4 @@
-<#assign title = "Login">
+<#assign pageTitle = "Login">
 <#include "inc/head.ftl">
     <div class="login_box">
         <p>${message!}</p>

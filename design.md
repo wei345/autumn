@@ -135,7 +135,7 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 * 合并 css，并在路径中添加版本号。
 * 合并 js，并在路径中添加版本号。
 
-[milligram.css](https://github.com/milligram/milligram/blob/master/dist/milligram.css) font-size 一改样式全乱，列表 font-size 居然递减，别的还好。
+[Milligram](https://milligram.io/), [milligram.css](https://github.com/milligram/milligram/blob/master/dist/milligram.css) font-size 一改样式全乱，列表 font-size 居然递减，别的还好。
 
 页面内容显示和全文搜索不依赖 JS，即使客户端禁用了 JS，仍然可以阅读内容和使用搜索功能。
 

@@ -1,19 +1,11 @@
+<#--@formatter:off-->
 <#include "inc/content_open.ftl">
 <div class="page">
-    <#if breadcrumb?? && breadcrumb?size &gt; 1>
-    <ul class="breadcrumb"><#t>
-        <#list breadcrumb as link>
-            <li><#t>
-                <span class="separator">/</span><#t>
-            <#if link.href??>
-                <a href="${ctx!}${link.href!}">${link.text!}</a><#t>
-            <#else>
-                <span>${link.text!}</span><#t>
-            </#if>
-            </li><#t>
-        </#list>
-    </ul><#lt>
-    </#if>
-${pageHtml!}
+    ${toc!}
+    <div class="page_content">
+        <#include "inc/breadcrumb.ftl">
+        ${pageTitleH1!}
+        ${pageContent!}
+    </div>
 </div>
 <#include "inc/content_close.ftl">

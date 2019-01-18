@@ -25,8 +25,10 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
 @Component
 public class PageService {
 
-    private static final String PAGE_HTML = "pageHtml";
-    private static final String TITLE = "title";
+    private static final String TOC = "toc";
+    private static final String PAGE_CONTENT = "pageContent";
+    private static final String PAGE_TITLE = "pageTitle";
+    private static final String PAGE_TITLE_H1 = "pageTitleH1";
     private static final String BREADCRUMB = "breadcrumb";
     private static Logger logger = LoggerFactory.getLogger(PageService.class);
     @Autowired
@@ -57,8 +59,11 @@ public class PageService {
                 viewCache = dataService.getViewCache(page);
                 if (viewCache == null || viewCache.getTime() < templateLastModified) {
                     logger.info("Building cache path={}", page.getPath());
-                    model.put(TITLE, htmlEscape(page.getTitle()));
-                    model.put(PAGE_HTML, getPageHtml(page, WebUtil.getInternalPath(request)));
+                    Page.PageHtml pageHtml = getPageHtml(page, WebUtil.getInternalPath(request));
+                    model.put(PAGE_TITLE, htmlEscape(page.getTitle()));
+                    model.put(PAGE_TITLE_H1, pageHtml.getTitle());
+                    model.put(TOC, pageHtml.getToc());
+                    model.put(PAGE_CONTENT, pageHtml.getContent());
                     model.put(BREADCRUMB, dataService.getBreadcrumbLinks(page));
                     byte[] content = templateService.merge(model, view).getBytes(StandardCharsets.UTF_8);
                     String md5 = DigestUtils.md5DigestAsHex(content);
@@ -81,10 +86,14 @@ public class PageService {
                                              Map<String, Object> model,
                                              String view,
                                              HttpServletRequest request) {
-        String html = getPageHtml(page, WebUtil.getInternalPath(request));
-        html = searchService.highlightSearchStr(html, searchStrList);
-        model.put(TITLE, htmlEscape(page.getTitle()));
-        model.put(PAGE_HTML, html);
+        Page.PageHtml pageHtml = getPageHtml(page, WebUtil.getInternalPath(request));
+        String toc = searchService.highlightSearchStr(pageHtml.getToc(), searchStrList);
+        String content = searchService.highlightSearchStr(pageHtml.getContent(), searchStrList);
+        String title = searchService.highlightSearchStr(htmlEscape(page.getTitle()), searchStrList);
+        model.put(PAGE_TITLE, title);
+        model.put(PAGE_TITLE_H1, pageHtml.getTitle());
+        model.put(TOC, toc);
+        model.put(PAGE_CONTENT, content);
         model.put(BREADCRUMB, dataService.getBreadcrumbLinks(page));
         return templateService.merge(model, view);
     }
@@ -110,17 +119,17 @@ public class PageService {
         return page.getSource();
     }
 
-    private String getPageHtml(Page page, String path) {
-        if (page.getHtmlCache() == null || page.getHtmlCache().getTime() < dataLoader.getMediaLastChanged()) {
+    private Page.PageHtml getPageHtml(Page page, String path) {
+        if (page.getPageHtml() == null || page.getPageHtml().getTime() < dataLoader.getMediaLastChanged()) {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (page) {
-                if (page.getHtmlCache() == null || page.getHtmlCache().getTime() < dataLoader.getMediaLastChanged()) {
-                    String html = markdownParser.render(page.getTitle(), page.getBody(), path);
-                    page.setHtmlCache(new Page.HtmlCache(html));
+                if (page.getPageHtml() == null || page.getPageHtml().getTime() < dataLoader.getMediaLastChanged()) {
+                    Page.PageHtml pageHtml = markdownParser.render(page.getTitle(), page.getBody(), path);
+                    page.setPageHtml(pageHtml);
                 }
             }
         }
-        return page.getHtmlCache().getContent();
+        return page.getPageHtml();
     }
 
 }

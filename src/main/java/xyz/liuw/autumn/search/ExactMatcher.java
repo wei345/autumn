@@ -1,6 +1,5 @@
 package xyz.liuw.autumn.search;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 import xyz.liuw.autumn.util.HtmlUtil;
 import xyz.liuw.autumn.util.Kmp;

@@ -3,7 +3,7 @@
     <div class="header__row_1 row">
         <div class="header__row_1__heading column">
             <h1>
-                <a href="${ctx!}/">${siteTitle!}</a>
+                <a href="${ctx!}/">${title!}</a>
             </h1>
         </div>
         <div class="header__row_1__search_box column">

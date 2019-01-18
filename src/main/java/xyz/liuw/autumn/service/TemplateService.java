@@ -35,7 +35,7 @@ public class TemplateService {
     private static final String CTX = "ctx";
     private static final String PREFIX = "prefix";
     private static final String GOOGLE_ANALYTICS_ID = "googleAnalyticsId";
-    private static final String SITE_TITLE = "siteTitle";
+    private static final String TITLE = "title";
     private static Logger logger = LoggerFactory.getLogger(TemplateService.class);
 
     @Autowired
@@ -63,7 +63,7 @@ public class TemplateService {
     private String googleAnalyticsId;
 
     @Value("${autumn.title}")
-    private String siteTitle;
+    private String title;
 
     private String faviconUrl;
 
@@ -104,7 +104,7 @@ public class TemplateService {
         model.put(FAVICON_URL, faviconUrl);
         model.put(LOGGED, isLogged());
         model.put(GOOGLE_ANALYTICS_ID, googleAnalyticsId);
-        model.put(SITE_TITLE, siteTitle);
+        model.put(TITLE, title);
         model.put(PREFIX, webUtil.getPrefix());
     }
 
@@ -120,7 +120,7 @@ public class TemplateService {
         request.setAttribute(FAVICON_URL, faviconUrl);
         request.setAttribute(LOGGED, isLogged());
         request.setAttribute(GOOGLE_ANALYTICS_ID, googleAnalyticsId);
-        request.setAttribute(SITE_TITLE, siteTitle);
+        request.setAttribute(TITLE, title);
         request.setAttribute(PREFIX, webUtil.getPrefix());
     }
 

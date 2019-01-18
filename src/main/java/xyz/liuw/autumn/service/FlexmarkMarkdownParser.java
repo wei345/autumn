@@ -24,10 +24,12 @@ import com.vladsch.flexmark.util.options.MutableDataSet;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import xyz.liuw.autumn.data.Page;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author liuwei
@@ -36,6 +38,7 @@ import java.util.Set;
 @Component
 public class FlexmarkMarkdownParser implements MarkdownParser {
 
+    private static final String BOUNDARY = "<hr id='" + UUID.randomUUID().toString() + "'>";
     private static ThreadLocal<String> pathThreadLocal = new ThreadLocal<>();
     private final DataService dataService;
     private Parser parser;
@@ -59,8 +62,8 @@ public class FlexmarkMarkdownParser implements MarkdownParser {
                         new MediaVersionExtension(dataService)))
                 .set(HtmlRenderer.FENCED_CODE_LANGUAGE_CLASS_PREFIX, "")
                 .set(ScrollTableExtension.CLASS_NAME, "scroll_table")
-                .set(TocExtension.LEVELS, 127)
-                .set(TocExtension.DIV_CLASS, "toc") // 顶层元素 div.toc
+                .set(TocExtension.LEVELS, 0b01111111) // H1 .. H7
+                .set(TocExtension.DIV_CLASS, "toc") // <div class="toc">
                 .set(TocExtension.TITLE_LEVEL, 3) // <h3>title</h3>
                 .set(TocExtension.TITLE, "TOC");
 
@@ -69,22 +72,28 @@ public class FlexmarkMarkdownParser implements MarkdownParser {
     }
 
     @Override
-    public String render(String title, String body, String path) {
-        StringBuilder markdown = stringBuilderHolder.get();
-        // TOC
-        markdown.append("[TOC]\n");
-        // 标题
-        markdown.append("# ").append(title).append("\n");
-        // body
-        markdown.append(body);
+    public Page.PageHtml render(String title, String body, String path) {
+
+        String markdown = stringBuilderHolder.get()
+                .append("[TOC]\n")
+                .append(BOUNDARY).append("\n\n") // BOUNDARY 之后空一行，否则后面的 markdown 不解析
+                .append("# ").append(title).append("\n\n") // title 也可以出现在 TOC 中
+                .append(BOUNDARY).append("\n\n")
+                .append(body)
+                .toString();
 
         pathThreadLocal.set(path);
+        String html = render(markdown);
 
-        return render(markdown.toString());
+        int boundary1Start = html.indexOf(BOUNDARY);
+        int boundary2Start = html.indexOf(BOUNDARY, boundary1Start + BOUNDARY.length());
+        String toc = html.substring(0, boundary1Start);
+        String titleH1 = html.substring(boundary1Start + BOUNDARY.length(), boundary2Start);
+        String content = html.substring(boundary2Start + BOUNDARY.length());
+        return new Page.PageHtml(toc, titleH1, content);
     }
 
-    @Override
-    public String render(String source) {
+    private String render(String source) {
         Node document = parser.parse(source);
         return renderer.render(document);
     }

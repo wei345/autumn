@@ -1,4 +1,4 @@
-<#assign title = "Search">
+<#assign pageTitle = "Search">
 <#include "inc/content_open.ftl">
     <div class="sr center_position">
         <#if (sr)??>

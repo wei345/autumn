@@ -22,7 +22,7 @@ public class Page {
     private String name; // file name without extension
     private String title;
     private String body;
-    private volatile HtmlCache htmlCache;
+    private volatile PageHtml pageHtml;
     private String source; // file content
     private long lastModified; // file last modified
     private volatile ViewCache userViewCache; // 已登录用户页面缓存
@@ -55,13 +55,21 @@ public class Page {
         return page;
     }
 
-    public static class HtmlCache {
+    public static class PageHtml {
+        private String toc;
+        private String title;
         private String content;
         private long time;
 
-        public HtmlCache(String content) {
+        public PageHtml(String toc, String title, String content) {
+            this.toc = toc;
+            this.title = title;
             this.content = content;
             this.time = System.currentTimeMillis();
+        }
+
+        public String getToc() {
+            return toc;
         }
 
         public String getContent() {
@@ -70,6 +78,10 @@ public class Page {
 
         public long getTime() {
             return time;
+        }
+
+        public String getTitle() {
+            return title;
         }
     }
 
@@ -161,12 +173,12 @@ public class Page {
         this.source = source;
     }
 
-    public HtmlCache getHtmlCache() {
-        return htmlCache;
+    public PageHtml getPageHtml() {
+        return pageHtml;
     }
 
-    public void setHtmlCache(HtmlCache htmlCache) {
-        this.htmlCache = htmlCache;
+    public void setPageHtml(PageHtml pageHtml) {
+        this.pageHtml = pageHtml;
     }
 
     public long getLastModified() {
