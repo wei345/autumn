@@ -1,10 +1,12 @@
 "use strict";
+
 function setupQuickSearch(treeRoot) {
     var searchForm = au.el('.header__row_1__search_form');
     var searchInput = au.el('.header__row_1__search_input');
     var ctToggle = au.el('.search_box__ct_toggle');
     var btnClearSearch = au.el('.btn_clear_search');
     var qsrClose = au.el('.qsr__close');
+    var qsrStats = au.el('.qsr__stats');
     var qsrList = au.el('.qsr__list');
     var qsrAllPages;
     var qsrResultName;
@@ -564,7 +566,11 @@ function setupQuickSearch(treeRoot) {
     }
 
     function renderPages(pages, maxLines, resultName) {
-        au.el('.qsr__stats').innerHTML = pages.length + " " + resultName;
+        if (resultName === 'results' && pages.length === 0) {
+            qsrStats.innerHTML = '';
+        } else {
+            qsrStats.innerHTML = pages.length + " " + resultName;
+        }
         renderQsrHtml(buildResultHtml(pages, maxLines, resultName));
 
         if (maxLines < pages.length) {

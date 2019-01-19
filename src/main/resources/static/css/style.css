@@ -195,12 +195,8 @@ img {
 }
 
 ul {
-    padding-left: 0;
-    list-style: circle inside;
-}
-
-ul ul {
-    margin-left: 2em;
+    padding-left: 1em;
+    list-style: circle;
 }
 
 .no_selection {
@@ -622,6 +618,7 @@ input.header__row_1__search_input {
     margin: 0;
     padding-left: 1.2em;
     padding-right: 1.2em;
+    list-style: disc;
 }
 
 .qsr__list li {
@@ -647,12 +644,13 @@ input.header__row_1__search_input {
 }
 
 .qsr__list__show_all__icon {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
     cursor: pointer;
-    margin-left: -18px;
-}
-
-.qsr__list__show_all__icon:before {
-    content: '+';
+    vertical-align: text-bottom;
+    margin-left: -20px;
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAXUlEQVR4Ae2OsQ2AQAwDfwRG/cKuYUN+I1BaS2AhdyhXO3cZzTNNA+CYc27DUBsA+2c5yYvkqRGV16a2deO8+tV6i4h8ySaIZHIfCeU+Esp9JJT7SCj3EZH/gaa5AVG6dLRxrdf7AAAAAElFTkSuQmCC') no-repeat center;
 }
 
 .qsr__list__show_all__btn {
