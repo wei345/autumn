@@ -1,4 +1,4 @@
-<#if pagination??>
+<#if pagination?? && pagination.hasMore() == true>
     <div class="pagination">
         <#if pagination.hasPrevious() == true>
         <a class="previous" href="${ctx!}${pagination.previous.url}">
@@ -6,14 +6,14 @@
         </a>
         </#if>
 
-        <#if pagination.pageNumbers?has_content>
-            <#list pagination.pageNumbers as pn>
-                <#if pn.pageNumber == pagination.currentPageNumber>
-         <span class="pn">${pn.pageNumber}</span>
+        <#if pagination.pageList?has_content>
+            <#list pagination.pageList as p>
+                <#if p.page == pagination.page>
+                    <span class="pn">${p.page}</span>
                 <#else>
-         <a href="${ctx!}${pn.url}">
-             <span class="pn">${pn.pageNumber}</span>
-         </a>
+                    <a href="${ctx!}${p.url}">
+                        <span class="pn">${p.page}</span>
+                    </a>
                 </#if>
             </#list>
         </#if>

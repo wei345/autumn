@@ -472,6 +472,7 @@ input.header__row_1__search_input {
 
 .sr {
     max-width: 600px;
+    margin: 0 auto;
 }
 
 .sr_stats {
