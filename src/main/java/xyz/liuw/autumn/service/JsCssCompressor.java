@@ -41,6 +41,7 @@ public class JsCssCompressor {
             return input;
         }
 
+        long startTime = System.currentTimeMillis();
         boolean outToFile = false;
         Path inputFile, outputFile = null;
         inputFile = Files.createTempFile("autumn-", ".js");
@@ -68,7 +69,7 @@ public class JsCssCompressor {
         commands.add("--language_out");
         commands.add("ECMASCRIPT_2015");
 
-        logger.info("Closure Compiler compressing... {} chars", input.length());
+        logger.info("Closure Compiler compressing...");
         if (logger.isDebugEnabled()) {
             logger.debug(StringUtils.join(commands, ' '));
         }
@@ -91,6 +92,10 @@ public class JsCssCompressor {
                 return input;
             }
         }
+
+        double percent = 100d * (input.length() - resultJs.length()) / input.length();
+        logger.info("{}% less chars ({} -> {}), {} ms", (int) percent, input.length(), resultJs.length(),
+                System.currentTimeMillis() - startTime);
         return resultJs;
     }
 
