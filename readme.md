@@ -5,10 +5,9 @@
 ## 环境需求
 
 * Java 8+
+  * Java 8 需要启用 256 AES key，下载 [Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files](https://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html) 安装到 ${java.home}/jre/lib/security/。Java 9 及以上默认可以使用 256 AES key，不需要额外设置。
 * Maven 3.5
 * Redis 4 (可选)
-
-Java 8 需要启用 256 AES key，下载 [Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files](https://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html) 安装到 ${java.home}/jre/lib/security/。Java 9 及以上默认可以使用 256 AES key，不需要额外设置。
 
 ## 安装
 

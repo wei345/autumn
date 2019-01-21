@@ -194,11 +194,6 @@ img {
     max-width: 100%;
 }
 
-ul {
-    padding-left: 1em;
-    list-style: circle;
-}
-
 .no_selection {
     -webkit-user-select: none;
     -moz-user-select: none;
