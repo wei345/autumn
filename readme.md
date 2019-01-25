@@ -43,7 +43,7 @@ mvn -q -DskipTests=false -Dtest=xyz.liuw.autumn.AesTest#generateKey test
 2FDFCEF1DAA8E567549C52C10422BE09A81CC80B0A05BFE8CF75F223BD87DEB6
 ```
 
-新建文件 src/main/resources/application-local.properties，用生成的密码和 AES key 配置 `autumn.users` 和 `autumn.aes.key`，其中 `Username` 可以随意修改，我这里把它改为 `test`。
+新建文件 src/main/resources/application-local.properties，用生成的密码和 AES key 配置 `autumn.users` 和 `autumn.aes.key`。"Username" 可以随意修改，下面示例中我把它改为 "test"。
 
 配置示例：
 
@@ -152,19 +152,6 @@ autumn.aes.key=<your aes key>
 
 其中，autumn.data.reload-interval-seconds=0 禁用周期性扫描数据目录，autumn.resource.reload-interval-seconds=0 禁用周期性扫描 resources 目录。
 
-数据更新时，通过 HTTP 接口触发 reload，例如：
-
-```bash
-# push your data to remote git server
-git push
-
-ssh your_server 'bash -x -e -s' <<END
-cd /path/to/data
-git pull
-curl --silent -X POST http://localhost:${server.port}${server.servlet.context-path}/manage/data
-END
-```
-
 若要启用 Redis，设置：
 
 ```properties
@@ -181,6 +168,20 @@ bin/start.sh
 
 ```bash
 bin/autumn.sh stop
+```
+
+数据目录更新时，通过 HTTP 接口触发 reload，例如：
+
+```bash
+# push data to remote git server
+git push
+
+# pull data and reload
+ssh your_server 'bash -x -e -s' <<END
+cd /path/to/data
+git pull
+curl --silent -X POST http://localhost:${server.port}${server.servlet.context-path}/manage/data
+END
 ```
 
 更新 Autumn：
