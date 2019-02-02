@@ -45,20 +45,9 @@ function bindSidebarToggle() {
     if (!toggle || !sidebar) {
         return;
     }
-    var lsKey;
-    switch (au.pathname()) {
-        case ctx + '/':
-            lsKey = prefix + 'home.sidebar.display';
-            break;
-        case ctx + '/search':
-            lsKey = prefix + 'search.sidebar.display';
-            break;
-        default:
-            lsKey = prefix + 'sidebar.display';
-            break;
-    }
+    var lsKey = prefix + 'sidebar.display';
     if (getComputedStyle(main).getPropertyValue('flex-direction') === 'row') {
-        internalToggleSidebar(localStorage.getItem(lsKey) === '1');
+        internalToggleSidebar(localStorage.getItem(lsKey) !== '0'); // 默认展开
     }
     toggle.addEventListener('click', toggleSidebarAndRemember);
     toggleSidebar = toggleSidebarAndRemember;
@@ -182,12 +171,13 @@ function buildTree(then) {
     });
 
     function unfoldCurrentPath(root) {
+        // 找到当前页面节点
         var path = au.pathname().substr(ctx.length);
         var current;
-        if (path === '/') {
-            current = root;
-            root.current = true;
-        } else {
+        if (path === '/') { // 首页
+            root.unfolded = true;
+            return;
+        } else { // 非首页
             var dirs = [root];
             while (dirs.length > 0) {
                 var dir = dirs.pop();
@@ -206,6 +196,7 @@ function buildTree(then) {
             }
         }
 
+        // 展开所有父级
         if (current) {
             var parent = current;
             while (parent = parent.parent) {
