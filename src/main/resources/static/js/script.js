@@ -279,7 +279,7 @@ function selectedNodeScrollIntoViewIfTreeFirstShow() {
 }
 
 function anchorLink() {
-    var page = au.el('.page');
+    var page = au.el('.page_content');
     if (!page) {
         return;
     }
