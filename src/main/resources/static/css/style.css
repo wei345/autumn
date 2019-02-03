@@ -912,7 +912,7 @@ ul.header__row_1__tools {
         width: 1%;
     }
 
-    .multiple_columns .show_toc .page_content {
+    .multiple_columns .show_toc .page_content, .multiple_columns .show_sidebar .page_content {
         margin: 0;
     }
 
