@@ -1,5 +1,16 @@
 # Develop log
 
+2019.02.17
+
+* Release v1.2.0
+  * 分开 TOC 和页面内容; 设置页面内容最大宽度。
+  * Cookie name 增加前缀以区分域名相同 contextPath 不同的 Autumn 实例。
+  * 改进 rememberMe cookie。
+  * 搜索结果分页。
+  * 字符串匹配使用 KMP 算法。
+  * 提取 JavaScript util functions。
+  * 改进快速搜索框用户体验。
+
 2019.01.05
 
 * Release v1.1.0
