@@ -24,9 +24,10 @@
         <div class="header__row_1__right column">
             <ul class="header__row_1__tools no_selection">
                 <li><a href="${ctx!}/help">Help</a></li>
-                <li><a href="https://github.com/wei345/autumn">GitHub</a></li>
             <#if logged?? && logged == true>
                 <li><a class="header__row_1__right__logout" href="${ctx!}/logout">Logout</a></li>
+            <#else>
+                <li><a class="header__row_1__right__logout" href="${ctx!}/login">Login</a></li>
             </#if>
             </ul>
         </div>

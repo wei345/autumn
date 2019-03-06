@@ -52,6 +52,12 @@ autumn.users=1 test 1B62BCEB123EB08F73BE3970394C23973FADF75CDCEE153A27FD2EC80880
 autumn.aes.key=2FDFCEF1DAA8E567549C52C10422BE09A81CC80B0A05BFE8CF75F223BD87DEB6
 ```
 
+下载 Closure Compiler（JavaScript 压缩工具，可选）：
+
+```bash
+mvn dependency:resolve -P compressor
+```
+
 启动：
 
 ```bash
