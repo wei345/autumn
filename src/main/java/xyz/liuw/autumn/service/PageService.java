@@ -89,9 +89,9 @@ public class PageService {
         Page.PageHtml pageHtml = getPageHtml(page, WebUtil.getInternalPath(request));
         String toc = searchService.highlightSearchStr(pageHtml.getToc(), searchStrList);
         String content = searchService.highlightSearchStr(pageHtml.getContent(), searchStrList);
-        String title = searchService.highlightSearchStr(htmlEscape(page.getTitle()), searchStrList);
-        model.put(PAGE_TITLE, title);
-        model.put(PAGE_TITLE_H1, pageHtml.getTitle());
+        String title = searchService.highlightSearchStr(pageHtml.getTitle(), searchStrList);
+        model.put(PAGE_TITLE, htmlEscape(page.getTitle()));
+        model.put(PAGE_TITLE_H1, title);
         model.put(TOC, toc);
         model.put(PAGE_CONTENT, content);
         model.put(BREADCRUMB, dataService.getBreadcrumbLinks(page));
