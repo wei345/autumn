@@ -146,7 +146,7 @@ public class PageParser {
                     // header 结束
                     break;
                 } else {
-                    logger.warn("Unknown header [{}]", line);
+                    logger.warn("Unknown header: {}", line);
                 }
             }
         }
