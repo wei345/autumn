@@ -24,6 +24,7 @@ import javax.annotation.PreDestroy;
 import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -61,14 +62,14 @@ public class DataLoader implements Runnable {
     @Value("${autumn.data.publish-all-media:true}")
     private boolean publishAllMedia;
 
-    private int reloadContinuousFailures; // default 0
+    private int reloadContinuousFailures; // default 0, 只有一个线程访问它
 
     @Autowired
     private WebUtil webUtil;
 
-    private List<TreeJsonChangedListener> treeJsonChangedListeners = new ArrayList<>(1);
+    private List<TreeJsonChangedListener> treeJsonChangedListeners = new CopyOnWriteArrayList<>();
 
-    private List<MediaChangedListener> mediaChangedListeners = new ArrayList<>(1);
+    private List<MediaChangedListener> mediaChangedListeners = new CopyOnWriteArrayList<>();
 
     private ScheduledExecutorService scheduler;
 
