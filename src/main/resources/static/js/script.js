@@ -103,7 +103,7 @@ function bindTocToggle() {
             content.classList.toggle('show_toc', show);
         }
         if (show) {
-            toggle.innerText = 'Table of Contents';
+            toggle.innerText = 'TOC';
         } else {
             toggle.innerText = 'TOC';
         }
