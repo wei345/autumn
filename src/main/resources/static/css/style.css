@@ -217,7 +217,7 @@ img {
 
 .container {
     background: #fff;
-    max-width: 46em;
+    max-width: 60em;
     min-width: 20em;
     margin: 0 auto;
 }
@@ -336,7 +336,10 @@ input.header__row_1__search_input {
 }
 
 .main {
-    padding: 0 1em;
+    border-radius: 4px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+    padding: 5px 2em;
+    margin: 0 1em;
 }
 
 .tree_box {
@@ -388,7 +391,7 @@ input.header__row_1__search_input {
 }
 
 .sitemap {
-    padding: 0 1em;
+    padding: 0 1em 2em;
     display: none;
 }
 
@@ -398,7 +401,7 @@ input.header__row_1__search_input {
 }
 
 .page .page_content {
-    max-width: 44em;
+    /*max-width: 44em;*/
 }
 
 .page .search_str {
