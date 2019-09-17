@@ -1,9 +1,9 @@
 <#--@formatter:off-->
 <#include "inc/content_open.ftl">
 <div class="page">
-    ${toc!}
     <div class="page_content">
         <#include "inc/breadcrumb.ftl">
+        ${toc!}
         ${pageTitleH1!}
         ${pageContent!}
     </div>

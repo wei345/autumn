@@ -27,6 +27,7 @@ window.addEventListener('load', function () {
     bindTocToggle();
     bindShortcut();
     buildTree(setupQuickSearch);
+    bindSitemapToggle();
     anchorLink();
     checkLogout();
     updateVisitList();
@@ -102,7 +103,7 @@ function bindTocToggle() {
             content.classList.toggle('show_toc', show);
         }
         if (show) {
-            toggle.innerText = 'Table of Contents';
+            toggle.innerText = 'TOC';
         } else {
             toggle.innerText = 'TOC';
         }
@@ -262,6 +263,14 @@ function buildTree(then) {
             au.replaceClass(node, 'tree_node_unfolded', 'tree_node_folded');
         }
     }
+}
+
+function bindSitemapToggle() {
+    var toogle = au.el('.sitemap_toggle');
+    var sitemap = au.el('.sitemap');
+    toogle.addEventListener('click', function () {
+        sitemap.classList.toggle('show');
+    });
 }
 
 function selectedNodeScrollIntoViewIfTreeFirstShow() {

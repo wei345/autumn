@@ -4,6 +4,11 @@ import com.google.common.collect.Sets;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.TextNode;
+import org.jsoup.select.Elements;
 import org.springframework.util.CollectionUtils;
 import xyz.liuw.autumn.data.Page;
 
@@ -18,8 +23,10 @@ import static com.vip.vjtools.vjkit.text.EscapeUtil.urlEncode;
  */
 public class Highlighter {
 
-    private static final String HL_TAG_OPEN = "<em class=\"search_str\">";
-    private static final String HL_TAG_CLOSE = "</em>";
+    private static final String HL_TAG = "em";
+    private static final String HL_TAG_CLASS = "search_str";
+    private static final String HL_TAG_OPEN = "<" + HL_TAG + " class=\"" + HL_TAG_CLASS + "\">";
+    private static final String HL_TAG_CLOSE = "</" + HL_TAG + ">";
     // 获得不重叠的 hit list
     private static Comparator<Hit> HIT_COMPARATOR = (o1, o2) -> {
         // o1 在 o2 前面，无重叠
@@ -220,18 +227,18 @@ public class Highlighter {
         return sb.toString();
     }
 
-    // apply highlight string
-    public String highlightSearchStr(String html, List<String> searchStrList) {
-        Set<Hit> hits = Sets.newTreeSet(HIT_COMPARATOR);
-        searchStrList.forEach(s -> hits.addAll(ExactMatcher.htmlFindHitList(html, escapeHtml(s))));
-        return highlightHits(html, hits, false);
-    }
-
     private String htmlEscape(String str, int start, int end) {
         return escapeHtml(str.substring(start, end));
     }
 
-    /* highlight using jsoup
+    /* 这个实现有 bug，例如原文中有 ">"，html 转义为 "&gt;"，高亮 "gt;"，期望 "&gt;"，实际 "&<em>gt;</em>"
+    public String highlightSearchStr(String html, List<String> searchStrList) {
+        Set<Hit> hits = Sets.newTreeSet(HIT_COMPARATOR);
+        searchStrList.forEach(s -> hits.addAll(ExactMatcher.htmlFindHitList(html, escapeHtml(s))));
+        return highlightHits(html, hits, false);
+    }*/
+
+    // highlight using jsoup
     public String highlightSearchStr(String html, List<String> searchStrList) {
         Document document = Jsoup.parse(html);
         Elements allElements = document.getAllElements();
@@ -244,18 +251,19 @@ public class Highlighter {
     }
 
     private void highlight(TextNode textNode, List<String> searchStrList) {
-        String text = textNode.text();
+        String text = textNode.getWholeText();
         if (StringUtils.isBlank(text)) {
             return;
         }
 
         Set<Hit> hits = Sets.newTreeSet(HIT_COMPARATOR);
-        searchStrList.forEach(s -> hits.addAll(ExactMatcher.find(text, s)));
+        searchStrList.forEach(s -> hits.addAll(ExactMatcher.findHitList(text, s)));
 
         int start = 0;
         for (Hit hit : hits) {
             textNode.before(new TextNode(text.substring(start, hit.getStart())));
-            Element em = new Element("em");
+            Element em = new Element(HL_TAG);
+            em.addClass(HL_TAG_CLASS);
             em.appendChild(new TextNode(text.substring(hit.getStart(), hit.getEnd())));
             textNode.before(em);
             start = hit.getEnd();
@@ -271,5 +279,4 @@ public class Highlighter {
 
         textNode.remove();
     }
-    */
 }
