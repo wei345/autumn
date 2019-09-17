@@ -2,6 +2,7 @@
 
 cd "$(dirname $0)/.."
 readonly COMMAND="$1"
+readonly TAIL_LOG="$2"
 
 readonly WORKING_DIR="$(pwd)"
 readonly LOG_DIR="./logs"
@@ -61,7 +62,9 @@ jar_start() {
 after_start() {
     ps -ef | grep "${WORKING_DIR}" | grep -v grep
 
-    tail -f "${LOG_DIR}/out.log" "${LOG_DIR}/autumn.log"
+    if [[ "${TAIL_LOG}" != "" ]]; then
+        tail -f "${LOG_DIR}/out.log" "${LOG_DIR}/autumn.log"
+    fi
 }
 
 start() {

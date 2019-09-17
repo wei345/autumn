@@ -84,10 +84,8 @@ public class CommandExecutor {
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            if (process != null) {
-                IOUtil.closeQuietly(process.getOutputStream());
-                IOUtil.closeQuietly(process.getInputStream());
-                IOUtil.closeQuietly(process.getErrorStream());
+            if (process != null && process.isAlive()) {
+                process.destroyForcibly();
             }
         }
     }
