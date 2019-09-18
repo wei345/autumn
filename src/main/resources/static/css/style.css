@@ -342,6 +342,12 @@ input.header__row_1__search_input {
     margin: 0 1em;
 }
 
+.mobi .main {
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+}
+
 .tree_box {
     padding-right: 1em;
     margin-top: 1em;
