@@ -240,7 +240,6 @@ img {
 
 .header__toolbar {
     box-sizing: border-box;
-    padding: 1.5em 1em 0;
 }
 
 .row .column.sidebar {
@@ -336,16 +335,9 @@ input.header__row_1__search_input {
 }
 
 .main {
-    border-radius: 4px;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.3);
-    padding: 5px 2em;
-    margin: 0 1em;
-}
-
-.mobi .main {
     border-radius: 0;
     box-shadow: none;
-    padding: 0;
+    padding: 5px 1em;
 }
 
 .tree_box {
@@ -748,6 +740,15 @@ ul.header__row_1__tools {
 
 .footer .powered {
     color: #666;
+}
+
+@media (min-width: 1024px) {
+    .main {
+        border-radius: 4px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+        padding: 5px 2em;
+        margin: 1.5em 1em;
+    }
 }
 
 @media (min-width: 640000px) {
