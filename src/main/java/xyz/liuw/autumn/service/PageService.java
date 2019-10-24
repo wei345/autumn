@@ -3,6 +3,7 @@ package xyz.liuw.autumn.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
@@ -46,6 +47,9 @@ public class PageService {
     @Autowired
     private DataLoader dataLoader;
 
+    @Value("${autumn.breadcrumb.enabled}")
+    private boolean breadcrumbEnabled;
+
     public byte[] handlePageRequest(@NotNull Page page,
                                     Map<String, Object> model,
                                     String view,
@@ -64,7 +68,9 @@ public class PageService {
                     model.put(PAGE_TITLE_H1, pageHtml.getTitle());
                     model.put(TOC, pageHtml.getToc());
                     model.put(PAGE_CONTENT, pageHtml.getContent());
-                    model.put(BREADCRUMB, dataService.getBreadcrumbLinks(page));
+                    if (breadcrumbEnabled) {
+                        model.put(BREADCRUMB, dataService.getBreadcrumbLinks(page));
+                    }
                     byte[] content = templateService.merge(model, view).getBytes(StandardCharsets.UTF_8);
                     String md5 = DigestUtils.md5DigestAsHex(content);
                     String etag = WebUtil.getEtag(md5);
