@@ -570,7 +570,6 @@ input.header__row_1__search_input {
 .search_box__ct_toggle {
     position: absolute;
     right: 5px;
-    top: 4px;
     font-size: 1.5em;
     cursor: pointer;
     display: none;
