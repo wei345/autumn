@@ -1,5 +1,6 @@
 package xyz.liuw.autumn.service;
 
+import com.google.common.io.ByteStreams;
 import com.vip.vjtools.vjkit.io.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,8 @@ public class MediaService {
             return null;
         }
 
+        logger.debug("uri={}, content.length={}", request.getRequestURI(), content.length);
+
         if (request.getParameter("download") != null) {
             mimeType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
         }
@@ -65,28 +68,33 @@ public class MediaService {
         File file = media.getFile();
 
         if (media.getContent() != null) {
-            return handleRequest(media.getContent(),
+            return handleRequest(
+                    media.getContent(),
                     WebUtil.getEtag(media.getMd5()),
-                    media.getFile().getName(),
+                    file.getName(),
                     media.getMimeType(),
-                    webRequest, request);
+                    webRequest,
+                    request);
         }
 
         Supplier<InputStream> inputStreamSupplier = () -> {
             try {
-                logger.info("Reading big file for response output {}", file.getAbsolutePath());
+                logger.info("Reading big file {} for response output, length={}", file.getAbsolutePath(), file.length());
                 return new FileInputStream(file);
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
         };
 
-        handleRequest(inputStreamSupplier,
+        handleRequest(
+                inputStreamSupplier,
                 (int) file.length(),
                 WebUtil.getEtag(media.getMd5()),
                 file.getName(),
                 media.getMimeType(),
-                webRequest, request, response);
+                webRequest,
+                request,
+                response);
         return null;
     }
 
@@ -102,6 +110,8 @@ public class MediaService {
         if (WebUtil.checkNotModified(webRequest, etag)) {
             return;
         }
+
+        logger.debug("uri={}, content length={}", request.getRequestURI(), length);
 
         if (request.getParameter("download") != null) {
             mimeType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
@@ -119,8 +129,9 @@ public class MediaService {
         InputStream in = null;
         try {
             in = inputStreamSupplier.get();
-            IOUtil.copy(in, output);
+            long copied = ByteStreams.copy(in, output);
             output.flush();
+            logger.info("output number of bytes: {}", copied);
         } finally {
             IOUtil.closeQuietly(in);
         }
