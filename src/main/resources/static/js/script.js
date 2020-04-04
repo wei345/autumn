@@ -234,9 +234,9 @@ function buildTree(then) {
             html += '<span class="tree_node_header_icon no_selection"></span>';
 
             // title
-            html += (node.children ? '<span class="tree_node_header_name action_toggle no_selection">' : ('<a href="' + (ctx + node.path) + '">'));
+            html += node.children ? '<span class="tree_node_header_name no_selection">' : ('<a href="' + (ctx + node.path) + '">');
             html += node.name;
-            html += (node.children ? '</span>' : '</a>');
+            html += node.children ? '</span>' : '</a>';
 
             // end header
             html += '</div>';
@@ -251,8 +251,9 @@ function buildTree(then) {
     }
 
     function bindNodeToggle(tree) {
-        au.els('.tree_node_dir', tree).forEach(el =>
-            au.el('.tree_node_header', el).addEventListener('click', toggle));
+        au.els('.tree_node_dir', tree).forEach(function(el){
+            au.el('.tree_node_header', el).addEventListener('click', toggle);
+        });
     }
 
     function toggle(event) {
@@ -325,7 +326,7 @@ function anchorLink() {
 
 function bindFixedToggle() {
     toggleFixed(localStorage.getItem(lsFixedKey) === '1');
-    const toggle = au.el('.search_icon');
+    var toggle = au.el('.search_icon');
     if (!toggle) {
         return;
     }
