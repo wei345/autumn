@@ -162,7 +162,7 @@ function buildTree(then) {
     au.ajax('GET', ctx + '/tree.json?' + treeVersionKeyValue, function (text) {
         var root = JSON.parse(text);
         unfoldCurrentPath(root);
-        treeBox.innerHTML = buildTreeHtml([root]);
+        treeBox.innerHTML = buildTreeHtml(root.children);
         bindNodeToggle(treeBox);
         treeReady = true;
         selectedNodeScrollIntoViewIfTreeFirstShow();
