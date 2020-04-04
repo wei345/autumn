@@ -1,9 +1,8 @@
 body {
-    color: #333;
-    font: 400 1em/1.8 Arial, x-locale-body, sans-serif;
+    line-height: 1.8;
+    font-family: Arial, x-locale-body, sans-serif;
     word-break: break-word;
     -webkit-overflow-scrolling: touch;
-    -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -575,7 +574,6 @@ input.header__row_1__search_input {
 .search_box__ct_toggle {
     position: absolute;
     right: 5px;
-    top: 4px;
     font-size: 1.5em;
     cursor: pointer;
     display: none;
