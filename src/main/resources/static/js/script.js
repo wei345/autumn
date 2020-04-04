@@ -180,6 +180,7 @@ function buildTree(then) {
             return;
         } else { // 非首页
             var dirs = [root];
+            OUTER:
             while (dirs.length > 0) {
                 var dir = dirs.pop();
                 for (var i = 0; i < dir.children.length; i++) {
@@ -188,7 +189,7 @@ function buildTree(then) {
                     if (node.path === path) {
                         node.current = true;
                         current = node;
-                        break;
+                        break OUTER;
                     }
                     if (node.children) {
                         dirs.push(node);
@@ -210,13 +211,13 @@ function buildTree(then) {
         }
     }
 
-    function buildTreeHtml(children) {
-        if (!children || children.length === 0) {
+    function buildTreeHtml(nodes) {
+        if (!nodes || nodes.length === 0) {
             return '';
         }
         var html = '<ul>';
-        for (var i = 0; i < children.length; i++) {
-            var node = children[i];
+        for (var i = 0; i < nodes.length; i++) {
+            var node = nodes[i];
             // begin node
             html += '<li class="tree_node';
             if (node.children) {
