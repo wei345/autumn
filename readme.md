@@ -21,7 +21,7 @@ cd autumn
 生成密码:
 
 ```bash
-mvn -q -DskipTests=false -Dtest=xyz.liuw.autumn.service.UserServiceTest#generateUser test
+mvn -q -DskipTests=false -Dtest=io.liuwei.autumn.service.UserServiceTest#generateUser test
 ```
 
 输出示例：
@@ -34,7 +34,7 @@ password: l3RfN05UhyFm4IYc
 生成 AES key:
 
 ```bash
-mvn -q -DskipTests=false -Dtest=xyz.liuw.autumn.AesTest#generateKey test
+mvn -q -DskipTests=false -Dtest=io.liuwei.autumn.AesTest#generateKey test
 ```
 
 输出示例：

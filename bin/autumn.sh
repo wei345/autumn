@@ -7,7 +7,7 @@ readonly TAIL_LOG="$2"
 readonly WORKING_DIR="$(pwd)"
 readonly LOG_DIR="./logs"
 readonly JAR_FILE="${WORKING_DIR}/target/autumn.jar"
-readonly MAIN_CLASS="xyz.liuw.autumn.Application"
+readonly MAIN_CLASS="io.liuwei.autumn.Application"
 readonly APP_ARGS="--spring.profiles.include=logfile,prod"
 
 # e.g. 1.8.0_131 -> 8, 9 -> 9, 10.0.1 -> 10 ...
