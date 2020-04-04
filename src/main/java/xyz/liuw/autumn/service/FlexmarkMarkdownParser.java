@@ -1,5 +1,6 @@
 package xyz.liuw.autumn.service;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
@@ -22,6 +23,10 @@ import com.vladsch.flexmark.util.options.DataKey;
 import com.vladsch.flexmark.util.options.MutableDataHolder;
 import com.vladsch.flexmark.util.options.MutableDataSet;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import xyz.liuw.autumn.data.Page;
@@ -62,7 +67,7 @@ public class FlexmarkMarkdownParser implements MarkdownParser {
                         new MediaVersionExtension(dataService)))
                 .set(HtmlRenderer.FENCED_CODE_LANGUAGE_CLASS_PREFIX, "")
                 .set(ScrollTableExtension.CLASS_NAME, "scroll_table")
-                .set(TocExtension.LEVELS, 0b01111111) // H1 .. H7
+                .set(TocExtension.LEVELS, 0b11111110) // H7 .. H1
                 .set(TocExtension.DIV_CLASS, "toc") // <div class="toc">
                 .set(TocExtension.TITLE_LEVEL, 3) // <h3>title</h3>
                 .set(TocExtension.TITLE, "TOC");
@@ -87,10 +92,61 @@ public class FlexmarkMarkdownParser implements MarkdownParser {
 
         int boundary1Start = html.indexOf(BOUNDARY);
         int boundary2Start = html.indexOf(BOUNDARY, boundary1Start + BOUNDARY.length());
-        String toc = html.substring(0, boundary1Start);
+        String toc = makeNumberedToc(html.substring(0, boundary1Start));
         String titleH1 = html.substring(boundary1Start + BOUNDARY.length(), boundary2Start);
         String content = html.substring(boundary2Start + BOUNDARY.length());
         return new Page.PageHtml(toc, titleH1, content);
+    }
+
+    @VisibleForTesting
+    String makeNumberedToc(String tocHtml) {
+        Document document = Jsoup.parse(tocHtml);
+        Elements lis = document.select("div > ul > li");
+        if (lis == null || lis.size() == 0) {
+            return tocHtml;
+        }
+
+        Elements startLis;
+        if (lis.size() == 1) {
+            Elements uls = lis.select("ul");
+            if (uls == null || uls.size() == 0) {
+                return tocHtml;
+            }
+            startLis = uls.first().children();
+        } else { // elements1.size() > 1
+            startLis = lis;
+        }
+
+        if (startLis == null || startLis.size() == 0) {
+            return tocHtml;
+        }
+
+        makeNumberedLis(startLis, "");
+        return document.select("div").outerHtml();
+    }
+
+    private void makeNumberedLis(Elements lis, String prefix) {
+        if (lis == null || lis.size() == 0) {
+            return;
+        }
+        int i = 1;
+        for (Element li : lis) {
+            // 替换
+            // <a href="#xxx">xxx</a>
+            // 为：
+            // <a href="#xxx"><span class="tocnumber">1</span><span class="toctext">xxx</span></a>
+            String num = prefix + (i++);
+            Element a = li.selectFirst("a");
+            Element textSpan = new Element("span").addClass("toctext").text(a.text());
+            a.textNodes().forEach(org.jsoup.nodes.Node::remove);
+            a.insertChildren(0, textSpan)
+                    .insertChildren(0, new Element("span").addClass("tocnumber").text(num));
+            // 递归子节点
+            Elements uls = li.select("ul");
+            if (uls != null && uls.size() > 0) {
+                makeNumberedLis(uls.first().children(), num + ".");
+            }
+        }
     }
 
     private String render(String source) {

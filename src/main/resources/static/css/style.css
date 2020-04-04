@@ -443,13 +443,18 @@ input.header__row_1__search_input {
 
 .toc ul {
     margin: 0;
-    padding-left: 1em;
+    padding-left: 2em;
 }
 
 .toc > ul {
     display: none;
     padding-left: 0;
 }
+
+.toc li .tocnumber {
+    padding-right: .5em;
+}
+
 
 .show_toc .toc > ul {
     display: block;
@@ -458,11 +463,6 @@ input.header__row_1__search_input {
 .toc ul li {
     margin: 0;
     list-style-type: none;
-}
-
-.toc ul li:before {
-    content: '◦';
-    padding-right: 6px;
 }
 
 .sr_stats {
