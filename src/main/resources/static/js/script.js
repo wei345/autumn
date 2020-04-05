@@ -234,7 +234,7 @@ function loadSitemapTree(then) {
         if (!location.hash) {
             return;
         }
-        var path = location.hash.substring(1);
+        var path = decodeURIComponent(location.hash.substring(1));
         var el = au.el('.sitemap a[href="' + path + '"]');
         if (!el) {
             return;
