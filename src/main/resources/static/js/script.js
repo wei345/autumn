@@ -126,10 +126,10 @@ function bindShortcut() {
                         event.preventDefault();
                     }
                     break;
-                case 'f':
+                case 'f': // 已弃用
                     toggleFixedAndRemember();
                     break;
-                case 's':
+                case 's': // 已弃用
                     toggleSidebar();
                     break;
                 case 't':
@@ -146,6 +146,12 @@ function bindShortcut() {
                     break;
                 case 'd':
                     document.scrollingElement.scrollTop += au.getViewportHeight() / 2;
+                    break;
+                case 'j':
+                    document.scrollingElement.scrollTop += 48;
+                    break;
+                case 'k':
+                    document.scrollingElement.scrollTop -= 48;
                     break;
             }
         }
