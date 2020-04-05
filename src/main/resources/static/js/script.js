@@ -150,20 +150,25 @@ function bindShortcut() {
 }
 
 function buildTree(then) {
+    var treeBox = au.el('.tree_box');
+    if (au.els('ul', treeBox).length > 0) {
+        unfoldSitemapHash();
+        bindNodeToggle(treeBox);
+        treeReady = true;
+        selectedNodeScrollIntoViewIfTreeFirstShow();
+    }
+
     au.ajax('GET', ctx + '/tree.json?' + treeVersionKeyValue, function (text) {
         var root = JSON.parse(text);
 
-        var treeBox = au.el('.tree_box');
         if(treeBox){
-            unfoldCurrentPath(root);
             if (au.els('ul', treeBox).length === 0) {
+                unfoldCurrentPath(root);
                 treeBox.innerHTML = buildTreeHtml(root.children);
-            } else {
-                unfoldSitemapHash();
+                bindNodeToggle(treeBox);
+                treeReady = true;
+                selectedNodeScrollIntoViewIfTreeFirstShow();
             }
-            bindNodeToggle(treeBox);
-            treeReady = true;
-            selectedNodeScrollIntoViewIfTreeFirstShow();
         }
         if (typeof(then) === 'function') {
             then(root);
