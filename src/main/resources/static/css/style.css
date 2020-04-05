@@ -334,7 +334,7 @@ input.header__row_1__search_input {
 .main {
     border-radius: 0;
     box-shadow: none;
-    padding: 5px 1em;
+    padding: 1em;
 }
 
 .tree_box {
@@ -435,8 +435,7 @@ input.header__row_1__search_input {
 }
 
 .toc {
-    display: block;
-    margin: 1em 0;
+    margin-bottom: 1em;
 }
 
 .toc h3 {
@@ -736,7 +735,7 @@ ul.header__row_1__tools {
 
 .footer {
     border-top: 4px solid #000;
-    margin: 25px 1em 0;
+    margin: 1em;
     padding: 1em 0;
     text-align: right;
 }
