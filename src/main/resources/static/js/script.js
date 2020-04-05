@@ -87,10 +87,8 @@ function bindTocToggle() {
     }
     var toggle = au.el('h3', toc);
     var tocBody = toggle.nextElementSibling;
-    if (!toggle || !tocBody || au.els('li', tocBody).length < 2) {
-        if (toggle) {
-            toggle.style.display = 'none';
-        }
+    if (!toggle || !tocBody || au.els('li', tocBody).length < 3) {
+        toc.style.display = 'none';
         return;
     }
     toggle.classList.add('no_selection', 'action_toggle');
@@ -101,14 +99,9 @@ function bindTocToggle() {
 
     function internalToggleToc(show) {
         if (show == null) {
-            show = content.classList.toggle('show_toc');
+            show = !content.classList.toggle('hide_toc');
         } else {
-            content.classList.toggle('show_toc', show);
-        }
-        if (show) {
-            toggle.innerText = 'TOC';
-        } else {
-            toggle.innerText = 'TOC';
+            content.classList.toggle('hide_toc', !show);
         }
         return show;
     }

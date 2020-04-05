@@ -454,7 +454,6 @@ input.header__row_1__search_input {
 }
 
 .toc > ul {
-    display: none;
     padding-left: 0;
 }
 
@@ -463,8 +462,8 @@ input.header__row_1__search_input {
 }
 
 
-.show_toc .toc > ul {
-    display: block;
+.hide_toc .toc > ul {
+    display: none;
 }
 
 .toc ul li {
