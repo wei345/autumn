@@ -23,7 +23,9 @@
         </div>
         <div class="header__row_1__right column">
             <ul class="header__row_1__tools no_selection">
-                <li><span class="sitemap_toggle action_toggle">Sitemap</span></li>
+                <#-- sitemap 移至单独的页面
+                <li><span class="sitemap_toggle action_toggle">Sitemap</span></li>-->
+                <li><a href="${ctx!}/sitemap#${ctx!}${path!}">Sitemap</a></li>
                 <li><a href="${ctx!}/help">Help</a></li>
             <#if logged?? && logged == true>
                 <li><a class="header__row_1__right__logout" href="${ctx!}/logout">Logout</a></li>
@@ -37,10 +39,11 @@
 <div class="header__toolbar">
     <#--<span class="sidebar_toggle no_selection action_toggle">Sidebar</span>-->
 </div>
+<#-- sitemap 移至单独的页面
 <div class="sitemap">
     <div class="tree_box">
     </div>
-</div>
+</div>-->
 <div class="main row">
     <div class="sidebar column">
     </div>

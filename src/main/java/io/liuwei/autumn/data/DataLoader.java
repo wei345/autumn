@@ -8,6 +8,7 @@ import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import com.vip.vjtools.vjkit.number.MathUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import io.liuwei.autumn.util.MimeTypeUtil;
+import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
-import io.liuwei.autumn.util.WebUtil;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -66,6 +66,11 @@ public class DataLoader implements Runnable {
 
     @Autowired
     private WebUtil webUtil;
+
+    @Value("${server.servlet.context-path}")
+    private String ctx;
+
+    private String sitemapPath = "/sitemap";
 
     private List<TreeJsonChangedListener> treeJsonChangedListeners = new CopyOnWriteArrayList<>();
 
@@ -145,14 +150,14 @@ public class DataLoader implements Runnable {
         Validate.isTrue(!rootDir.isHidden(), "rootDir is hidden");
         Validate.isTrue(rootDir.isDirectory(), "rootDir is not a directory");
 
-        Map<String, Page> oldPageMap = dataSource.getAllData().getPageMap();
-        Map<String, Page> pageMap = Maps.newHashMapWithExpectedSize(
-                oldPageMap.size() == 0 ? 1500 : oldPageMap.size());
+        Map<String, Page> oldPath2page = dataSource.getAllData().getPath2page();
+        Map<String, Page> path2page = Maps.newHashMapWithExpectedSize(
+                oldPath2page.size() == 0 ? 1500 : oldPath2page.size());
         int pageAddedOrModified = 0;
 
-        Map<String, Media> oldMediaMap = dataSource.getAllData().getMediaMap();
-        Map<String, Media> mediaMap = Maps.newHashMapWithExpectedSize(
-                oldMediaMap.size() == 0 ? 100 : oldMediaMap.size());
+        Map<String, Media> oldPath2media = dataSource.getAllData().getPath2media();
+        Map<String, Media> path2media = Maps.newHashMapWithExpectedSize(
+                oldPath2media.size() == 0 ? 100 : oldPath2media.size());
         int mediaAddedOrModified = 0;
 
         TreeNode root = new TreeNode("home", "/", true);
@@ -192,14 +197,14 @@ public class DataLoader implements Runnable {
                         String name = filename(file);
                         String path = parent.path + name;
 
-                        Page page = oldPageMap.get(path);
+                        Page page = oldPath2page.get(path);
                         if (page == null || page.getLastModified() != file.lastModified()) {
                             pageAddedOrModified++;
                             page = PageParser.parse(file);
                             page.setPath(path);
                             page.setArchived(path.startsWith(ARCHIVE_PATH_PREFIX));
                         }
-                        pageMap.put(path, page);
+                        path2page.put(path, page);
 
                         // add node
                         TreeNode node = new TreeNode(name, path, false);
@@ -209,20 +214,21 @@ public class DataLoader implements Runnable {
                     // Media
                     else {
                         String path = parent.path + file.getName();
-                        Media media = oldMediaMap.get(path);
+                        Media media = oldPath2media.get(path);
                         if (media == null || media.getLastModified() != file.lastModified()) {
                             mediaAddedOrModified++;
                             media = new Media(file);
                             loadMediaInfo(media, file);
                         }
-                        mediaMap.put(path, media);
+                        path2media.put(path, media);
                     }
                 }
             }
         }
 
-        boolean pageChanged = pageAddedOrModified > 0 || pageMap.size() != oldPageMap.size();
-        boolean mediaChanged = mediaAddedOrModified > 0 || mediaMap.size() != oldMediaMap.size();
+        boolean pageChanged = pageAddedOrModified > 0
+                || path2page.size() != dataSource.getAllData().getPageCountExcludeGenerated();
+        boolean mediaChanged = mediaAddedOrModified > 0 || path2media.size() != oldPath2media.size();
         if (!pageChanged && !mediaChanged) {
             logger.debug("dataSource no change");
             return;
@@ -231,19 +237,23 @@ public class DataLoader implements Runnable {
         TreeJson oldAllTreeJson = dataSource.getAllData().getTreeJson();
         TreeJson oldPublishedTreeJson = dataSource.getPublishedData().getTreeJson();
 
-        logger.info("Page added or modified: {}, Media added or modified: {}", pageAddedOrModified, mediaAddedOrModified);
         sortAndRemoveEmptyNode(root);
+
         String json = jsonMapper.toJson(root);
-        TreeJson treeJson = new TreeJson(json);
+        path2page.put(sitemapPath, newSitemapPage(root, false));
         DataSource.Data data = new DataSource.Data(
-                treeJson,
-                newHomepage(pageMap, false),
-                pageMap,
-                mediaMap);
+                new TreeJson(json),
+                newHomepage(path2page, false),
+                path2page,
+                path2media);
         dataSource.setAllData(data);
 
-        setPublishedData(root, mediaMap);
-        logger.info("dataSource: {}", dataSource);
+        if (pageAddedOrModified > 0 || mediaAddedOrModified > 0) {
+            logger.info("Page added or modified: {}, Media added or modified: {}", pageAddedOrModified, mediaAddedOrModified);
+            logger.info("dataSource: {}", dataSource);
+        }
+
+        setPublishedData(root, path2media);
 
         if (!oldAllTreeJson.getMd5().equals(dataSource.getAllData().getTreeJson().getMd5())
                 || !oldPublishedTreeJson.getMd5().equals(dataSource.getPublishedData().getTreeJson().getMd5())) {
@@ -348,33 +358,15 @@ public class DataLoader implements Runnable {
     }
 
     private void setPublishedData(TreeNode root, Map<String, Media> mediaMap) {
-        Map<String, Page> pageMap = new HashMap<>();
+        Map<String, Page> path2page = new HashMap<>();
         Stack<TreeNode> allDirNodes = new Stack<>();
 
-        // remove non-published page
-        Stack<TreeNode> dirStack = new Stack<>();
-        dirStack.push(root);
-        while (!dirStack.empty()) {
-            TreeNode node = dirStack.pop();
-            if (CollectionUtils.isEmpty(node.children)) {
-                continue;
-            }
+        removeNonPublishedPage(root, allDirNodes, path2page);
 
-            List<TreeNode> publishedList = new ArrayList<>(node.children.size());
-            for (TreeNode nd : node.children) {
-                if (nd.isDir()) {
-                    publishedList.add(nd);
-                    dirStack.push(nd);
-                    allDirNodes.push(nd);
-                } else if (nd.getPage().isPublished()) {
-                    pageMap.put(nd.getPath(), nd.getPage());
-                    publishedList.add(nd);
-                }
-            }
-            node.children = publishedList;
-        }
         removeEmptyDirNode(allDirNodes);
+
         String json = jsonMapper.toJson(root);
+        path2page.put(sitemapPath, newSitemapPage(root, true));
 
         // published media
         Map<String, Media> publishedMedia = Maps.newHashMapWithExpectedSize(mediaMap.size());
@@ -391,10 +383,34 @@ public class DataLoader implements Runnable {
 
         DataSource.Data data = new DataSource.Data(
                 new TreeJson(json),
-                newHomepage(pageMap, true),
-                pageMap,
+                newHomepage(path2page, true),
+                path2page,
                 publishedMedia);
         dataSource.setPublishedData(data);
+    }
+
+    private void removeNonPublishedPage(TreeNode root, Stack<TreeNode> allDirNodes, Map<String, Page> path2page) {
+        Stack<TreeNode> dirStack = new Stack<>();
+        dirStack.push(root);
+        while (!dirStack.empty()) {
+            TreeNode node = dirStack.pop();
+            if (CollectionUtils.isEmpty(node.children)) {
+                continue;
+            }
+
+            List<TreeNode> publishedList = new ArrayList<>(node.children.size());
+            for (TreeNode nd : node.children) {
+                if (nd.isDir()) {
+                    publishedList.add(nd);
+                    dirStack.push(nd);
+                    allDirNodes.push(nd);
+                } else if (nd.getPage().isPublished()) {
+                    path2page.put(nd.getPath(), nd.getPage());
+                    publishedList.add(nd);
+                }
+            }
+            node.children = publishedList;
+        }
     }
 
     private Page newHomepage(@Nullable Map<String, Page> pageMap, boolean published) {
@@ -429,8 +445,9 @@ public class DataLoader implements Runnable {
             }
         }
 
-        Date now = new Date(0); // 不要让 Home 出现在最近修改列表里
+        Date now = new Date(); // 不要让 Home 出现在最近修改列表里
         Page page = new Page();
+        page.setGenerated(true);
         page.setCreated(now);
         page.setModified(now);
         page.setPublished(published);
@@ -477,6 +494,73 @@ public class DataLoader implements Runnable {
 
     public long getMediaLastChanged() {
         return mediaLastChanged;
+    }
+
+    private Page newSitemapPage(TreeNode root, boolean published) {
+
+        StringBuilder stringBuilder = new StringBuilder(1024);
+        stringBuilder.append("<div class=\"sitemap\"><div class=\"tree_box\">");
+        buildTreeHtml(root.getChildren(), stringBuilder);
+        stringBuilder.append("</div></div>");
+        String html = stringBuilder.toString();
+
+        Date now = new Date();
+        Page page = new Page();
+        page.setGenerated(true);
+        page.setCreated(now);
+        page.setModified(now);
+        page.setPublished(published);
+        page.setBody(html);
+        page.setSource(html);
+        page.setTitle("Sitemap");
+        page.setLastModified(now.getTime());
+        page.setPath(sitemapPath);
+        return page;
+    }
+
+    private void buildTreeHtml(List<TreeNode> nodes, StringBuilder stringBuilder) {
+        if (CollectionUtils.isEmpty(nodes)) {
+            return;
+        }
+
+        stringBuilder.append("<ul>");
+
+        for (TreeNode node : nodes) {
+            // begin node
+            stringBuilder.append("<li class=\"tree_node");
+            if (!CollectionUtils.isEmpty(node.children)) {
+                stringBuilder.append(" tree_node_dir tree_node_unfolded");
+            } else {
+                stringBuilder.append(" tree_node_leaf");
+            }
+            stringBuilder.append("\">");
+
+            // begin header
+            stringBuilder.append("<div class=\"tree_node_header\">");
+
+            // icon
+            stringBuilder.append("<span class=\"tree_node_header_icon no_selection\"></span>");
+
+            // title
+            if (!CollectionUtils.isEmpty(node.children)) {
+                stringBuilder.append("<span class=\"tree_node_header_name no_selection\">")
+                        .append(node.name)
+                        .append("</span>");
+            } else {
+                stringBuilder.append("<a href=\"").append(ctx).append(node.path).append("\">")
+                        .append(node.name)
+                        .append("</a>");
+            }
+
+            // end header
+            stringBuilder.append("</div>");
+
+            buildTreeHtml(node.getChildren(), stringBuilder);
+
+            // end node
+            stringBuilder.append("</li>");
+        }
+        stringBuilder.append("</ul>");
     }
 
     public interface TreeJsonChangedListener {

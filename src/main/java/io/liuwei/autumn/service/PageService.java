@@ -31,6 +31,7 @@ public class PageService {
     private static final String PAGE_TITLE = "pageTitle";
     private static final String PAGE_TITLE_H1 = "pageTitleH1";
     private static final String BREADCRUMB = "breadcrumb";
+    private static final String PATH = "path";
     private static Logger logger = LoggerFactory.getLogger(PageService.class);
     @Autowired
     private DataService dataService;
@@ -68,9 +69,7 @@ public class PageService {
                     model.put(PAGE_TITLE_H1, pageHtml.getTitle());
                     model.put(TOC, pageHtml.getToc());
                     model.put(PAGE_CONTENT, pageHtml.getContent());
-                    if (breadcrumbEnabled) {
-                        model.put(BREADCRUMB, dataService.getBreadcrumbLinks(page));
-                    }
+                    addPageMetaProperties(model, page);
                     byte[] content = templateService.merge(model, view).getBytes(StandardCharsets.UTF_8);
                     String md5 = DigestUtils.md5DigestAsHex(content);
                     String etag = WebUtil.getEtag(md5);
@@ -96,12 +95,20 @@ public class PageService {
         String toc = searchService.highlightSearchStr(pageHtml.getToc(), searchStrList);
         String content = searchService.highlightSearchStr(pageHtml.getContent(), searchStrList);
         String title = searchService.highlightSearchStr(pageHtml.getTitle(), searchStrList);
+
         model.put(PAGE_TITLE, htmlEscape(page.getTitle()));
         model.put(PAGE_TITLE_H1, title);
         model.put(TOC, toc);
         model.put(PAGE_CONTENT, content);
-        model.put(BREADCRUMB, dataService.getBreadcrumbLinks(page));
+        addPageMetaProperties(model, page);
         return templateService.merge(model, view);
+    }
+
+    private void addPageMetaProperties(Map<String, Object> model, Page page){
+        if (breadcrumbEnabled) {
+            model.put(BREADCRUMB, dataService.getBreadcrumbLinks(page));
+        }
+        model.put(PATH, page.getPath());
     }
 
     public String handlePageSourceRequest(@NotNull Page page, WebRequest webRequest) {

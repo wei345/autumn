@@ -37,6 +37,8 @@ public class Page {
     private String blogPath; // e.g. /2018/11/12/xxx
     private Date blogDate; // 从路径里解析出来的日期，如 /path/to/2018-11-12-xxx 会得到 2018-11-12
 
+    private boolean generated;
+
     static Page newEmptyPage(String path) {
         String title = "";
         String body = "";
@@ -275,5 +277,13 @@ public class Page {
 
     public void setBlogName(String blogName) {
         this.blogName = blogName;
+    }
+
+    public boolean isGenerated() {
+        return generated;
+    }
+
+    public void setGenerated(boolean generated) {
+        this.generated = generated;
     }
 }

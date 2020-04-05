@@ -20,22 +20,25 @@ var fixedClassName = 'fixed';
 var lsFixedKey = prefix + 'fixed';
 var toggleSidebar = au.emptyFn;
 var toggleToc = au.emptyFn;
+detectClient();
 window.addEventListener('load', function () {
-    detectClient();
     bindFixedToggle();
     bindSidebarToggle();
     bindTocToggle();
     bindShortcut();
     buildTree(setupQuickSearch);
-    bindSitemapToggle();
+    // sitemap 移至单独页面
+    // bindSitemapToggle();
     anchorLink();
     checkLogout();
     updateVisitList();
+    document.querySelector('html').classList.remove('js-not-ready');
 });
 
 function detectClient() {
     var html = document.querySelector('html');
     html.classList.add('js');
+    html.classList.add('js-not-ready');
     html.classList.add(isMobi ? 'mobi' : 'desktop');
 }
 
@@ -162,7 +165,11 @@ function buildTree(then) {
     au.ajax('GET', ctx + '/tree.json?' + treeVersionKeyValue, function (text) {
         var root = JSON.parse(text);
         unfoldCurrentPath(root);
-        treeBox.innerHTML = buildTreeHtml(root.children);
+        if (au.els('ul', treeBox).length === 0) {
+            treeBox.innerHTML = buildTreeHtml(root.children);
+        } else {
+            unfoldSitemapHash();
+        }
         bindNodeToggle(treeBox);
         treeReady = true;
         selectedNodeScrollIntoViewIfTreeFirstShow();
@@ -181,21 +188,21 @@ function buildTree(then) {
         } else { // 非首页
             var dirs = [root];
             OUTER:
-            while (dirs.length > 0) {
-                var dir = dirs.pop();
-                for (var i = 0; i < dir.children.length; i++) {
-                    var node = dir.children[i];
-                    node.parent = dir;
-                    if (node.path === path) {
-                        node.current = true;
-                        current = node;
-                        break OUTER;
-                    }
-                    if (node.children) {
-                        dirs.push(node);
+                while (dirs.length > 0) {
+                    var dir = dirs.pop();
+                    for (var i = 0; i < dir.children.length; i++) {
+                        var node = dir.children[i];
+                        node.parent = dir;
+                        if (node.path === path) {
+                            node.current = true;
+                            current = node;
+                            break OUTER;
+                        }
+                        if (node.children) {
+                            dirs.push(node);
+                        }
                     }
                 }
-            }
         }
 
         // 展开所有父级
@@ -208,6 +215,32 @@ function buildTree(then) {
 
         if (alwaysUnfoldRoot) {
             root.unfolded = true;
+        }
+    }
+
+    function unfoldSitemapHash() {
+        var sitemapRoot = au.el('.sitemap');
+        au.els('.tree_node_dir').forEach(function (el) {
+            el.classList.remove('tree_node_unfolded');
+            el.classList.add('tree_node_folded');
+        });
+
+        if (!location.hash) {
+            return;
+        }
+        var path = location.hash.substring(1);
+        var el = au.el('.sitemap a[href="' + path + '"]');
+        if (!el) {
+            return;
+        }
+        el = el.parentElement; // div.tree_node_header
+        el.classList.add('tree_node_header_selected');
+        while (el && el !== sitemapRoot) {
+            if (el.tagName === 'LI' && el.classList.contains('tree_node_dir')) {
+                el.classList.remove('tree_node_folded');
+                el.classList.add('tree_node_unfolded');
+            }
+            el = el.parentElement;
         }
     }
 
@@ -252,7 +285,7 @@ function buildTree(then) {
     }
 
     function bindNodeToggle(tree) {
-        au.els('.tree_node_dir', tree).forEach(function(el){
+        au.els('.tree_node_dir', tree).forEach(function (el) {
             au.el('.tree_node_header', el).addEventListener('click', toggle);
         });
     }
@@ -269,6 +302,9 @@ function buildTree(then) {
 
 function bindSitemapToggle() {
     var toogle = au.el('.sitemap_toggle');
+    if (!toogle) {
+        return;
+    }
     var sitemap = au.el('.sitemap');
     toogle.addEventListener('click', function () {
         sitemap.classList.toggle('show');

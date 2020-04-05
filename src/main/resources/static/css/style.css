@@ -385,9 +385,12 @@ input.header__row_1__search_input {
     background: bisque;
 }
 
+.js-not-ready .sitemap {
+    display: none;
+}
+
 .sitemap {
     padding: 0 1em 2em;
-    display: none;
 }
 
 .content {
@@ -425,6 +428,10 @@ input.header__row_1__search_input {
     height: 1em;
     display: inline-block;
     vertical-align: middle;
+}
+
+.js-not-ready .toc {
+    display: none;
 }
 
 .toc {

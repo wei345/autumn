@@ -16,6 +16,7 @@ class TreeNode {
     private Date created;
     private Date modified;
     List<TreeNode> children;
+    private boolean generated;
 
     @JsonIgnore
     TreeNode parent;
@@ -45,6 +46,7 @@ class TreeNode {
         this.tags = page.getTags();
         this.created = page.getCreated();
         this.modified = page.getModified();
+        this.generated = page.isGenerated();
     }
 
     boolean isDir() {
@@ -86,5 +88,13 @@ class TreeNode {
 
     public Date getModified() {
         return modified;
+    }
+
+    public boolean isGenerated() {
+        return generated;
+    }
+
+    public void setGenerated(boolean generated) {
+        this.generated = generated;
     }
 }

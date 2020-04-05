@@ -39,22 +39,22 @@ public class DataService {
 
     public Media getMedia(String path) {
         if (UserService.isLogged()) {
-            return dataSource.getAllData().getMediaMap().get(path);
+            return dataSource.getAllData().getPath2media().get(path);
         }
 
-        Media media = dataSource.getPublishedData().getMediaMap().get(path);
+        Media media = dataSource.getPublishedData().getPath2media().get(path);
         if (media != null) {
             return media;
         }
 
-        if (dataSource.getAllData().getMediaMap().containsKey(path)) {
+        if (dataSource.getAllData().getPath2media().containsKey(path)) {
             return LOGIN_REQUIRED_MEDIA;
         }
         return null;
     }
 
     String getMediaVersionKeyValue(String path) {
-        Media media = dataSource.getAllData().getMediaMap().get(path);
+        Media media = dataSource.getAllData().getPath2media().get(path);
         if (media != null) {
             return media.getVersionKeyValue();
         }
@@ -75,9 +75,9 @@ public class DataService {
 
     Map<String, Page> getPageMap() {
         if (UserService.isLogged()) {
-            return dataSource.getAllData().getPageMap();
+            return dataSource.getAllData().getPath2page();
         } else {
-            return dataSource.getPublishedData().getPageMap();
+            return dataSource.getPublishedData().getPath2page();
         }
     }
 
@@ -101,15 +101,15 @@ public class DataService {
         }
 
         if (UserService.isLogged()) {
-            return dataSource.getAllData().getPageMap().get(path);
+            return dataSource.getAllData().getPath2page().get(path);
         }
 
-        page = dataSource.getPublishedData().getPageMap().get(path);
+        page = dataSource.getPublishedData().getPath2page().get(path);
         if (page != null) {
             return page;
         }
 
-        if (dataSource.getAllData().getPageMap().containsKey(path)) {
+        if (dataSource.getAllData().getPath2page().containsKey(path)) {
             return LOGIN_REQUIRED_PAGE;
         }
 
@@ -142,7 +142,7 @@ public class DataService {
      */
     private Link getBreadcrumbDirectoryLink(String path) {
         DataSource.Data data = UserService.isLogged() ? dataSource.getAllData() : dataSource.getPublishedData();
-        Map<String, Page> pageMap = data.getPageMap();
+        Map<String, Page> pageMap = data.getPath2page();
 
         Page page = path.length() == 0 ?
                 data.getHomepage() :
