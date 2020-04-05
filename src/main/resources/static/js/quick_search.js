@@ -1,4 +1,6 @@
 "use strict";
+var allPages;
+var pathToPage;
 
 function setupQuickSearch(treeRoot) {
     var searchForm = au.el('.header__row_1__search_form');
@@ -15,8 +17,6 @@ function setupQuickSearch(treeRoot) {
     var categoryPrefix = 'c:';
     var tagPrefix = 't:';
     var qsOpened = false;
-    var allPages;
-    var pathToPage;
     var lastS;
     var pendingQs = 0;
     var qsTimeoutId;
@@ -1041,7 +1041,7 @@ function updateVisitList() {
     if (ctx.length > 0) {
         currentPath = currentPath.substr(ctx.length);
     }
-    if (currentPath === '/' || currentPath === '/login' || currentPath === '/help') {
+    if (currentPath === '/' || currentPath === '/login' || currentPath === '/help' || currentPath === '/sitemap') {
         return;
     }
     if (au.el('.error_page')) {
@@ -1059,11 +1059,14 @@ function updateVisitList() {
     // 更新
     var oldVisitList = getVisitList();
     var newVisitList = [];
-    var maxLength = recentlyVisitMaxCount;
     newVisitList.push(currentPath);
-    for (var i = 0; i < oldVisitList.length && i < maxLength; i++) {
-        if (oldVisitList[i] !== currentPath) {
-            newVisitList.push(oldVisitList[i]);
+    for (var i = 0; i < oldVisitList.length; i++) {
+        var oldPath = oldVisitList[i];
+        if (oldPath !== currentPath && (oldPath.startsWith('/search') || pathToPage[oldPath])) {
+            newVisitList.push(oldPath);
+            if (newVisitList.length === recentlyVisitMaxCount) {
+                break;
+            }
         }
     }
     localStorage.setItem(lsRecentVisitKey, JSON.stringify(newVisitList));

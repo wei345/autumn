@@ -26,12 +26,14 @@ window.addEventListener('load', function () {
     bindSidebarToggle();
     bindTocToggle();
     bindShortcut();
-    buildTree(setupQuickSearch);
+    loadSitemapTree(function (sitemapData) {
+        setupQuickSearch(sitemapData);
+        updateVisitList();
+    });
     // sitemap 移至单独页面
     // bindSitemapToggle();
     anchorLink();
     checkLogout();
-    updateVisitList();
     document.querySelector('html').classList.remove('js-not-ready');
 });
 
@@ -149,7 +151,7 @@ function bindShortcut() {
     });
 }
 
-function buildTree(then) {
+function loadSitemapTree(then) {
     var treeBox = au.el('.tree_box');
     if (au.els('ul', treeBox).length > 0) {
         unfoldSitemapHash();
@@ -161,7 +163,7 @@ function buildTree(then) {
     au.ajax('GET', ctx + '/tree.json?' + treeVersionKeyValue, function (text) {
         var root = JSON.parse(text);
 
-        if(treeBox){
+        if (treeBox) {
             if (au.els('ul', treeBox).length === 0) {
                 unfoldCurrentPath(root);
                 treeBox.innerHTML = buildTreeHtml(root.children);
