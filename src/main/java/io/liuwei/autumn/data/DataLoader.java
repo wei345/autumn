@@ -413,12 +413,13 @@ public class DataLoader implements Runnable {
         }
     }
 
-    private Page newHomepage(@Nullable Map<String, Page> pageMap, boolean published) {
+    private Page newHomepage(@Nullable Map<String, Page> path2page, boolean published) {
 
         String title = "Home";
         String body = "Welcome";
-        if (!CollectionUtils.isEmpty(pageMap)) {
-            List<Page> recently = getListOrderByModifiedDesc(pageMap.values());
+        if (!CollectionUtils.isEmpty(path2page)) {
+            List<Page> recently = getListOrderByModifiedDesc(path2page.values()).stream()
+                    .filter(page -> !page.isGenerated()).collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(recently)) {
                 StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
                 stringBuilder.append("## Recently Modified\n")
