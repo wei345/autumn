@@ -352,8 +352,12 @@ input.header__row_1__search_input {
     padding: 0;
 }
 
+.tree_node_header {
+    border: dashed 1px transparent;
+}
+
 .tree_node_header:hover {
-    background: #ccc;
+    border-color: #ccc;
 }
 
 .tree_node_header_icon {
