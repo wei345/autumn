@@ -574,7 +574,7 @@ function setupQuickSearch(treeRoot) {
         renderQsrHtml(buildResultHtml(pages, maxLines, resultName));
 
         if (maxLines < pages.length) {
-            au.el('.qsr__list__show_all__icon', qsrList).addEventListener('click', showMoreResult);
+            au.el('.show_more_icon', qsrList).addEventListener('click', showMoreResult);
             var btn = au.el('.qsr__list__show_all__btn', qsrList);
             btn.addEventListener('click', showMoreResult);
             btn.classList.add('action_toggle');
@@ -648,7 +648,7 @@ function setupQuickSearch(treeRoot) {
         if (i < pages.length) {
             html += '<li class="qsr__list__show_all">';
             html += '<div class="qsr__list__link_line">';
-            html += '<span class="qsr__list__show_all__icon"></span>';
+            html += '<span class="show_more_icon"></span>';
             html += '<span class="qsr__list__show_all__btn">' + (pages.length - i) + ' more ' + resultName + '</span>';
             html += '</div>';
             html += '</li>';
@@ -1075,4 +1075,58 @@ function updateVisitList() {
 function getVisitList() {
     var v = localStorage.getItem(lsRecentVisitKey);
     return v ? JSON.parse(v) : [];
+}
+
+function recentlyModified() {
+    var box = au.el('.recently_modified');
+    if (!box) {
+        return;
+    }
+    var shownCount = au.els('li', box).length;
+    var moreCount = allPages.length - shownCount;
+    if (moreCount <= 0) {
+        return;
+    }
+
+    var div = document.createElement('div');
+    div.innerHTML = '<span class="show_more_icon"></span>';
+
+    var btn = document.createElement('span');
+    btn.classList.add('action_toggle');
+    btn.innerHTML = moreCount + ' more';
+    btn.addEventListener('click', function () {
+        showMoreRecentlyModified(shownCount, div);
+    });
+
+    div.appendChild(btn);
+    box.appendChild(div);
+}
+
+function showMoreRecentlyModified(start, targetEl) {
+    targetEl.innerHTML = allPages.sort(function (a, b) {
+        if (a.archived && !b.archived) {
+            return 1;
+        }
+        if (!a.archived && b.archived) {
+            return -1;
+        }
+        if (a.modified > b.modified) {
+            return -1;
+        }
+        if (a.modified < b.modified) {
+            return 1;
+        }
+        return au.compareStringIgnoreCase(a.path, b.path);
+    }).slice(start).map(function (page) {
+        var date = new Date(page.modified);
+        return '<li>' +
+            '<a href="' + ctx + page.path + '">' + page.title +
+            ' <i data-time="' + page.modified + '">' +
+            date.getFullYear() + '-' + twoDigit(date.getMonth() + 1) + '-' + twoDigit(date.getDate()) +
+            '</i></a></li>';
+    }).join('\n');
+}
+
+function twoDigit(n) {
+    return n < 10 ? '0' + n : n;
 }

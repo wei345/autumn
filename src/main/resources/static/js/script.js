@@ -29,6 +29,7 @@ window.addEventListener('load', function () {
     loadSitemapTree(function (sitemapData) {
         setupQuickSearch(sitemapData);
         updateVisitList();
+        recentlyModified();
     });
     // sitemap 移至单独页面
     // bindSitemapToggle();

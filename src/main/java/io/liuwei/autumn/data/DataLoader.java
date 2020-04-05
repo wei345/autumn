@@ -423,7 +423,7 @@ public class DataLoader implements Runnable {
             if (!CollectionUtils.isEmpty(recently)) {
                 StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
                 stringBuilder.append("## Recently Modified\n")
-                        .append("<ul class='recently_modified'>");
+                        .append("<ol class='recently_modified'>");
                 for (int i = 0; i < 20 && i < recently.size(); i++) {
                     Page page = recently.get(i);
 
@@ -440,7 +440,7 @@ public class DataLoader implements Runnable {
                             .append("</i></a></li>")
                             .append("\n");
                 }
-                stringBuilder.append("</ul>");
+                stringBuilder.append("</ol>");
                 title = "Home";
                 body = stringBuilder.toString();
             }
