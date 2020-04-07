@@ -101,20 +101,22 @@ public class FlexmarkMarkdownParser implements MarkdownParser {
     @VisibleForTesting
     String makeNumberedToc(String tocHtml) {
         Document document = Jsoup.parse(tocHtml);
-        Elements lis = document.select("div > ul > li");
-        if (lis == null || lis.size() == 0) {
-            return tocHtml;
+        Elements topLis = document.select("div > ul > li");
+        if (topLis == null || topLis.size() == 0 || document.select("li").size() < 3) {
+            return "";
         }
 
         Elements startLis;
-        if (lis.size() == 1) {
-            Elements uls = lis.select("ul");
+        if (topLis.size() == 1) {
+            Elements uls = topLis.select("ul");
             if (uls == null || uls.size() == 0) {
                 return tocHtml;
             }
             startLis = uls.first().children();
-        } else { // elements1.size() > 1
-            startLis = lis;
+        }
+        // topLis.size() > 1
+        else {
+            startLis = topLis;
         }
 
         if (startLis == null || startLis.size() == 0) {
