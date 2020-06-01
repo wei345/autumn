@@ -37,7 +37,7 @@ public class PageService {
     private DataService dataService;
 
     @Autowired
-    private MarkdownParser markdownParser;
+    private PageConverter pageConverter;
 
     @Autowired
     private TemplateService templateService;
@@ -137,7 +137,7 @@ public class PageService {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (page) {
                 if (page.getPageHtml() == null || page.getPageHtml().getTime() < dataLoader.getMediaLastChanged()) {
-                    Page.PageHtml pageHtml = markdownParser.render(page.getTitle(), page.getBody(), path);
+                    Page.PageHtml pageHtml = pageConverter.convert(page.getTitle(), page.getBody(), path);
                     page.setPageHtml(pageHtml);
                 }
             }

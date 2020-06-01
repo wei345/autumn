@@ -41,7 +41,7 @@ import java.util.UUID;
  * Created by liuwei on 2018/11/30.
  */
 @Component
-public class FlexmarkMarkdownParser implements MarkdownParser {
+public class FlexmarkPageConverter implements PageConverter {
 
     private static final String BOUNDARY = "<hr id='" + UUID.randomUUID().toString() + "'>";
     private static ThreadLocal<String> pathThreadLocal = new ThreadLocal<>();
@@ -51,7 +51,7 @@ public class FlexmarkMarkdownParser implements MarkdownParser {
     private StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
 
     @Autowired
-    public FlexmarkMarkdownParser(DataService dataService) {
+    public FlexmarkPageConverter(DataService dataService) {
         this.dataService = dataService;
     }
 
@@ -77,7 +77,7 @@ public class FlexmarkMarkdownParser implements MarkdownParser {
     }
 
     @Override
-    public Page.PageHtml render(String title, String body, String path) {
+    public Page.PageHtml convert(String title, String body, String path) {
 
         String markdown = stringBuilderHolder.get()
                 .append("[TOC]\n")

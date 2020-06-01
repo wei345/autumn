@@ -19,7 +19,7 @@ import java.util.Arrays;
  * @author liuwei
  * Created by liuwei on 2018/12/8.
  */
-public class FlexmarkMarkdownParserTest {
+public class FlexmarkPageConverterTest {
 
     @Test
     public void flexmark() throws IOException {
@@ -72,7 +72,7 @@ public class FlexmarkMarkdownParserTest {
                 "</li>\n" +
                 "</ul>\n" +
                 "</div>";
-        FlexmarkMarkdownParser parser = new FlexmarkMarkdownParser(null);
+        FlexmarkPageConverter parser = new FlexmarkPageConverter(null);
         String tocHtml2 = parser.makeNumberedToc(toHtml);
         System.out.println(tocHtml2);
     }
