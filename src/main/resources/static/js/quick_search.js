@@ -4,9 +4,6 @@ var pathToPage;
 
 function setupQuickSearch(treeRoot) {
     var searchForm = au.el('.header__row_1__search_form');
-    if (!searchForm) {
-        return;
-    }
     var searchInput = au.el('.header__row_1__search_input');
     var ctToggle = au.el('.search_box__ct_toggle');
     var btnClearSearch = au.el('.btn_clear_search');
@@ -28,11 +25,14 @@ function setupQuickSearch(treeRoot) {
     var onSearchInputChangeListeners = [];
     var btnClearSearchVisible = false;
 
-    getAllPages(treeRoot);
-    setupCt();
-    bindSearchInputEvent();
-    bindQuickSearchCloseEvent();
-    updateBtnClearSearchVisible(); // 搜索页有初始值
+    // 如果这里 return，JS 压缩器 Closure Compiler 会报错
+    if (searchForm) {
+        getAllPages(treeRoot);
+        setupCt();
+        bindSearchInputEvent();
+        bindQuickSearchCloseEvent();
+        updateBtnClearSearchVisible(); // 搜索页有初始值
+    }
 
     function bindSearchInputEvent() {
         searchInput.addEventListener('focus', function () {
