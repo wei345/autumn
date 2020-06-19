@@ -4,6 +4,9 @@ var pathToPage;
 
 function setupQuickSearch(treeRoot) {
     var searchForm = au.el('.header__row_1__search_form');
+    if (!searchForm) {
+        return;
+    }
     var searchInput = au.el('.header__row_1__search_input');
     var ctToggle = au.el('.search_box__ct_toggle');
     var btnClearSearch = au.el('.btn_clear_search');
