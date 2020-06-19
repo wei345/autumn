@@ -179,7 +179,7 @@ function loadSitemapTree(then) {
                 selectedNodeScrollIntoViewIfTreeFirstShow();
             }
         }
-        if (typeof(then) === 'function') {
+        if (typeof (then) === 'function') {
             then(root);
         }
     });

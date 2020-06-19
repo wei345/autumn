@@ -2,6 +2,10 @@ package io.liuwei.autumn.service;
 
 import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
+import io.liuwei.autumn.data.Page;
+import io.liuwei.autumn.data.PageParser;
+import io.liuwei.autumn.data.ResourceLoader;
+import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,16 +14,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
-import io.liuwei.autumn.data.Page;
-import io.liuwei.autumn.data.PageParser;
-import io.liuwei.autumn.data.ResourceLoader;
-import io.liuwei.autumn.util.WebUtil;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,8 +26,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static io.liuwei.autumn.data.ResourceLoader.STATIC_ROOT;
+import static io.liuwei.autumn.data.ResourceLoader.*;
+import static java.nio.charset.StandardCharsets.*;
 
 /**
  * @author liuwei
@@ -36,16 +35,15 @@ import static io.liuwei.autumn.data.ResourceLoader.STATIC_ROOT;
  */
 @Component
 public class StaticService {
-    private static Logger logger = LoggerFactory.getLogger(StaticService.class);
-    private static StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
+    private static final Logger logger = LoggerFactory.getLogger(StaticService.class);
+    private static final StringBuilderHolder STRING_BUILDER_HOLDER = new StringBuilderHolder(1024);
+    private final List<ResourceLoader.StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
     private volatile WebPageReferenceData jsCache;
     private volatile WebPageReferenceData cssCache;
     private volatile Page helpPage;
     private String codeBlockLineNumberJs;
     private String codeBlockHighlightJs;
     private String codeBlockHighlightCss;
-    private List<ResourceLoader.StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
-
     @Value("${autumn.code-block-line-number.enabled}")
     private boolean codeBlockLineNumberEnabled;
 
@@ -54,6 +52,9 @@ public class StaticService {
 
     @Value("${autumn.highlightjs-version}")
     private String highlightjsVersion;
+
+    @Value("${autumn.google-analytics-id}")
+    private String googleAnalyticsId;
 
     @Value("${autumn.code-block-highlighting.languages}")
     private List<String> highlightLanguages;
@@ -129,7 +130,7 @@ public class StaticService {
     }
 
     private Page newPageOf(ResourceLoader.ResourceCache resourceCache) {
-        String content = new String(resourceCache.getContent(), StandardCharsets.UTF_8);
+        String content = resourceCache.getContentString();
         Page page = PageParser.parse(content);
         Date date = new Date(resourceCache.getLastModified());
         page.setCreated(date);
@@ -141,10 +142,13 @@ public class StaticService {
     private boolean refreshJsCache() {
         boolean changed = false;
 
-        List<ResourceLoader.ResourceCache> sourceList = Stream.of("/js/script.js", "/js/quick_search.js", "/js/util.js")
+        List<ResourceLoader.ResourceCache> sourceList = Stream.of(
+                "/js/script.js", "/js/quick_search.js", "/js/util.js")
                 .map(this::getStaticResourceCache).collect(Collectors.toList());
 
-        List<Long> sourceTimeList = sourceList.stream().map(ResourceLoader.ResourceCache::getLastModified).collect(Collectors.toList());
+        List<Long> sourceTimeList = sourceList.stream()
+                .map(ResourceLoader.ResourceCache::getLastModified).collect(Collectors.toList());
+
         if (jsCache == null || jsCache.checkChanged(sourceTimeList)) {
             jsCache = createJsCache(sourceList);
             logger.info("jsCache updated");
@@ -160,24 +164,30 @@ public class StaticService {
         // 每次浏览器打开页面少发一个请求
         // 如果 tree.js 更新，那么其余 js 也跟着重新加载。tree.js 更新相对频繁
 
-        StringBuilder stringBuilder = stringBuilderHolder.get();
+        StringBuilder stringBuilder = STRING_BUILDER_HOLDER.get();
         stringBuilder.append("\"use strict\";\n")
                 .append("(function () {\n");
         sourceList.forEach(resourceCache ->
                 stringBuilder.append(
-                        new String(resourceCache.getContent(), UTF_8)
+                        resourceCache.getContentString()
                                 .replaceFirst("\"use strict\";\n", "")
                                 .trim())
                         .append("\n"));
         stringBuilder.append("})();\n");
+
         if (codeBlockHighlightEnabled) {
             stringBuilder.append(getCodeBlockHighlightJs()).append("\n");
         }
+
         if (codeBlockLineNumberEnabled) {
             stringBuilder.append(getCodeBlockLineNumberJs()).append("\n");
         }
 
         String js = jsCssCompressor.compressJs(stringBuilder.toString());
+
+        if (StringUtils.isNotBlank(googleAnalyticsId)) {
+            js += getGoogleAnalyticsJs();
+        }
 
         byte[] jsBytes = js.getBytes(UTF_8);
         String md5 = DigestUtils.md5DigestAsHex(jsBytes);
@@ -198,9 +208,9 @@ public class StaticService {
             return false;
         }
 
-        StringBuilder stringBuilder = stringBuilderHolder.get();
+        StringBuilder stringBuilder = STRING_BUILDER_HOLDER.get();
         sourceList.forEach(resourceCache ->
-                stringBuilder.append(new String(resourceCache.getContent(), UTF_8)).append("\n"));
+                stringBuilder.append(resourceCache.getContentString()).append("\n"));
         if (codeBlockHighlightEnabled) {
             stringBuilder.append(getCodeBlockHighlightCss()).append("\n");
         }
@@ -225,7 +235,7 @@ public class StaticService {
         ResourceLoader.ResourceCache resourceCache = getStaticResourceCache("/js/lib/highlightjs-line-numbers.js");
         // 不依赖 highlight.js
         stringBuilder.append("if(!window.hljs) window.hljs = {};\n")
-                .append(new String(resourceCache.getContent(), UTF_8)).append("\n")
+                .append(resourceCache.getContentString()).append("\n")
                 .append("window.addEventListener('load', function () {\n")
                 .append("    Array.prototype.map.call(document.querySelectorAll('pre code'), el => el)\n")
                 .append("        .forEach(block => hljs.lineNumbersBlock(block));\n")
@@ -260,6 +270,13 @@ public class StaticService {
                 .append("});\n");
 
         return (codeBlockHighlightJs = stringBuilder.toString());
+    }
+
+    private String getGoogleAnalyticsJs() {
+        return "window['GoogleAnalyticsObject'] = 'ga'; window.ga = {" +
+                "q: [['create', '" + googleAnalyticsId + "', 'auto'], ['send', 'pageview']], " +
+                "l: 1 * new Date()};\n" +
+                getStaticResourceCache("/js/lib/google-analytics.js").getContentString();
     }
 
     private String getCodeBlockHighlightCss() {
@@ -298,20 +315,20 @@ public class StaticService {
             return versionKeyValue;
         }
 
-        public byte[] getContent() {
-            return content;
-        }
-
-        public String getEtag() {
-            return etag;
-        }
-
         void setVersionKeyValue(String versionKeyValue) {
             this.versionKeyValue = versionKeyValue;
         }
 
+        public byte[] getContent() {
+            return content;
+        }
+
         public void setContent(byte[] content) {
             this.content = content;
+        }
+
+        public String getEtag() {
+            return etag;
         }
 
         void setEtag(String etag) {
