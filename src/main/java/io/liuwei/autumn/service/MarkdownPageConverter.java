@@ -41,17 +41,17 @@ import java.util.UUID;
  * Created by liuwei on 2018/11/30.
  */
 @Component
-public class FlexmarkPageConverter implements PageConverter {
+public class MarkdownPageConverter implements PageConverter {
 
     private static final String BOUNDARY = "<hr id='" + UUID.randomUUID().toString() + "'>";
-    private static ThreadLocal<String> pathThreadLocal = new ThreadLocal<>();
+    private static final ThreadLocal<String> pathThreadLocal = new ThreadLocal<>();
     private final DataService dataService;
     private Parser parser;
     private HtmlRenderer renderer;
-    private StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
+    private final StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
 
     @Autowired
-    public FlexmarkPageConverter(DataService dataService) {
+    public MarkdownPageConverter(DataService dataService) {
         this.dataService = dataService;
     }
 
@@ -180,7 +180,7 @@ public class FlexmarkPageConverter implements PageConverter {
 
         static class MediaAttributeProvider implements AttributeProvider {
 
-            private DataService dataService;
+            private final DataService dataService;
 
             MediaAttributeProvider(DataService dataService) {
                 this.dataService = dataService;
