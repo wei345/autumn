@@ -25,11 +25,14 @@ function setupQuickSearch(treeRoot) {
     var onSearchInputChangeListeners = [];
     var btnClearSearchVisible = false;
 
-    getAllPages(treeRoot);
-    setupCt();
-    bindSearchInputEvent();
-    bindQuickSearchCloseEvent();
-    updateBtnClearSearchVisible(); // 搜索页有初始值
+    // 如果这里 return，JS 压缩器 Closure Compiler 会报错
+    if (searchForm) {
+        getAllPages(treeRoot);
+        setupCt();
+        bindSearchInputEvent();
+        bindQuickSearchCloseEvent();
+        updateBtnClearSearchVisible(); // 搜索页有初始值
+    }
 
     function bindSearchInputEvent() {
         searchInput.addEventListener('focus', function () {

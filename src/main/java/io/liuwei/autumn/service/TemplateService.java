@@ -59,9 +59,6 @@ public class TemplateService {
     @Autowired
     private ResourceLoader resourceLoader;
 
-    @Value("${autumn.google-analytics-id}")
-    private String googleAnalyticsId;
-
     @Value("${autumn.title}")
     private String title;
 
@@ -69,7 +66,8 @@ public class TemplateService {
 
     private volatile long templateLastChanged;
 
-    private ThreadLocal<StringWriter> stringWriterThreadLocal = ThreadLocal.withInitial(() -> new StringWriter(10240));
+    private final ThreadLocal<StringWriter> stringWriterThreadLocal =
+            ThreadLocal.withInitial(() -> new StringWriter(10240));
 
     @PostConstruct
     private void init() {
@@ -103,7 +101,6 @@ public class TemplateService {
         model.put(TREE_VERSION_KEY_VALUE, dataService.getTreeJson().getVersionKeyValue());
         model.put(FAVICON_URL, faviconUrl);
         model.put(LOGGED, isLogged());
-        model.put(GOOGLE_ANALYTICS_ID, googleAnalyticsId);
         model.put(TITLE, title);
         model.put(PREFIX, webUtil.getPrefix());
     }
@@ -119,7 +116,6 @@ public class TemplateService {
         request.setAttribute(TREE_VERSION_KEY_VALUE, dataService.getTreeJson().getVersionKeyValue());
         request.setAttribute(FAVICON_URL, faviconUrl);
         request.setAttribute(LOGGED, isLogged());
-        request.setAttribute(GOOGLE_ANALYTICS_ID, googleAnalyticsId);
         request.setAttribute(TITLE, title);
         request.setAttribute(PREFIX, webUtil.getPrefix());
     }

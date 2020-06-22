@@ -5,6 +5,7 @@ import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
 import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.io.IOUtil;
 import io.liuwei.autumn.util.MimeTypeUtil;
+import io.liuwei.autumn.util.ResourceWalker;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -13,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StreamUtils;
-import io.liuwei.autumn.util.ResourceWalker;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -33,8 +33,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.FileVisitResult.CONTINUE;
+import static java.nio.charset.StandardCharsets.*;
+import static java.nio.file.FileVisitResult.*;
 
 /**
  * @author liuwei
@@ -46,13 +46,13 @@ public class ResourceLoader implements Runnable {
     public static final String STATIC_ROOT = "/static";
     private static final String WEBJARS_ROOT = "/META-INF/resources/webjars";
     private static final String TEMPLATE_ROOT = "/templates";
-    private static Logger logger = LoggerFactory.getLogger(ResourceLoader.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResourceLoader.class);
     private volatile long templateLastModified;
     @Value("${autumn.resource.reload-interval-seconds}")
     private long reloadIntervalSeconds;
     private volatile Map<String, ResourceLoader.ResourceCache> resourceCacheMap = Collections.emptyMap();
-    private List<StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
-    private List<TemplateLastChangedListener> templateLastChangedListeners = new ArrayList<>(1);
+    private final List<StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
+    private final List<TemplateLastChangedListener> templateLastChangedListeners = new ArrayList<>(1);
 
     private ScheduledExecutorService scheduler;
 
@@ -290,6 +290,10 @@ public class ResourceLoader implements Runnable {
         private String mimeType;
         private long lastModified; // file last modified
         private String path; // classpath
+
+        public String getContentString() {
+            return new String(content, UTF_8);
+        }
 
         public byte[] getContent() {
             return content;
