@@ -19,12 +19,12 @@ public class Page {
     private Set<String> tags;
     private boolean published; // default false
     private boolean archived; // 是否已归档
-    private String name; // file name without extension
+    private String name; // path 最后一个斜线之后的部分
     private String title;
     private String body;
     private volatile PageHtml pageHtml;
     private String source; // file content
-    private long lastModified; // file last modified
+    private long fileLastModified;
     private volatile ViewCache userViewCache; // 已登录用户页面缓存
     private volatile ViewCache guestViewCache; // 未登录用户页面缓存
     private String path; // 页面路径，以 '/' 开头，无后缀名。如：/java/idea
@@ -51,7 +51,7 @@ public class Page {
         page.setBody(body);
         page.setSource(body);
         page.setTitle(title);
-        page.setLastModified(now.getTime());
+        page.setFileLastModified(now.getTime());
         page.setTags(Collections.emptySet());
         page.setPath(path);
         return page;
@@ -183,12 +183,12 @@ public class Page {
         this.pageHtml = pageHtml;
     }
 
-    public long getLastModified() {
-        return lastModified;
+    public long getFileLastModified() {
+        return fileLastModified;
     }
 
-    public void setLastModified(long lastModified) {
-        this.lastModified = lastModified;
+    public void setFileLastModified(long fileLastModified) {
+        this.fileLastModified = fileLastModified;
     }
 
     public ViewCache getUserViewCache() {

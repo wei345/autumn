@@ -29,9 +29,9 @@ import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 public class PageCreatedRepairer {
 
 
-    private static Logger logger = LoggerFactory.getLogger(PageCreatedRepairer.class);
-    private static String dataDir = "";
-
+    private static final Logger logger = LoggerFactory.getLogger(PageCreatedRepairer.class);
+    private static final String dataDir = "";
+    private static final PageReader pageReader = new MarkdownPageReader();
 
     static {
         ((ch.qos.logback.classic.Logger) logger).setLevel(Level.INFO);
@@ -43,7 +43,7 @@ public class PageCreatedRepairer {
     }
 
     private static void repairFile(File file) {
-        Page page = PageParser.parse(file);
+        Page page = pageReader.toPage(file, null);
         if (page.getSource().contains("\n~~NOCACHE~~\n")
                 && (file.getName().equals("index.md") || file.getName().equals("sidebar.md"))) {
             logger.info("skip dokuwiki page {}", file.getAbsolutePath());
@@ -55,8 +55,8 @@ public class PageCreatedRepairer {
         }
         if (date.getTime() < page.getCreated().getTime()) {
             logger.info("Replace '{}' with '{}'",
-                    PageParser.DATE_PARSER_ON_SECOND.format(page.getCreated()),
-                    PageParser.DATE_PARSER_ON_SECOND.format(date));
+                    MarkdownPageReader.DATE_PARSER_ON_SECOND.format(page.getCreated()),
+                    MarkdownPageReader.DATE_PARSER_ON_SECOND.format(date));
             page.setCreated(date);
             PageWriter.write(page, file);
         }
@@ -82,7 +82,7 @@ public class PageCreatedRepairer {
         String out = result.getStdout();
         String[] lines = out.split("\n");
         try {
-            return PageParser.DATE_PARSER_ON_SECOND.parse(lines[lines.length - 1]);
+            return MarkdownPageReader.DATE_PARSER_ON_SECOND.parse(lines[lines.length - 1]);
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }

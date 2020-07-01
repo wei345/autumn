@@ -39,9 +39,7 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
 @Component
 public class DataLoader implements Runnable {
 
-    private static final String ARCHIVE_PATH_PREFIX = "/archive/";
-
-    private static Logger logger = LoggerFactory.getLogger(DataLoader.class);
+    private static final Logger logger = LoggerFactory.getLogger(DataLoader.class);
 
     private final DataSource dataSource;
 
@@ -56,8 +54,10 @@ public class DataLoader implements Runnable {
     @Value("${autumn.data.reload-interval-seconds:10}")
     private long reloadIntervalSeconds;
 
+    private PageReader pageReader = new MarkdownPageReader();
+
     @SuppressWarnings("FieldCanBeLocal")
-    private int cacheFileMaxLength = 1024 * 1024; // 1 MB
+    private final int cacheFileMaxLength = 1024 * 1024; // 1 MB
 
     @Value("${autumn.data.publish-all-media:true}")
     private boolean publishAllMedia;
@@ -198,11 +198,9 @@ public class DataLoader implements Runnable {
                         String path = parent.path + name;
 
                         Page page = oldPath2page.get(path);
-                        if (page == null || page.getLastModified() != file.lastModified()) {
+                        if (page == null || page.getFileLastModified() != file.lastModified()) {
                             pageAddedOrModified++;
-                            page = PageParser.parse(file);
-                            page.setPath(path);
-                            page.setArchived(path.startsWith(ARCHIVE_PATH_PREFIX));
+                            page = pageReader.toPage(file, path);
                         }
                         path2page.put(path, page);
 
@@ -455,7 +453,7 @@ public class DataLoader implements Runnable {
         page.setBody(body);
         page.setSource(body);
         page.setTitle(title);
-        page.setLastModified(now.getTime());
+        page.setFileLastModified(now.getTime());
         page.setPath("/");
         return page;
     }
@@ -467,8 +465,7 @@ public class DataLoader implements Runnable {
             int v;
 
             // 非归档目录
-            v = Integer.compare(o1.getPath().startsWith(ARCHIVE_PATH_PREFIX) ? 1 : 0,
-                    o2.getPath().startsWith(ARCHIVE_PATH_PREFIX) ? 1 : 0);
+            v = Integer.compare(o1.isArchived() ? 1 : 0, o2.isArchived() ? 1 : 0);
             if (v != 0) {
                 return v;
             }
@@ -514,7 +511,7 @@ public class DataLoader implements Runnable {
         page.setBody(html);
         page.setSource(html);
         page.setTitle("Sitemap");
-        page.setLastModified(now.getTime());
+        page.setFileLastModified(now.getTime());
         page.setPath(sitemapPath);
         return page;
     }
