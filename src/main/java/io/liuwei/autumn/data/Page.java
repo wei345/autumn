@@ -58,10 +58,10 @@ public class Page {
     }
 
     public static class PageHtml {
-        private String toc;
-        private String title;
-        private String content;
-        private long time;
+        private final String toc;
+        private final String title;
+        private final String content;
+        private final long time;
 
         public PageHtml(String toc, String title, String content) {
             this.toc = toc;
@@ -88,9 +88,9 @@ public class Page {
     }
 
     public static class ViewCache {
-        private byte[] content;
-        private String etag;
-        private long time;
+        private final byte[] content;
+        private final String etag;
+        private final long time;
 
         public ViewCache(byte[] content, String etag) {
             this.content = content;
