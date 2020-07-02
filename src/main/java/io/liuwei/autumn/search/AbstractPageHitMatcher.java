@@ -1,6 +1,6 @@
 package io.liuwei.autumn.search;
 
-import io.liuwei.autumn.data.Page;
+import io.liuwei.autumn.domain.Page;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

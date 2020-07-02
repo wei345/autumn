@@ -1,6 +1,6 @@
-package io.liuwei.autumn.service;
+package io.liuwei.autumn.converter;
 
-import io.liuwei.autumn.data.Page;
+import io.liuwei.autumn.domain.Page;
 
 /**
  * @author liuwei

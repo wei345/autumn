@@ -1,7 +1,7 @@
 package io.liuwei.autumn.controller;
 
 import com.google.common.collect.Maps;
-import io.liuwei.autumn.data.Page;
+import io.liuwei.autumn.domain.Page;
 import io.liuwei.autumn.service.StaticService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.view.RedirectView;
-import io.liuwei.autumn.data.Media;
+import io.liuwei.autumn.domain.Media;
 import io.liuwei.autumn.data.ResourceLoader;
-import io.liuwei.autumn.data.TreeJson;
+import io.liuwei.autumn.domain.TreeJson;
 import io.liuwei.autumn.service.DataService;
 import io.liuwei.autumn.service.MediaService;
 import io.liuwei.autumn.service.PageService;

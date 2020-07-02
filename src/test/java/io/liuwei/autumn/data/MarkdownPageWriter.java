@@ -2,6 +2,8 @@ package io.liuwei.autumn.data;
 
 import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
+import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.reader.MarkdownPageReader;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,11 +16,11 @@ import java.io.IOException;
  * @author liuwei
  * Created by liuwei on 2018/12/18.
  */
-class PageWriter {
+class MarkdownPageWriter {
 
-    private static Logger logger = LoggerFactory.getLogger(PageWriter.class);
+    private static final Logger logger = LoggerFactory.getLogger(MarkdownPageWriter.class);
     private static final String NEW_LINE = "\n";
-    private static StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
+    private static final StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
 
     static void write(Page page, File file) {
 

@@ -1,4 +1,4 @@
-package io.liuwei.autumn.data;
+package io.liuwei.autumn.domain;
 
 import io.liuwei.autumn.search.PageHit;
 import lombok.Getter;
@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Getter
 @Setter
 public class Page {
-
     private Date created;
     private Date modified;
     private String category;
@@ -45,7 +44,7 @@ public class Page {
 
     private boolean generated;
 
-    static Page newEmptyPage(String path) {
+    public static Page newEmptyPage(String path) {
         String title = "";
         String body = "";
         Date now = new Date(0);

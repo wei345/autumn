@@ -1,9 +1,9 @@
 package io.liuwei.autumn.service;
 
 import io.liuwei.autumn.data.DataSource;
-import io.liuwei.autumn.data.Media;
-import io.liuwei.autumn.data.Page;
-import io.liuwei.autumn.data.TreeJson;
+import io.liuwei.autumn.domain.Media;
+import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.domain.TreeJson;
 import io.liuwei.autumn.domain.Link;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,7 +53,7 @@ public class DataService {
         return null;
     }
 
-    String getMediaVersionKeyValue(String path) {
+    public String getMediaVersionKeyValue(String path) {
         Media media = dataSource.getAllData().getPath2media().get(path);
         if (media != null) {
             return media.getVersionKeyValue();

@@ -1,5 +1,7 @@
 package io.liuwei.autumn.domain;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,24 +14,28 @@ import java.util.List;
 @SuppressWarnings("WeakerAccess")
 public class Pagination {
 
-    private static int DEFAULT_PAGE_LIST_SIZE = 10;
+    private static final int DEFAULT_PAGE_LIST_SIZE = 10;
 
-    private int offset;
+    private final int offset;
 
-    private int page;
+    @Getter
+    private final int page;
 
-    private int pageSize;
+    private final int pageSize;
 
-    private int totalElements;
+    private final int totalElements;
 
-    private int totalPage;
+    private final int totalPage;
 
-    private List<PageNumber> pageList;
+    @Getter
+    private final List<PageNumber> pageList;
 
-    private UrlFactory urlFactory;
+    private final UrlFactory urlFactory;
 
+    @Getter
     private PageNumber previous;
 
+    @Getter
     private PageNumber next;
 
     public Pagination(int offset, int pageSize, int totalElements, UrlFactory urlFactory) {
@@ -91,10 +97,6 @@ public class Pagination {
         return page < totalPage;
     }
 
-    public PageNumber getPrevious() {
-        return previous;
-    }
-
     public boolean hasMore() {
         if (pageList.size() == 0) {
             return false;
@@ -105,43 +107,20 @@ public class Pagination {
         return pageList.get(0).page != page;
     }
 
-    public PageNumber getNext() {
-        return next;
+    public interface UrlFactory {
+        String getUrl(int pageNumber, int offset);
     }
 
-    public List<PageNumber> getPageList() {
-        return pageList;
-    }
-
-    public int getPage() {
-        return page;
-    }
-
+    @Getter
     public static class PageNumber {
-        private int page;
-        private int offset;
-        private String url;
+        private final int page;
+        private final int offset;
+        private final String url;
 
         PageNumber(int page, int offset, String url) {
             this.page = page;
             this.offset = offset;
             this.url = url;
         }
-
-        public int getPage() {
-            return page;
-        }
-
-        public int getOffset() {
-            return offset;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-    }
-
-    public interface UrlFactory {
-        String getUrl(int pageNumber, int offset);
     }
 }

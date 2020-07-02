@@ -1,4 +1,6 @@
-package io.liuwei.autumn.data;
+package io.liuwei.autumn.reader;
+
+import io.liuwei.autumn.domain.Page;
 
 import javax.validation.constraints.NotNull;
 import java.io.File;

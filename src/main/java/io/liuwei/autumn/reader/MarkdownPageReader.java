@@ -1,6 +1,7 @@
-package io.liuwei.autumn.data;
+package io.liuwei.autumn.reader;
 
 
+import io.liuwei.autumn.domain.Page;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
@@ -15,14 +16,14 @@ import java.util.*;
  */
 public class MarkdownPageReader extends AbstractPageReader {
 
-    static final String HEADER_BOUNDARY = "---";
-    static final String HEADER_CREATED = "created:";
-    static final String HEADER_MODIFIED = "modified:";
-    static final String HEADER_CATEGORY = "category:";
-    static final String HEADER_TAGS = "tags:";
-    static final String HEADER_PUBLISHED = "published:";
-    static final String TITLE_START_WITH = "# ";
-    static final FastDateFormat DATE_PARSER_ON_SECOND = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
+    public static final String HEADER_BOUNDARY = "---";
+    public static final String HEADER_CREATED = "created:";
+    public static final String HEADER_MODIFIED = "modified:";
+    public static final String HEADER_CATEGORY = "category:";
+    public static final String HEADER_TAGS = "tags:";
+    public static final String HEADER_PUBLISHED = "published:";
+    public static final String TITLE_START_WITH = "# ";
+    public static final FastDateFormat DATE_PARSER_ON_SECOND = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
     private static final FastDateFormat DATE_PARSER_ON_MINUTE = FastDateFormat.getInstance("yyyy-MM-dd HH:mm");
     private static final Logger logger = LoggerFactory.getLogger(MarkdownPageReader.class);
 

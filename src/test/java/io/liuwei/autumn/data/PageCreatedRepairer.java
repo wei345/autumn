@@ -1,6 +1,9 @@
 package io.liuwei.autumn.data;
 
 import ch.qos.logback.classic.Level;
+import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.reader.MarkdownPageReader;
+import io.liuwei.autumn.reader.PageReaders;
 import io.liuwei.autumn.util.CommandExecutor;
 import io.liuwei.autumn.util.ResourceWalker;
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +58,7 @@ public class PageCreatedRepairer {
                     MarkdownPageReader.DATE_PARSER_ON_SECOND.format(page.getCreated()),
                     MarkdownPageReader.DATE_PARSER_ON_SECOND.format(date));
             page.setCreated(date);
-            PageWriter.write(page, file);
+            MarkdownPageWriter.write(page, file);
         }
     }
 

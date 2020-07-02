@@ -1,8 +1,8 @@
-package io.liuwei.autumn.service;
+package io.liuwei.autumn.converter;
 
 import com.google.common.io.Files;
-import com.vip.vjtools.vjkit.text.EscapeUtil;
-import io.liuwei.autumn.data.Page;
+import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.service.DataService;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -78,6 +78,4 @@ public abstract class AbstractPageConverter implements PageConverter {
         }
         return path.substring(0, lastSlash + 1);
     }
-
-
 }

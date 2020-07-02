@@ -1,6 +1,6 @@
-package io.liuwei.autumn.service;
+package io.liuwei.autumn.converter;
 
-import io.liuwei.autumn.data.Page;
+import io.liuwei.autumn.domain.Page;
 import org.apache.commons.io.IOUtils;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.AttributesBuilder;
