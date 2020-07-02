@@ -1,5 +1,15 @@
 # Develop log
 
+2020.07.02
+
+* Release v2.0.0
+  * 支持 Asciidoc 格式
+  * sitemap 移至单独页面
+  * toc 增加序号
+  * 内置 google-analytics.js, 提高页面加载速度
+  * 首页最近修改列表可显示全部
+  * 改进页面样式
+
 2019.02.17
 
 * Release v1.2.0
