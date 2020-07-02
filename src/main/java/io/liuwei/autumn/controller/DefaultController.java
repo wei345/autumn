@@ -35,7 +35,7 @@ import static io.liuwei.autumn.service.DataService.LOGIN_REQUIRED_PAGE;
 @RestController
 public class DefaultController {
 
-    private static final String DOT_MD = ".md";
+    private static final String DOT_TXT = ".txt";
     private static final String DEFAULT_PAGE_VIEW = "page";
 
     @Autowired
@@ -102,8 +102,8 @@ public class DefaultController {
         }
 
         // Page source
-        if (path.endsWith(DOT_MD)) {
-            String pathWithoutDotMd = path.substring(0, path.length() - DOT_MD.length());
+        if (path.endsWith(DOT_TXT)) {
+            String pathWithoutDotMd = path.substring(0, path.length() - DOT_TXT.length());
             page = dataService.getPage(pathWithoutDotMd);
             if (page != null) {
                 return handlePage(page, path, true, h, webRequest, request, model);

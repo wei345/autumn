@@ -2,6 +2,7 @@ package io.liuwei.autumn.reader;
 
 import com.vip.vjtools.vjkit.io.FileUtil;
 import io.liuwei.autumn.domain.Page;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
@@ -122,6 +123,7 @@ public abstract class AbstractPageReader implements PageReader {
     }
 
     protected static class Lines implements Iterable<String> {
+        @Getter
         private final String text;
         private int start; // default 0
         private int prev;

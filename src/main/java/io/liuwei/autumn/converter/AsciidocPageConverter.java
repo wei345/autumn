@@ -2,10 +2,9 @@ package io.liuwei.autumn.converter;
 
 import io.liuwei.autumn.domain.Page;
 import io.liuwei.autumn.service.DataService;
-import org.asciidoctor.Asciidoctor;
+import io.liuwei.autumn.util.Asciidoctors;
 import org.asciidoctor.AttributesBuilder;
 import org.asciidoctor.OptionsBuilder;
-import org.asciidoctor.jruby.internal.JRubyAsciidoctor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,8 +13,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class AsciidocPageConverter extends AbstractPageConverter {
-
-    private final Asciidoctor asciidoctor = new JRubyAsciidoctor();
 
     private final OptionsBuilder optionsBuilder = OptionsBuilder.options()
             .attributes(AttributesBuilder.attributes()
@@ -29,7 +26,7 @@ public class AsciidocPageConverter extends AbstractPageConverter {
     @Override
     protected Page.PageHtml parse(String title, String body) {
         body = "= " + title + "\n\n" + body;
-        String bodyHtml = asciidoctor.convert(body, optionsBuilder);
+        String bodyHtml = Asciidoctors.getAsciidoctor().convert(body, optionsBuilder);
 
         return new Page.PageHtml(null, null, bodyHtml);
     }

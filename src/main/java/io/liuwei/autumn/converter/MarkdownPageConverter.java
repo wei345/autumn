@@ -174,7 +174,7 @@ public class MarkdownPageConverter extends AbstractPageConverter {
         }
 
         static class ScrollTableRenderer implements NodeRenderer {
-            private String className;
+            private final String className;
 
             ScrollTableRenderer(DataHolder options) {
                 this.className = CLASS_NAME.getFrom(options);
