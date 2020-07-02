@@ -37,26 +37,29 @@ public class AsciidocPageConverter extends AbstractPageConverter {
         // body
         String bodyHtml = Asciidoctors.getAsciidoctor().convert(body, optionsBuilder);
 
+        // toc
+        String tocHtml = null;
         Document document = Jsoup.parse(bodyHtml);
         Element toc = document.getElementById("toc");
-        toc.remove();
-        bodyHtml = document.body().html();
+        if (toc != null) {
+            toc.remove();
+            bodyHtml = document.body().html();
 
-        // toc
-        // change toc title div to h3
-        toc.select("#toctitle").first()
-                .replaceWith(new Element("h3")
-                        .attr("id", "toctitle")
-                        .text("TOC"));
+            // change toc title div to h3
+            toc.select("#toctitle").first()
+                    .replaceWith(new Element("h3")
+                            .attr("id", "toctitle")
+                            .text("TOC"));
 
-        // add article title in toc
-        Element oldUl = toc.selectFirst("ul.sectlevel1");
+            // add article title in toc
+            Element oldUl = toc.selectFirst("ul.sectlevel1");
 
-        Element a = new Element("a").attr("href", "#" + titleId).text(title);
-        Element li = new Element("li").appendChild(a).appendChild(oldUl);
-        Element newUl = new Element("ul").attr("class", "sectlevel0").appendChild(li);
-        toc.appendChild(newUl);
-        String tocHtml = toc.outerHtml();
+            Element a = new Element("a").attr("href", "#" + titleId).text(title);
+            Element li = new Element("li").appendChild(a).appendChild(oldUl);
+            Element newUl = new Element("ul").attr("class", "sectlevel0").appendChild(li);
+            toc.appendChild(newUl);
+            tocHtml = toc.outerHtml();
+        }
 
         return new Page.PageHtml(tocHtml, titleHtml, bodyHtml);
     }

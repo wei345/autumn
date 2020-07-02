@@ -83,6 +83,9 @@ public abstract class AbstractPageConverter implements PageConverter {
 
     @VisibleForTesting
     String makeNumberedToc(String tocHtml) {
+        if (tocHtml == null) {
+            return null;
+        }
         Document document = Jsoup.parse(tocHtml);
         Elements topLis = document.select("div > ul > li");
         if (topLis == null || topLis.size() == 0 || document.select("li").size() < 3) {
