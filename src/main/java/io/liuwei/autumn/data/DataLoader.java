@@ -54,8 +54,6 @@ public class DataLoader implements Runnable {
     @Value("${autumn.data.reload-interval-seconds:10}")
     private long reloadIntervalSeconds;
 
-    private PageReader pageReader = new MarkdownPageReader();
-
     @SuppressWarnings("FieldCanBeLocal")
     private final int cacheFileMaxLength = 1024 * 1024; // 1 MB
 
@@ -70,11 +68,11 @@ public class DataLoader implements Runnable {
     @Value("${server.servlet.context-path}")
     private String ctx;
 
-    private String sitemapPath = "/sitemap";
+    private final String sitemapPath = "/sitemap";
 
-    private List<TreeJsonChangedListener> treeJsonChangedListeners = new CopyOnWriteArrayList<>();
+    private final List<TreeJsonChangedListener> treeJsonChangedListeners = new CopyOnWriteArrayList<>();
 
-    private List<MediaChangedListener> mediaChangedListeners = new CopyOnWriteArrayList<>();
+    private final List<MediaChangedListener> mediaChangedListeners = new CopyOnWriteArrayList<>();
 
     private ScheduledExecutorService scheduler;
 
@@ -193,14 +191,14 @@ public class DataLoader implements Runnable {
                 if (file.isFile()) {
 
                     // Page
-                    if (file.getName().endsWith(".md")) {
+                    if (file.getName().endsWith(".md") || file.getName().endsWith(".adoc")) {
                         String name = filename(file);
                         String path = parent.path + name;
 
                         Page page = oldPath2page.get(path);
                         if (page == null || page.getFileLastModified() != file.lastModified()) {
                             pageAddedOrModified++;
-                            page = pageReader.toPage(file, path);
+                            page = PageReaders.getPageReader(file.getName()).toPage(file, path);
                         }
                         path2page.put(path, page);
 
@@ -455,6 +453,7 @@ public class DataLoader implements Runnable {
         page.setTitle(title);
         page.setFileLastModified(now.getTime());
         page.setPath("/");
+        page.setSourceFormat(Page.SourceFormat.MARKDOWN);
         return page;
     }
 

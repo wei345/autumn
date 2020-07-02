@@ -27,16 +27,9 @@ public class MarkdownPageReader extends AbstractPageReader {
     private static final Logger logger = LoggerFactory.getLogger(MarkdownPageReader.class);
 
     @Override
-    protected void read(TextSource source, Page page) {
-        parseHeader(source, page);
-        parseTitle(source, page);
-        parseBody(source, page);
-    }
-
-    private void parseHeader(TextSource source, Page page) {
+    protected void readHeader(Lines lines, Page page) {
         boolean entered = false;
-        String line;
-        while ((line = source.readLine()) != null) {
+        for (String line : lines) {
             if (StringUtils.isBlank(line)) {
                 continue;
             }
@@ -47,7 +40,7 @@ public class MarkdownPageReader extends AbstractPageReader {
                     entered = true;
                 } else {
                     // 没有 header
-                    source.back();
+                    lines.back();
                     break;
                 }
             } else {
@@ -81,6 +74,16 @@ public class MarkdownPageReader extends AbstractPageReader {
         }
     }
 
+    @Override
+    protected String getTitlePrefix() {
+        return TITLE_START_WITH;
+    }
+
+    @Override
+    protected Page.SourceFormat getSourceFormat() {
+        return Page.SourceFormat.MARKDOWN;
+    }
+
     private Date parseDate(String source) {
         try {
             return DATE_PARSER_ON_SECOND.parse(source);
@@ -93,27 +96,5 @@ public class MarkdownPageReader extends AbstractPageReader {
         }
     }
 
-    private void parseTitle(TextSource source, Page page) {
-        String line;
-        while ((line = source.readLine()) != null) {
-            if (StringUtils.isBlank(line)) {
-                continue;
-            }
-
-            if (line.startsWith(TITLE_START_WITH)) {
-                String value = line.substring(TITLE_START_WITH.length()).trim();
-                page.setTitle(value);
-            } else {
-                page.setTitle("");
-                source.back();
-            }
-            break;
-        }
-    }
-
-    private void parseBody(TextSource source, Page page) {
-        String body = source.remainingText();
-        page.setBody(body);
-    }
 
 }

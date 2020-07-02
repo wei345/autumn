@@ -88,9 +88,11 @@ function bindTocToggle() {
     if (!toc) {
         return;
     }
-    var toggle = au.el('h3', toc);
-    var tocBody = toggle.nextElementSibling;
-    if (!toggle || !tocBody || au.els('li', tocBody).length < 3) {
+    var toggle = au.el('h3', toc) // markdown
+        || au.el('#toctitle', toc); // asciidoc
+
+    var tocBody;
+    if (!toggle || !(tocBody = toggle.nextElementSibling) || au.els('li', tocBody).length < 3) {
         toc.style.display = 'none';
         return;
     }

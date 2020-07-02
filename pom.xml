@@ -96,6 +96,11 @@
             <version>${highlightjs.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
         <!-- 开发 & 测试 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

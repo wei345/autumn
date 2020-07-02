@@ -2,10 +2,7 @@ package io.liuwei.autumn.service;
 
 import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
-import io.liuwei.autumn.data.Page;
-import io.liuwei.autumn.data.MarkdownPageReader;
-import io.liuwei.autumn.data.PageReader;
-import io.liuwei.autumn.data.ResourceLoader;
+import io.liuwei.autumn.data.*;
 import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -67,8 +64,6 @@ public class StaticService {
 
     @Autowired
     private JsCssCompressor jsCssCompressor;
-
-    private PageReader pageReader = new MarkdownPageReader();
 
     @PostConstruct
     private void init() {
@@ -132,7 +127,7 @@ public class StaticService {
 
     private Page newPage(ResourceCache resourceCache, String path) {
         String content = resourceCache.getContentString();
-        return pageReader.toPage(content, path, resourceCache.getLastModified());
+        return PageReaders.getPageReader(resourceCache.getPath()).toPage(content, path, resourceCache.getLastModified());
     }
 
     private boolean refreshJsCache() {

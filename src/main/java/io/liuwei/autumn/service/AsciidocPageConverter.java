@@ -5,25 +5,31 @@ import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.AttributesBuilder;
 import org.asciidoctor.OptionsBuilder;
 import org.asciidoctor.jruby.internal.JRubyAsciidoctor;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
+import org.springframework.stereotype.Component;
 
 /**
  * @author liuwei
  * @since 2020-06-01 18:45
  */
-public class AsciidocPageConverter implements PageConverter {
+@Component
+public class AsciidocPageConverter extends AbstractPageConverter {
+
+    private final Asciidoctor asciidoctor = new JRubyAsciidoctor();
+
+    private final OptionsBuilder optionsBuilder = OptionsBuilder.options()
+            .attributes(AttributesBuilder.attributes()
+                    .showTitle(true)
+                    .tableOfContents(true));
+
+    public AsciidocPageConverter(DataService dataService) {
+        super(dataService);
+    }
 
     @Override
-    public Page.PageHtml convert(String title, String body, String path) {
-        Asciidoctor asciidoctor = new JRubyAsciidoctor();
+    protected Page.PageHtml parse(String title, String body) {
+        body = "= " + title + "\n\n" + body;
+        String bodyHtml = asciidoctor.convert(body, optionsBuilder);
 
-        String bodyHtml = asciidoctor.convert(body,
-                OptionsBuilder.options().headerFooter(false)
-                        .attributes(AttributesBuilder.attributes().tableOfContents(true)));
-
-        Document document = Jsoup.parse(bodyHtml);
-        bodyHtml = document.body().html(); // pretty print HTML
         return new Page.PageHtml(null, null, bodyHtml);
     }
 }

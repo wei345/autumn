@@ -2,11 +2,11 @@ package io.liuwei.autumn.data;
 
 import ch.qos.logback.classic.Level;
 import io.liuwei.autumn.util.CommandExecutor;
+import io.liuwei.autumn.util.ResourceWalker;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import io.liuwei.autumn.util.ResourceWalker;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,8 +18,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.text.ParseException;
 import java.util.Date;
 
-import static java.nio.file.FileVisitResult.CONTINUE;
-import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
+import static java.nio.file.FileVisitResult.*;
 
 /**
  * @author liuwei
@@ -28,10 +27,8 @@ import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 @SuppressWarnings("FieldCanBeLocal")
 public class PageCreatedRepairer {
 
-
     private static final Logger logger = LoggerFactory.getLogger(PageCreatedRepairer.class);
     private static final String dataDir = "";
-    private static final PageReader pageReader = new MarkdownPageReader();
 
     static {
         ((ch.qos.logback.classic.Logger) logger).setLevel(Level.INFO);
@@ -43,7 +40,7 @@ public class PageCreatedRepairer {
     }
 
     private static void repairFile(File file) {
-        Page page = pageReader.toPage(file, null);
+        Page page = PageReaders.getPageReader(file.getName()).toPage(file, null);
         if (page.getSource().contains("\n~~NOCACHE~~\n")
                 && (file.getName().equals("index.md") || file.getName().equals("sidebar.md"))) {
             logger.info("skip dokuwiki page {}", file.getAbsolutePath());

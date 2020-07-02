@@ -1,6 +1,8 @@
 package io.liuwei.autumn.data;
 
 import io.liuwei.autumn.search.PageHit;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Collections;
 import java.util.Date;
@@ -11,6 +13,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author liuwei
  * Created by liuwei on 2018/11/12.
  */
+
+@Getter
+@Setter
 public class Page {
 
     private Date created;
@@ -24,6 +29,7 @@ public class Page {
     private String body;
     private volatile PageHtml pageHtml;
     private String source; // file content
+    private SourceFormat sourceFormat;
     private long fileLastModified;
     private volatile ViewCache userViewCache; // 已登录用户页面缓存
     private volatile ViewCache guestViewCache; // 未登录用户页面缓存
@@ -54,6 +60,7 @@ public class Page {
         page.setFileLastModified(now.getTime());
         page.setTags(Collections.emptySet());
         page.setPath(path);
+        page.setSourceFormat(SourceFormat.ASCIIDOC);
         return page;
     }
 
@@ -111,179 +118,7 @@ public class Page {
         }
     }
 
-    public Date getCreated() {
-        return created;
-    }
-
-    public void setCreated(Date created) {
-        this.created = created;
-    }
-
-    public Date getModified() {
-        return modified;
-    }
-
-    public void setModified(Date modified) {
-        this.modified = modified;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public Set<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(Set<String> tags) {
-        this.tags = tags;
-    }
-
-    public boolean isPublished() {
-        return published;
-    }
-
-    public void setPublished(boolean published) {
-        this.published = published;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public void setBody(String body) {
-        this.body = body;
-    }
-
-    public String getSource() {
-        return source;
-    }
-
-    public void setSource(String source) {
-        this.source = source;
-    }
-
-    public PageHtml getPageHtml() {
-        return pageHtml;
-    }
-
-    public void setPageHtml(PageHtml pageHtml) {
-        this.pageHtml = pageHtml;
-    }
-
-    public long getFileLastModified() {
-        return fileLastModified;
-    }
-
-    public void setFileLastModified(long fileLastModified) {
-        this.fileLastModified = fileLastModified;
-    }
-
-    public ViewCache getUserViewCache() {
-        return userViewCache;
-    }
-
-    public void setUserViewCache(ViewCache userViewCache) {
-        this.userViewCache = userViewCache;
-    }
-
-    public ViewCache getGuestViewCache() {
-        return guestViewCache;
-    }
-
-    public void setGuestViewCache(ViewCache guestViewCache) {
-        this.guestViewCache = guestViewCache;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public ConcurrentHashMap<String, PageHit> getSearchHitCache() {
-        return searchHitCache;
-    }
-
-    public void setSearchHitCache(ConcurrentHashMap<String, PageHit> searchHitCache) {
-        this.searchHitCache = searchHitCache;
-    }
-
-    public String getSourceMd5() {
-        return sourceMd5;
-    }
-
-    public void setSourceMd5(String sourceMd5) {
-        this.sourceMd5 = sourceMd5;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public boolean isArchived() {
-        return archived;
-    }
-
-    public void setArchived(boolean archived) {
-        this.archived = archived;
-    }
-
-    public boolean isBlog() {
-        return blog;
-    }
-
-    public void setBlog(boolean blog) {
-        this.blog = blog;
-    }
-
-    public String getBlogPath() {
-        return blogPath;
-    }
-
-    public void setBlogPath(String blogPath) {
-        this.blogPath = blogPath;
-    }
-
-    public Date getBlogDate() {
-        return blogDate;
-    }
-
-    public void setBlogDate(Date blogDate) {
-        this.blogDate = blogDate;
-    }
-
-    public String getBlogName() {
-        return blogName;
-    }
-
-    public void setBlogName(String blogName) {
-        this.blogName = blogName;
-    }
-
-    public boolean isGenerated() {
-        return generated;
-    }
-
-    public void setGenerated(boolean generated) {
-        this.generated = generated;
+    public enum SourceFormat {
+        ASCIIDOC, MARKDOWN
     }
 }

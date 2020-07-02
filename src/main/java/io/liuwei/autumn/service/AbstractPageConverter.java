@@ -38,7 +38,6 @@ public abstract class AbstractPageConverter implements PageConverter {
             img.attr("src", appendVersion(img.attr("src"), path));
         }
 
-        document.outputSettings().prettyPrint(true);
         return document.body().html();
     }
 

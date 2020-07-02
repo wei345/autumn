@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,7 +27,7 @@ public abstract class AbstractPageReader implements PageReader {
     @SuppressWarnings("FieldCanBeLocal")
     private final String ARCHIVE_PATH_PREFIX = "/archive/";
 
-    private final Pattern BLOG_FILE_NAME_PATTERN = Pattern.compile("^(\\d{4}-\\d{2}-\\d{2})-(.+)\\.md$");
+    private final Pattern BLOG_FILE_NAME_PATTERN = Pattern.compile("^(\\d{4}-\\d{2}-\\d{2})-(.+)$");
 
     private final FastDateFormat DATE_PARSER_ON_DAY = FastDateFormat.getInstance("yyyy-MM-dd");
 
@@ -48,7 +49,7 @@ public abstract class AbstractPageReader implements PageReader {
 
     @Override
     public Page toPage(@NotNull String text, @NotNull String path, long fileLastModified) {
-        TextSource source = new TextSource(text);
+        Lines lines = new Lines(text);
         Page page = new Page();
 
         page.setPath(path);
@@ -57,7 +58,10 @@ public abstract class AbstractPageReader implements PageReader {
         parseBlogPath(page);
 
         page.setSource(text);
-        read(source, page);
+        page.setSourceFormat(getSourceFormat());
+        readHeader(lines, page);
+        page.setTitle(readTitle(lines));
+        page.setBody(lines.remainingText());
 
         page.setFileLastModified(fileLastModified);
 
@@ -76,7 +80,28 @@ public abstract class AbstractPageReader implements PageReader {
         return page;
     }
 
-    protected abstract void read(MarkdownPageReader.TextSource source, Page page);
+    protected abstract void readHeader(Lines lines, Page page);
+
+    protected abstract String getTitlePrefix();
+
+    protected abstract Page.SourceFormat getSourceFormat();
+
+    protected String readTitle(Lines lines) {
+        for(String line : lines){
+            if (StringUtils.isBlank(line)) {
+                continue;
+            }
+
+            String titlePrefix = getTitlePrefix();
+            if (line.startsWith(titlePrefix)) {
+                return line.substring(titlePrefix.length()).trim();
+            } else {
+                lines.back();
+                return "";
+            }
+        }
+        return "";
+    }
 
     private void parseBlogPath(Page page) {
         Matcher matcher = BLOG_FILE_NAME_PATTERN.matcher(page.getName());
@@ -95,16 +120,16 @@ public abstract class AbstractPageReader implements PageReader {
         page.setBlog(true);
     }
 
-    protected static class TextSource {
+    protected static class Lines implements Iterable<String> {
         private final String text;
         private int start; // default 0
         private int prev;
 
-        TextSource(String text) {
+        Lines(String text) {
             this.text = text;
         }
 
-        String readLine() {
+        private String readLine() {
             String text = this.text;
             int start = this.start;
 
@@ -130,6 +155,21 @@ public abstract class AbstractPageReader implements PageReader {
 
         String remainingText() {
             return text.substring(start);
+        }
+
+        @Override
+        public Iterator<String> iterator() {
+            return new Iterator<String>() {
+                @Override
+                public boolean hasNext() {
+                    return start < text.length();
+                }
+
+                @Override
+                public String next() {
+                    return readLine();
+                }
+            };
         }
     }
 }
