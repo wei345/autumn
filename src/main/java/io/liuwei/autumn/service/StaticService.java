@@ -117,7 +117,7 @@ public class StaticService {
     }
 
     private void refreshHelpPage() {
-        ResourceLoader.ResourceCache data = getStaticResourceCache("/help.md");
+        ResourceLoader.ResourceCache data = getStaticResourceCache("/help.adoc");
         if (helpPage != null && helpPage.getFileLastModified() >= data.getLastModified()) {
             return;
         }

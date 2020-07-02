@@ -1,35 +1,35 @@
-# Develop log
+= Develop log
 
 2020.07.02
 
 * Release v2.0.0
-  * 支持 Asciidoc 格式
-  * sitemap 移至单独页面
-  * toc 增加序号
-  * 内置 google-analytics.js, 提高页面加载速度
-  * 首页最近修改列表可显示全部
-  * 改进页面样式
+ ** 支持 Asciidoc 格式
+ ** sitemap 移至单独页面
+ ** toc 增加序号
+ ** 内置 google-analytics.js, 提高页面加载速度
+ ** 首页最近修改列表可显示全部
+ ** 改进页面样式
 
 2019.02.17
 
 * Release v1.2.0
-  * 分开 TOC 和页面内容; 设置页面内容最大宽度。
-  * Cookie name 增加前缀以区分域名相同 contextPath 不同的 Autumn 实例。
-  * 改进 rememberMe cookie。
-  * 搜索结果分页。
-  * 字符串匹配使用 KMP 算法。
-  * 提取 JavaScript util functions。
-  * 改进快速搜索框用户体验。
+ ** 分开 TOC 和页面内容; 设置页面内容最大宽度。
+ ** Cookie name 增加前缀以区分域名相同 contextPath 不同的 Autumn 实例。
+ ** 改进 rememberMe cookie。
+ ** 搜索结果分页。
+ ** 字符串匹配使用 KMP 算法。
+ ** 提取 JavaScript util functions。
+ ** 改进快速搜索框用户体验。
 
 2019.01.05
 
 * Release v1.1.0
-  * 优化 UI。
-  * Redis 改为可选的。
-  * 可设置 Google Analytics ID。
-  * 提高页面加载速度。包括压缩 JS、异步加载 JS、所有静态资源设置版本号和浏览器缓存。
-  * 代码块高亮、行号。
-  * 一些其他改进和 bug 修复。
+ ** 优化 UI。
+ ** Redis 改为可选的。
+ ** 可设置 Google Analytics ID。
+ ** 提高页面加载速度。包括压缩 JS、异步加载 JS、所有静态资源设置版本号和浏览器缓存。
+ ** 代码块高亮、行号。
+ ** 一些其他改进和 bug 修复。
 
 12.31 - 01.05
 
@@ -54,16 +54,16 @@
 2018.12.25
 
 * Release v1.0.0
-  * 映射 Markdown 目录到网站。
-  * 对应数据目录结构的树形菜单。
-  * 页面内容 TOC。
-  * 缓存除搜索结果之外的所有资源，如：页面 html、js、css、图片。
-  * 访问控制。
-  * 全文搜索。
-  * 快速搜索。
-  * 分类和标签。
-  * 自适应桌面和移动设备的 UI。
-  * 文件下载，.md 源码等。
+ ** 映射 Markdown 目录到网站。
+ ** 对应数据目录结构的树形菜单。
+ ** 页面内容 TOC。
+ ** 缓存除搜索结果之外的所有资源，如：页面 html、js、css、图片。
+ ** 访问控制。
+ ** 全文搜索。
+ ** 快速搜索。
+ ** 分类和标签。
+ ** 自适应桌面和移动设备的 UI。
+ ** 文件下载，.md 源码等。
 
 12.17 - 12.24
 

@@ -1,4 +1,4 @@
-## 功能
+== 功能
 
 页面
 
@@ -43,9 +43,9 @@
 * 限制每个 IP 搜索频率。
 * 前端页面快速搜索路径、标题、category、tags。
 
-## 设计
+== 设计
 
-### 数据
+=== 数据
 
 * .md 文件。第一次访问时生成 HTML，md 或 template lastModified 变化或应用重启时清除缓存。
 * 其他文件。不大于 1MB，第一次访问时缓存，文件修改时间发生变化时清除缓存。
@@ -53,28 +53,28 @@
 * js 缓存。应用启动时生成，文件 lastModified 变化时重新生成。
 * 提供 reload 接口，生产环境不需要定时 reload。
 
-### Markdown 解析器
+=== Markdown 解析器
 
 主要有两个解析器
 
-* [commonmark-java](https://github.com/atlassian/commonmark-java) 速度较快，大约是 flexmark-java 的 1.5 倍。core 速度比较好，扩展可能不怎么样，例如 commonmark-ext-heading-anchor 性能上欠考虑。
-* [flexmark-java](https://github.com/vsch/flexmark-java) is a fork of commonmark-java project。插件丰富，速度也够快。
+* https://github.com/atlassian/commonmark-java[commonmark-java] 速度较快，大约是 flexmark-java 的 1.5 倍。core 速度比较好，扩展可能不怎么样，例如 commonmark-ext-heading-anchor 性能上欠考虑。
+* https://github.com/vsch/flexmark-java[flexmark-java] is a fork of commonmark-java project。插件丰富，速度也够快。
 
 两个都试了，commonmark-java 生成 TOC 有点麻烦，最终选择了 flexmark-java。
 
-### 权限
+=== 权限
 
 若要支持更多用户，不同的用户有不同的可见范围，可以在页面增加 allow_role 属性，
 值为 1 个或多个角色，还可增加一个权限配置文件指定角色与目录或文件的对应关系，
 页面 allow_role 优先级高于配置文件。...我没有这样的需求，没有做这些功能。
 
-### 搜索
+=== 搜索
 
 * input parser
-  * 不分词，用户自己会加空格
+ ** 不分词，用户自己会加空格
 * 组合逻辑
 * 查找匹配
-  * 要搜索全文内容，包括代码块，因为我们要找的内容有可能在代码块里
+ ** 要搜索全文内容，包括代码块，因为我们要找的内容有可能在代码块里
 * 缓存中间结果和最终结果
 * 排序
 * 展示结果
@@ -83,7 +83,7 @@
 
 Media 没多少，不搜。
 
-#### hits 高亮问题
+==== hits 高亮问题
 
 搜索结果显示的 hits 预览，是选取的 .md 原文部分内容，可能会带有一点 Markdown 标记。其实也可以从 html 获取文本内容，更干净。
 
@@ -91,7 +91,7 @@ Media 没多少，不搜。
 
 利用 Jsoup 查找 HTML 里的 searchStr 成本较高，高亮 38k 长文里的几个位置用时 16 ms，我的 HtmlUtil 用时 6 ms。
 
-### 缓存
+=== 缓存
 
 * 页面缓存。如果页面内容或模版没有变化，那么刷新页面响应 304，即使重启应用，刷新页面也响应 304。
 * 开发过程中模版文件变化后，3 秒内页面更新。
@@ -110,19 +110,19 @@ page markdown > hits > sort > highlight > highlightString > apply template > bro
 
 page markdown > html > highlightString hits > highlight > apply template > browser
 
-### 异常
+=== 异常
 
 * 处理请求发生异常时，显示 templates/error 里和状态码对应的错误页面，用户不会看到 Tomcat 错误页面。
 
-### Production Ready
+=== Production Ready
 
 * 添加 ctx。nginx 映射到子路径时，不需要调整 Autumn 输出的 url 和跳转路径。
 
-### View
+=== View
 
 * Controller 设置 model 时确保 HTML 安全，FreeMarker 不用转义，只是原样输出。
 
-### Web
+=== Web
 
 初始 sidebar 和 toc 不显示，当页面加载完成后由 JS 控制是否显示。因为先显示然后又不显示，不如先不显示然后显示看起来好。
 
@@ -135,18 +135,18 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 * 合并 css，并在路径中添加版本号。
 * 合并 js，并在路径中添加版本号。
 
-[Milligram](https://milligram.io/), [milligram.css](https://github.com/milligram/milligram/blob/master/dist/milligram.css) font-size 一改样式全乱，列表 font-size 居然递减，别的还好。
+https://milligram.io/[Milligram], https://github.com/milligram/milligram/blob/master/dist/milligram.css[milligram.css] font-size 一改样式全乱，列表 font-size 居然递减，别的还好。
 
 页面内容显示和全文搜索不依赖 JS，即使客户端禁用了 JS，仍然可以阅读内容和使用搜索功能。
 
 默认样式：小桌面
 
-#### highlight
+==== highlight
 
 启用代码块高亮后：
 
-* all.js 11.7 KB gzip -> 34 KB gzip，增加 190%
-* all.css 5.1 KB gzip -> 5.6 KB gzip，增加 10%
+* all.js 11.7 KB gzip \-> 34 KB gzip，增加 190%
+* all.css 5.1 KB gzip \-> 5.6 KB gzip，增加 10%
 
 浅色
 
@@ -157,14 +157,14 @@ page markdown > html > highlightString hits > highlight > apply template > brows
 
 * solarized-dark.css; -webkit-font-smoothing: auto;
 
-#### js, css 压缩
+==== js, css 压缩
 
 使用 google Closure Compiler 压缩后：
 
-* all.js 34 KB gzip -> 24 KB gzip，减少 29.4%
-* all.css 5.6 KB gzip -> 4 KB gzip，减少 28.6%
+* all.js 34 KB gzip \-> 24 KB gzip，减少 29.4%
+* all.css 5.6 KB gzip \-> 4 KB gzip，减少 28.6%
 
-### 安全
+=== 安全
 
 // 确保检查和更新失败次数线程安全：
 // 每 ip 每秒只允许一次登录尝试。
@@ -189,21 +189,23 @@ Someday
 * 限制单个 IP rememberMe 用户验证错误次数
 * 限制单个 IP 创建 session 数量
 
-### 启动速度
+=== 启动速度
 
 bin/start.sh 启动过程：
 
-```text
+[source,text]
+----
 mvn clean compile dependency:build-classpath
 
 java -classpath ...
-```
+----
 
 如果去掉 clean 可减少 2 秒启动时间。
 
 2 core 2.50GHz 云服务器上启动时间：
 
-```text
+[source,text]
+----
 bin/start.sh
 
 Started Application in 5.016 seconds (JVM running for 5.568)
@@ -211,11 +213,12 @@ Started Application in 5.016 seconds (JVM running for 5.568)
 real	0m14.113s
 user	0m13.474s
 sys	0m0.627s
-```
+----
 
 在我电脑上启动时间：
 
-```text
+[source,text]
+----
 bin/start.sh
 
 Started Application in 2.467 seconds (JVM running for 2.781)
@@ -223,24 +226,25 @@ Started Application in 2.467 seconds (JVM running for 2.781)
 real	0m7.289s
 user	0m12.844s
 sys	0m0.692s
-```
+----
 
-### SOMEDAY Space
+=== SOMEDAY Space
 
 Space 可以对应特定域名。
 
 不同 Space 可以对应不同数据目录。
 
-### Robot
+=== Robot
 
-* [Googlebot](https://www.distilnetworks.com/bot-directory/bot/googlebot/)
-* [Yahoo! Slurp](https://www.distilnetworks.com/bot-directory/bot/yahoo-slurp/)
+* https://www.distilnetworks.com/bot-directory/bot/googlebot/[Googlebot]
+* https://www.distilnetworks.com/bot-directory/bot/yahoo-slurp/[Yahoo! Slurp]
 
-### SOMEDAY 分类层级
+=== SOMEDAY 分类层级
 
 在 .autumn 定义分类层级，例如：
 
-```text
+[source,text]
+----
 - java
   - spring
 - linux
@@ -248,6 +252,6 @@ Space 可以对应特定域名。
 - db
   - mysql
   - redis
-```
+----
 
-### SOMEDAY Blog
+=== SOMEDAY Blog
