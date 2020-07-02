@@ -3,13 +3,14 @@ package io.liuwei.autumn.reader;
 import io.liuwei.autumn.domain.Page;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.TreeSet;
 
 import static org.assertj.core.api.Assertions.*;
@@ -38,5 +39,11 @@ public class AsciidocPageReaderTest {
 
     private String formatDate(Date date) {
         return DateFormatUtils.format(date, "yyyy-MM-dd HH:mm:ss");
+    }
+
+    @Test
+    public void parse() throws ParseException {
+        Date date = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss").parse("2020-07-02 13:34:12 +0800");
+        assertThat(formatDate(date)).isEqualTo("2020-07-02 13:34:12");
     }
 }
