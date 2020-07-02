@@ -1,5 +1,6 @@
 package io.liuwei.autumn.converter;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
 import io.liuwei.autumn.domain.Page;
 import io.liuwei.autumn.service.DataService;
@@ -25,7 +26,8 @@ public abstract class AbstractPageConverter implements PageConverter {
     public Page.PageHtml convert(String title, String body, String path) {
         Page.PageHtml pageHtml = parse(title, body);
         String bodyHtml = rewriteImageSrc(pageHtml.getContent(), path);
-        return new Page.PageHtml(pageHtml.getToc(), pageHtml.getTitle(), bodyHtml);
+        String tocHtml = makeNumberedToc(pageHtml.getToc());
+        return new Page.PageHtml(tocHtml, pageHtml.getTitle(), bodyHtml);
     }
 
     protected abstract Page.PageHtml parse(String title, String body);
@@ -77,5 +79,56 @@ public abstract class AbstractPageConverter implements PageConverter {
             return "/";
         }
         return path.substring(0, lastSlash + 1);
+    }
+
+    @VisibleForTesting
+    String makeNumberedToc(String tocHtml) {
+        Document document = Jsoup.parse(tocHtml);
+        Elements topLis = document.select("div > ul > li");
+        if (topLis == null || topLis.size() == 0 || document.select("li").size() < 3) {
+            return "";
+        }
+
+        Elements startLis;
+        if (topLis.size() == 1) {
+            Elements uls = topLis.select("ul");
+            if (uls == null || uls.size() == 0) {
+                return tocHtml;
+            }
+            startLis = uls.first().children();
+        } else { // topLis.size() > 1
+            startLis = topLis;
+        }
+
+        if (startLis == null || startLis.size() == 0) {
+            return tocHtml;
+        }
+
+        makeNumberedLis(startLis, "");
+        return document.select("div").outerHtml();
+    }
+
+    private void makeNumberedLis(Elements lis, String prefix) {
+        if (lis == null || lis.size() == 0) {
+            return;
+        }
+        int i = 1;
+        for (Element li : lis) {
+            // 替换
+            // <a href="#xxx">xxx</a>
+            // 为：
+            // <a href="#xxx"><span class="tocnumber">1</span><span class="toctext">xxx</span></a>
+            String num = prefix + (i++);
+            Element a = li.selectFirst("a");
+            Element textSpan = new Element("span").addClass("toctext").text(a.text());
+            a.textNodes().forEach(org.jsoup.nodes.Node::remove);
+            a.insertChildren(0, textSpan)
+                    .insertChildren(0, new Element("span").addClass("tocnumber").text(num));
+            // 递归子节点
+            Elements uls = li.select("ul");
+            if (uls != null && uls.size() > 0) {
+                makeNumberedLis(uls.first().children(), num + ".");
+            }
+        }
     }
 }

@@ -1,6 +1,5 @@
 package io.liuwei.autumn.converter;
 
-import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vladsch.flexmark.ast.Node;
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
@@ -9,11 +8,9 @@ import com.vladsch.flexmark.ext.toc.TocExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.options.MutableDataSet;
-import io.liuwei.autumn.converter.MarkdownPageConverter;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -50,32 +47,5 @@ public class MarkdownPageConverterTest {
         Node document = parser.parse(source);
         String html = renderer.render(document);  // "<p>This is <em>Sparta</em></p>\n"
         System.out.println(html);
-    }
-
-    @Test
-    public void makeNumberedToc(){
-        String toHtml = "<div class=\"toc\">\n" +
-                "<h3 class=\"no_selection action_toggle\">TOC</h3>\n" +
-                "<ul>\n" +
-                "<li><a href=\"#hbase\">HBase</a>\n" +
-                "<ul>\n" +
-                "<li><a href=\"#data-model\">data model</a></li>\n" +
-                "<li><a href=\"#how-it-works\">how it works</a>\n" +
-                "<ul>\n" +
-                "<li><a href=\"#regions\">regions</a></li>\n" +
-                "<li><a href=\"#meta-table\">META table</a></li>\n" +
-                "<li><a href=\"#client-put-or-get-row\">client put or get row</a></li>\n" +
-                "</ul>\n" +
-                "</li>\n" +
-                "<li><a href=\"#写优化\">写优化</a></li>\n" +
-                "<li><a href=\"#ddl\">DDL</a></li>\n" +
-                "<li><a href=\"#资料\">资料</a></li>\n" +
-                "</ul>\n" +
-                "</li>\n" +
-                "</ul>\n" +
-                "</div>";
-        MarkdownPageConverter parser = new MarkdownPageConverter(null);
-        String tocHtml2 = parser.makeNumberedToc(toHtml);
-        System.out.println(tocHtml2);
     }
 }
