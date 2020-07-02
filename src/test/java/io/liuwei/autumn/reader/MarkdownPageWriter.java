@@ -1,7 +1,8 @@
-package io.liuwei.autumn.data;
+package io.liuwei.autumn.reader;
 
 import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
+import io.liuwei.autumn.domain.Page;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,44 +15,44 @@ import java.io.IOException;
  * @author liuwei
  * Created by liuwei on 2018/12/18.
  */
-class PageWriter {
+class MarkdownPageWriter {
 
-    private static Logger logger = LoggerFactory.getLogger(PageWriter.class);
+    private static final Logger logger = LoggerFactory.getLogger(MarkdownPageWriter.class);
     private static final String NEW_LINE = "\n";
-    private static StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
+    private static final StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
 
     static void write(Page page, File file) {
 
         StringBuilder stringBuilder = stringBuilderHolder.get();
 
         // created, modified
-        stringBuilder.append(PageParser.HEADER_BOUNDARY).append(NEW_LINE)
-                .append(PageParser.HEADER_CREATED).append(" ").append(PageParser.DATE_PARSER_ON_SECOND.format(page.getCreated())).append(NEW_LINE)
-                .append(PageParser.HEADER_MODIFIED).append(" ").append(PageParser.DATE_PARSER_ON_SECOND.format(page.getModified())).append(NEW_LINE);
+        stringBuilder.append(MarkdownPageReader.HEADER_BOUNDARY).append(NEW_LINE)
+                .append(MarkdownPageReader.HEADER_CREATED).append(" ").append(MarkdownPageReader.DATE_PARSER_ON_SECOND.format(page.getCreated())).append(NEW_LINE)
+                .append(MarkdownPageReader.HEADER_MODIFIED).append(" ").append(MarkdownPageReader.DATE_PARSER_ON_SECOND.format(page.getModified())).append(NEW_LINE);
 
         // category
-        stringBuilder.append(PageParser.HEADER_CATEGORY);
+        stringBuilder.append(MarkdownPageReader.HEADER_CATEGORY);
         if (StringUtils.isNotBlank(page.getCategory())) {
             stringBuilder.append(" ").append(page.getCategory());
         }
         stringBuilder.append(NEW_LINE);
 
         // tags
-        stringBuilder.append(PageParser.HEADER_TAGS);
+        stringBuilder.append(MarkdownPageReader.HEADER_TAGS);
         if (!CollectionUtils.isEmpty(page.getTags())) {
             stringBuilder.append(" ").append(StringUtils.join(page.getTags(), " "));
         }
         stringBuilder.append(NEW_LINE);
 
         // published
-        stringBuilder.append(PageParser.HEADER_PUBLISHED).append(" ").append(page.isPublished()).append(NEW_LINE);
+        stringBuilder.append(MarkdownPageReader.HEADER_PUBLISHED).append(" ").append(page.isPublished()).append(NEW_LINE);
 
         // end front matter
-        stringBuilder.append(PageParser.HEADER_BOUNDARY).append(NEW_LINE).append(NEW_LINE);
+        stringBuilder.append(MarkdownPageReader.HEADER_BOUNDARY).append(NEW_LINE).append(NEW_LINE);
 
         // title
         if (StringUtils.isNotBlank(page.getTitle())) {
-            stringBuilder.append(PageParser.TITLE_START_WITH).append(page.getTitle()).append(NEW_LINE).append(NEW_LINE);
+            stringBuilder.append(MarkdownPageReader.TITLE_START_WITH).append(page.getTitle()).append(NEW_LINE).append(NEW_LINE);
         }
 
         // body

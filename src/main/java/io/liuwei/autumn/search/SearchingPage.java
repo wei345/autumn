@@ -1,7 +1,7 @@
 package io.liuwei.autumn.search;
 
 import com.google.common.collect.Maps;
-import io.liuwei.autumn.data.Page;
+import io.liuwei.autumn.domain.Page;
 
 import java.util.Collections;
 import java.util.Map;

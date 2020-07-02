@@ -18,7 +18,7 @@ public class AesTest {
     @Test
     public void generateKey() {
         // keysize: 128, 192, 256. 如果要使用 192 或 256 则需要安装 JCE
-        byte[] bytes = CryptoUtil.generateAesKey(256);
+        byte[] bytes = CryptoUtil.generateAesKey(128);
         String key = EncodeUtil.encodeHex(bytes);
 
         System.out.println(key);

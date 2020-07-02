@@ -7,6 +7,11 @@ import com.vip.vjtools.vjkit.io.IOUtil;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import com.vip.vjtools.vjkit.number.MathUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
+import io.liuwei.autumn.domain.Media;
+import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.domain.TreeJson;
+import io.liuwei.autumn.domain.TreeNode;
+import io.liuwei.autumn.reader.PageReaders;
 import io.liuwei.autumn.util.MimeTypeUtil;
 import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.lang3.Validate;
@@ -30,7 +35,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.springframework.web.util.HtmlUtils.htmlEscape;
+import static org.springframework.web.util.HtmlUtils.*;
 
 /**
  * @author liuwei
@@ -39,43 +44,29 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
 @Component
 public class DataLoader implements Runnable {
 
-    private static final String ARCHIVE_PATH_PREFIX = "/archive/";
-
-    private static Logger logger = LoggerFactory.getLogger(DataLoader.class);
+    private static final Logger logger = LoggerFactory.getLogger(DataLoader.class);
 
     private final DataSource dataSource;
 
     private final JsonMapper jsonMapper;
-
+    @SuppressWarnings("FieldCanBeLocal")
+    private final int cacheFileMaxLength = 1024 * 1024; // 1 MB
+    private final String sitemapPath = "/sitemap";
+    private final List<TreeJsonChangedListener> treeJsonChangedListeners = new CopyOnWriteArrayList<>();
+    private final List<MediaChangedListener> mediaChangedListeners = new CopyOnWriteArrayList<>();
     @Value("${autumn.data-dir}")
     private String dataDir;
-
     @Value("${autumn.data.exclude}")
     private Set<String> excludes;
-
     @Value("${autumn.data.reload-interval-seconds:10}")
     private long reloadIntervalSeconds;
-
-    @SuppressWarnings("FieldCanBeLocal")
-    private int cacheFileMaxLength = 1024 * 1024; // 1 MB
-
     @Value("${autumn.data.publish-all-media:true}")
     private boolean publishAllMedia;
-
     private int reloadContinuousFailures; // default 0, 只有一个线程访问它
-
     @Autowired
     private WebUtil webUtil;
-
     @Value("${server.servlet.context-path}")
     private String ctx;
-
-    private String sitemapPath = "/sitemap";
-
-    private List<TreeJsonChangedListener> treeJsonChangedListeners = new CopyOnWriteArrayList<>();
-
-    private List<MediaChangedListener> mediaChangedListeners = new CopyOnWriteArrayList<>();
-
     private ScheduledExecutorService scheduler;
 
     private volatile long mediaLastChanged;
@@ -182,7 +173,7 @@ public class DataLoader implements Runnable {
                 }
 
                 if (file.isDirectory()) {
-                    String path = parent.path + file.getName() + "/";
+                    String path = parent.getPath() + file.getName() + "/";
                     TreeNode node = new TreeNode(file.getName(), path, true);
                     parent.addChild(node);
                     dirStack.push(file);
@@ -193,16 +184,14 @@ public class DataLoader implements Runnable {
                 if (file.isFile()) {
 
                     // Page
-                    if (file.getName().endsWith(".md")) {
+                    if (file.getName().endsWith(".md") || file.getName().endsWith(".adoc")) {
                         String name = filename(file);
-                        String path = parent.path + name;
+                        String path = parent.getPath() + name;
 
                         Page page = oldPath2page.get(path);
-                        if (page == null || page.getLastModified() != file.lastModified()) {
+                        if (page == null || page.getFileLastModified() != file.lastModified()) {
                             pageAddedOrModified++;
-                            page = PageParser.parse(file);
-                            page.setPath(path);
-                            page.setArchived(path.startsWith(ARCHIVE_PATH_PREFIX));
+                            page = PageReaders.getPageReader(file.getName()).toPage(file, path);
                         }
                         path2page.put(path, page);
 
@@ -213,7 +202,7 @@ public class DataLoader implements Runnable {
                     }
                     // Media
                     else {
-                        String path = parent.path + file.getName();
+                        String path = parent.getPath() + file.getName();
                         Media media = oldPath2media.get(path);
                         if (media == null || media.getLastModified() != file.lastModified()) {
                             mediaAddedOrModified++;
@@ -322,22 +311,22 @@ public class DataLoader implements Runnable {
         dirStack.push(root);
         while (!dirStack.empty()) {
             TreeNode node = dirStack.pop();
-            if (CollectionUtils.isEmpty(node.children)) {
+            if (CollectionUtils.isEmpty(node.getChildren())) {
                 continue;
             }
 
             // 目录排在前面，然后按字母顺序
-            node.children.sort((o1, o2) -> {
+            node.getChildren().sort((o1, o2) -> {
                 if (o1.isDir() && !o2.isDir()) {
                     return -1;
                 }
                 if (!o1.isDir() && o2.isDir()) {
                     return 1;
                 }
-                return o1.name.compareTo(o2.name);
+                return o1.getName().compareTo(o2.getName());
             });
 
-            for (TreeNode nd : node.children) {
+            for (TreeNode nd : node.getChildren()) {
                 if (nd.isDir()) {
                     allDirNodes.push(nd);
                     dirStack.push(nd);
@@ -351,8 +340,8 @@ public class DataLoader implements Runnable {
     private void removeEmptyDirNode(Stack<TreeNode> dirNodes) {
         while (!dirNodes.empty()) {
             TreeNode dirNode = dirNodes.pop();
-            if (CollectionUtils.isEmpty(dirNode.children)) {
-                dirNode.parent.children.remove(dirNode);
+            if (CollectionUtils.isEmpty(dirNode.getChildren())) {
+                dirNode.getParent().getChildren().remove(dirNode);
             }
         }
     }
@@ -394,12 +383,12 @@ public class DataLoader implements Runnable {
         dirStack.push(root);
         while (!dirStack.empty()) {
             TreeNode node = dirStack.pop();
-            if (CollectionUtils.isEmpty(node.children)) {
+            if (CollectionUtils.isEmpty(node.getChildren())) {
                 continue;
             }
 
-            List<TreeNode> publishedList = new ArrayList<>(node.children.size());
-            for (TreeNode nd : node.children) {
+            List<TreeNode> publishedList = new ArrayList<>(node.getChildren().size());
+            for (TreeNode nd : node.getChildren()) {
                 if (nd.isDir()) {
                     publishedList.add(nd);
                     dirStack.push(nd);
@@ -409,7 +398,7 @@ public class DataLoader implements Runnable {
                     publishedList.add(nd);
                 }
             }
-            node.children = publishedList;
+            node.setChildren(publishedList);
         }
     }
 
@@ -455,8 +444,9 @@ public class DataLoader implements Runnable {
         page.setBody(body);
         page.setSource(body);
         page.setTitle(title);
-        page.setLastModified(now.getTime());
+        page.setFileLastModified(now.getTime());
         page.setPath("/");
+        page.setSourceFormat(Page.SourceFormat.MARKDOWN);
         return page;
     }
 
@@ -467,8 +457,7 @@ public class DataLoader implements Runnable {
             int v;
 
             // 非归档目录
-            v = Integer.compare(o1.getPath().startsWith(ARCHIVE_PATH_PREFIX) ? 1 : 0,
-                    o2.getPath().startsWith(ARCHIVE_PATH_PREFIX) ? 1 : 0);
+            v = Integer.compare(o1.isArchived() ? 1 : 0, o2.isArchived() ? 1 : 0);
             if (v != 0) {
                 return v;
             }
@@ -514,7 +503,7 @@ public class DataLoader implements Runnable {
         page.setBody(html);
         page.setSource(html);
         page.setTitle("Sitemap");
-        page.setLastModified(now.getTime());
+        page.setFileLastModified(now.getTime());
         page.setPath(sitemapPath);
         return page;
     }
@@ -529,7 +518,7 @@ public class DataLoader implements Runnable {
         for (TreeNode node : nodes) {
             // begin node
             stringBuilder.append("<li class=\"tree_node");
-            if (!CollectionUtils.isEmpty(node.children)) {
+            if (!CollectionUtils.isEmpty(node.getChildren())) {
                 stringBuilder.append(" tree_node_dir tree_node_unfolded");
             } else {
                 stringBuilder.append(" tree_node_leaf");
@@ -543,13 +532,13 @@ public class DataLoader implements Runnable {
             stringBuilder.append("<span class=\"tree_node_header_icon no_selection\"></span>");
 
             // title
-            if (!CollectionUtils.isEmpty(node.children)) {
+            if (!CollectionUtils.isEmpty(node.getChildren())) {
                 stringBuilder.append("<span class=\"tree_node_header_name no_selection\">")
-                        .append(node.name)
+                        .append(node.getName())
                         .append("</span>");
             } else {
-                stringBuilder.append("<a href=\"").append(ctx).append(node.path).append("\">")
-                        .append(node.name)
+                stringBuilder.append("<a href=\"").append(ctx).append(node.getPath()).append("\">")
+                        .append(node.getName())
                         .append("</a>");
             }
 

@@ -1,7 +1,7 @@
 package io.liuwei.autumn.controller;
 
 import com.google.common.collect.Maps;
-import io.liuwei.autumn.data.Page;
+import io.liuwei.autumn.domain.Page;
 import io.liuwei.autumn.service.StaticService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.view.RedirectView;
-import io.liuwei.autumn.data.Media;
+import io.liuwei.autumn.domain.Media;
 import io.liuwei.autumn.data.ResourceLoader;
-import io.liuwei.autumn.data.TreeJson;
+import io.liuwei.autumn.domain.TreeJson;
 import io.liuwei.autumn.service.DataService;
 import io.liuwei.autumn.service.MediaService;
 import io.liuwei.autumn.service.PageService;
@@ -35,7 +35,7 @@ import static io.liuwei.autumn.service.DataService.LOGIN_REQUIRED_PAGE;
 @RestController
 public class DefaultController {
 
-    private static final String DOT_MD = ".md";
+    private static final String DOT_TXT = ".txt";
     private static final String DEFAULT_PAGE_VIEW = "page";
 
     @Autowired
@@ -102,8 +102,8 @@ public class DefaultController {
         }
 
         // Page source
-        if (path.endsWith(DOT_MD)) {
-            String pathWithoutDotMd = path.substring(0, path.length() - DOT_MD.length());
+        if (path.endsWith(DOT_TXT)) {
+            String pathWithoutDotMd = path.substring(0, path.length() - DOT_TXT.length());
             page = dataService.getPage(pathWithoutDotMd);
             if (page != null) {
                 return handlePage(page, path, true, h, webRequest, request, model);

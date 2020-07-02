@@ -1,0 +1,24 @@
+:created: 2020-07-02 13:34:12
+:modified: 2020-07-02 13:52:47
+:category: c1
+:tags: tag1, tag2
+:published: false
+
+= Hello, AsciiDoc!
+Doc Writer <doc@example.com>
+
+An introduction to http://asciidoc.org[AsciiDoc].
+
+== First Section
+
+* item 1
+* item 2
+
+[source,ruby]
+puts "Hello, World!"
+
+=== Java hello
+
+[source,java]
+System.out.println("Hello, World!");
+

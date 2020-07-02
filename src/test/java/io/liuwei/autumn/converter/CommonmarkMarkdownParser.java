@@ -1,4 +1,4 @@
-package io.liuwei.autumn.service;
+package io.liuwei.autumn.converter;
 /*
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import org.commonmark.Extension;
@@ -27,7 +27,7 @@ import java.util.Map;
  * <p>
  * Not thread-safe
  *//*
-public class CommonmarkMarkdownParser implements MarkdownParser {
+public class CommonmarkMarkdownParser implements PageConverter {
 
     private Parser parser;
     private HtmlRenderer renderer;

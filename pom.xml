@@ -12,7 +12,12 @@
     <groupId>io.liuwei.autumn</groupId>
     <artifactId>autumn</artifactId>
     <version>1.3.0-SNAPSHOT</version>
-
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </repository>
+    </repositories>
     <properties>
         <mainClass>io.liuwei.autumn.Application</mainClass>
         <skipTests>true</skipTests>
@@ -62,22 +67,38 @@
             <artifactId>flexmark-ext-toc</artifactId>
             <version>${flexmark.version}</version>
         </dependency>
+        <!-- asciidoc parser -->
+        <dependency>
+            <groupId>org.asciidoctor</groupId>
+            <artifactId>asciidoctorj</artifactId>
+            <version>2.2.0</version>
+        </dependency>
         <!-- Utils -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.12.1</version>
+        </dependency>
         <dependency>
             <groupId>com.vip.vjtools</groupId>
             <artifactId>vjkit</artifactId>
             <version>1.0.6</version>
         </dependency>
         <dependency>
-            <groupId>org.jsoup</groupId>
-            <artifactId>jsoup</artifactId>
-            <version>1.12.1</version>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
         </dependency>
         <!-- WebJars -->
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>highlightjs</artifactId>
             <version>${highlightjs.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
 
         <!-- 开发 & 测试 -->

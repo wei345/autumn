@@ -1,7 +1,11 @@
 package io.liuwei.autumn.service;
 
+import io.liuwei.autumn.converter.AsciidocPageConverter;
+import io.liuwei.autumn.converter.MarkdownPageConverter;
+import io.liuwei.autumn.converter.PageConverter;
 import io.liuwei.autumn.data.DataLoader;
-import io.liuwei.autumn.data.Page;
+import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.util.WebUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,15 +13,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
-import io.liuwei.autumn.util.WebUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import static org.springframework.web.util.HtmlUtils.htmlEscape;
+import static org.springframework.web.util.HtmlUtils.*;
 
 /**
  * @author liuwei
@@ -32,12 +36,15 @@ public class PageService {
     private static final String PAGE_TITLE_H1 = "pageTitleH1";
     private static final String BREADCRUMB = "breadcrumb";
     private static final String PATH = "path";
-    private static Logger logger = LoggerFactory.getLogger(PageService.class);
+    private static final Logger logger = LoggerFactory.getLogger(PageService.class);
     @Autowired
     private DataService dataService;
 
     @Autowired
-    private MarkdownParser markdownParser;
+    private MarkdownPageConverter markdownPageConverter;
+
+    @Autowired
+    private AsciidocPageConverter asciidocPageConverter;
 
     @Autowired
     private TemplateService templateService;
@@ -104,7 +111,7 @@ public class PageService {
         return templateService.merge(model, view);
     }
 
-    private void addPageMetaProperties(Map<String, Object> model, Page page){
+    private void addPageMetaProperties(Map<String, Object> model, Page page) {
         if (breadcrumbEnabled) {
             model.put(BREADCRUMB, dataService.getBreadcrumbLinks(page));
         }
@@ -137,12 +144,25 @@ public class PageService {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (page) {
                 if (page.getPageHtml() == null || page.getPageHtml().getTime() < dataLoader.getMediaLastChanged()) {
-                    Page.PageHtml pageHtml = markdownParser.render(page.getTitle(), page.getBody(), path);
+                    Page.PageHtml pageHtml = getPageConverter(page.getSourceFormat())
+                            .convert(page.getTitle(), page.getBody(), path);
                     page.setPageHtml(pageHtml);
                 }
             }
         }
         return page.getPageHtml();
+    }
+
+    private PageConverter getPageConverter(Page.SourceFormat sourceFormat) {
+        Objects.requireNonNull(sourceFormat, "sourceFormat must not be null");
+        switch (sourceFormat) {
+            case ASCIIDOC:
+                return asciidocPageConverter;
+            case MARKDOWN:
+                return markdownPageConverter;
+            default:
+                throw new RuntimeException("没有合适的 PageConverter. sourceFormat=" + sourceFormat);
+        }
     }
 
 }

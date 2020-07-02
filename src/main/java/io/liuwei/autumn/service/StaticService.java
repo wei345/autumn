@@ -2,9 +2,9 @@ package io.liuwei.autumn.service;
 
 import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
-import io.liuwei.autumn.data.Page;
-import io.liuwei.autumn.data.PageParser;
-import io.liuwei.autumn.data.ResourceLoader;
+import io.liuwei.autumn.data.*;
+import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.reader.PageReaders;
 import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -20,7 +20,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -119,24 +118,18 @@ public class StaticService {
 
     private void refreshHelpPage() {
         ResourceLoader.ResourceCache data = getStaticResourceCache("/help.md");
-        if (helpPage != null && helpPage.getLastModified() >= data.getLastModified()) {
+        if (helpPage != null && helpPage.getFileLastModified() >= data.getLastModified()) {
             return;
         }
 
-        Page page = newPageOf(data);
-        page.setPath("/help");
+        Page page = newPage(data, "/help");
         helpPage = page;
         logger.info("Updated {}", page.getPath());
     }
 
-    private Page newPageOf(ResourceLoader.ResourceCache resourceCache) {
+    private Page newPage(ResourceCache resourceCache, String path) {
         String content = resourceCache.getContentString();
-        Page page = PageParser.parse(content);
-        Date date = new Date(resourceCache.getLastModified());
-        page.setCreated(date);
-        page.setModified(date);
-        page.setLastModified(date.getTime());
-        return page;
+        return PageReaders.getPageReader(resourceCache.getPath()).toPage(content, path, resourceCache.getLastModified());
     }
 
     private boolean refreshJsCache() {

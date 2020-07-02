@@ -2,7 +2,7 @@ package io.liuwei.autumn.service;
 
 import com.google.common.io.ByteStreams;
 import com.vip.vjtools.vjkit.io.IOUtil;
-import io.liuwei.autumn.data.Media;
+import io.liuwei.autumn.domain.Media;
 import io.liuwei.autumn.util.MimeTypeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

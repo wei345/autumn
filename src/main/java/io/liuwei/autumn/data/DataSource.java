@@ -1,5 +1,10 @@
 package io.liuwei.autumn.data;
 
+import io.liuwei.autumn.domain.Media;
+import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.domain.TreeJson;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
@@ -11,33 +16,19 @@ import java.util.Map;
  * Created by liuwei on 2018/11/19.
  */
 @Component
+@Getter
+@Setter
 public class DataSource {
     private volatile Data allData = Data.EMPTY;
 
     private volatile Data publishedData = Data.EMPTY;
 
-    public Data getAllData() {
-        return allData;
-    }
-
-    void setAllData(Data allData) {
-        this.allData = allData;
-    }
-
-    public Data getPublishedData() {
-        return publishedData;
-    }
-
-    void setPublishedData(Data publishedData) {
-        this.publishedData = publishedData;
-    }
-
     @Override
     public String toString() {
-        return String.format("allData: %s, publishedData: %s",
-                allData, publishedData);
+        return String.format("allData: %s, publishedData: %s", allData, publishedData);
     }
 
+    @Getter
     public static class Data {
         static final Data EMPTY = new Data(
                 TreeJson.EMPTY,
@@ -45,18 +36,18 @@ public class DataSource {
                 Collections.emptyMap(),
                 Collections.emptyMap());
         @NotNull
-        private TreeJson treeJson;
+        private final TreeJson treeJson;
 
         @NotNull
-        private Map<String, Page> path2page;
+        private final Map<String, Page> path2page;
 
         @NotNull
-        private Map<String, Media> path2media;
+        private final Map<String, Media> path2media;
 
         @NotNull
-        private Page homepage;
+        private final Page homepage;
 
-        private long pageCountExcludeGenerated;
+        private final long pageCountExcludeGenerated;
 
         Data(@NotNull TreeJson treeJson,
              @NotNull Page homepage,
@@ -69,26 +60,6 @@ public class DataSource {
             this.pageCountExcludeGenerated = path2page.entrySet().stream()
                     .filter(entry -> !entry.getValue().isGenerated())
                     .count();
-        }
-
-        public TreeJson getTreeJson() {
-            return treeJson;
-        }
-
-        public Map<String, Page> getPath2page() {
-            return path2page;
-        }
-
-        public Map<String, Media> getPath2media() {
-            return path2media;
-        }
-
-        public Page getHomepage() {
-            return homepage;
-        }
-
-        public long getPageCountExcludeGenerated() {
-            return pageCountExcludeGenerated;
         }
 
         @Override
