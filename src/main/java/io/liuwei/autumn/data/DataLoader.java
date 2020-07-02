@@ -502,6 +502,7 @@ public class DataLoader implements Runnable {
         page.setPublished(published);
         page.setBody(html);
         page.setSource(html);
+        page.setSourceFormat(Page.SourceFormat.MARKDOWN);
         page.setTitle("Sitemap");
         page.setFileLastModified(now.getTime());
         page.setPath(sitemapPath);
