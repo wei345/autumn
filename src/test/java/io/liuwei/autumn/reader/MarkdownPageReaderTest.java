@@ -1,4 +1,4 @@
-package io.liuwei.autumn.data;
+package io.liuwei.autumn.reader;
 
 import io.liuwei.autumn.domain.Page;
 import io.liuwei.autumn.reader.MarkdownPageReader;

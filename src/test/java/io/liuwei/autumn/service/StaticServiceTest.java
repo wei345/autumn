@@ -1,4 +1,4 @@
-package io.liuwei.autumn.data;
+package io.liuwei.autumn.service;
 
 import org.junit.Test;
 
@@ -16,7 +16,7 @@ public class StaticServiceTest {
     @Test
     public void getTemplateLastModified() {
         String templateLoaderPath = "/templates/";
-        String name = "main.ftl";
+        String name = "page.ftl";
 
         URL url = getClass().getResource(templateLoaderPath + name);
         assertThat(url).isNotNull();

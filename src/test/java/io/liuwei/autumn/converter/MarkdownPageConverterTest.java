@@ -10,10 +10,12 @@ import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.options.MutableDataSet;
 import io.liuwei.autumn.converter.MarkdownPageConverter;
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -42,8 +44,7 @@ public class MarkdownPageConverterTest {
         Parser parser = Parser.builder(options).build();
         HtmlRenderer renderer = HtmlRenderer.builder(options).build();
 
-        String source = "[TOC]\n" + FileUtil.toString(new File("../notes/java/intellijidea.md"));
-
+        String source = "[TOC]\n" + IOUtils.resourceToString("/test.md", StandardCharsets.UTF_8);
 
         // You can re-use parser and renderer instances
         Node document = parser.parse(source);

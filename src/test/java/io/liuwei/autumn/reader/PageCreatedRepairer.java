@@ -1,9 +1,7 @@
-package io.liuwei.autumn.data;
+package io.liuwei.autumn.reader;
 
 import ch.qos.logback.classic.Level;
 import io.liuwei.autumn.domain.Page;
-import io.liuwei.autumn.reader.MarkdownPageReader;
-import io.liuwei.autumn.reader.PageReaders;
 import io.liuwei.autumn.util.CommandExecutor;
 import io.liuwei.autumn.util.ResourceWalker;
 import org.apache.commons.lang3.StringUtils;
