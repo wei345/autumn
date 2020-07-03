@@ -2,9 +2,10 @@ package io.liuwei.autumn.service;
 
 import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
-import io.liuwei.autumn.data.*;
+import io.liuwei.autumn.data.ResourceLoader;
 import io.liuwei.autumn.domain.Page;
 import io.liuwei.autumn.reader.PageReaders;
+import io.liuwei.autumn.util.JsCompressor;
 import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -60,6 +61,9 @@ public class StaticService {
 
     @Value("${autumn.code-block-highlighting.style}")
     private String codeBlockHighlightStyle;
+
+    @Value("${autumn.compressor.javascript.enabled}")
+    private boolean jsCompressEnabled;
 
     @Autowired
     private ResourceLoader resourceLoader;
@@ -176,7 +180,10 @@ public class StaticService {
             stringBuilder.append(getCodeBlockLineNumberJs()).append("\n");
         }
 
-        String js = jsCssCompressor.compressJs(stringBuilder.toString());
+        String js = stringBuilder.toString();
+        if (jsCompressEnabled) {
+            js = JsCompressor.compressJs("var autumn = {ctx: '', prefix: '', treeVersionKeyValue: ''}", js);
+        }
 
         if (StringUtils.isNotBlank(googleAnalyticsId)) {
             js += getGoogleAnalyticsJs();

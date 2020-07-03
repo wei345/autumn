@@ -24,7 +24,7 @@ import java.util.List;
 @SuppressWarnings("SameParameterValue")
 @Component
 public class JsCssCompressor {
-    private static Logger logger = LoggerFactory.getLogger(JsCssCompressor.class);
+    private static final Logger logger = LoggerFactory.getLogger(JsCssCompressor.class);
 
     @Value("${autumn.closure-compiler-jar-full-path}")
     private String closureJarFullPath;
@@ -34,7 +34,6 @@ public class JsCssCompressor {
 
     // https://developers.google.com/closure/compiler/docs/gettingstarted_app
     @SuppressWarnings("ConstantConditions")
-    @VisibleForTesting
     private static String closureCompress(String input, String jar) throws IOException {
         if (jar == null) {
             logger.warn("Closure Compiler jar not found, return raw input");

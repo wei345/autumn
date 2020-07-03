@@ -12,7 +12,7 @@ import java.io.IOException;
  */
 public class JsCssCompressorTest {
 
-    private JsCssCompressor jsCssCompressor = createJsCssCompressor();
+    private final JsCssCompressor jsCssCompressor = createJsCssCompressor();
 
     @Test
     public void testCompressJs() throws IOException {

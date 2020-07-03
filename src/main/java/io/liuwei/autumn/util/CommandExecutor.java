@@ -92,10 +92,10 @@ public class CommandExecutor {
 
     static class CommandReader implements Runnable {
 
-        private static Logger logger = LoggerFactory.getLogger(CommandReader.class);
-        private static StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
-        private String name;
-        private InputStream in;
+        private static final Logger logger = LoggerFactory.getLogger(CommandReader.class);
+        private static final StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(1024);
+        private final String name;
+        private final InputStream in;
         private String content;
 
         CommandReader(String name, InputStream in) {
@@ -127,9 +127,9 @@ public class CommandExecutor {
     }
 
     public static class Result {
-        private String stdout;
-        private String stderr;
-        private boolean error;
+        private final String stdout;
+        private final String stderr;
+        private final boolean error;
 
         Result(String stdout, String stderr) {
             this.stdout = stdout;
