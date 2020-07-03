@@ -1,8 +1,6 @@
 package io.liuwei.autumn.util;
 
 import com.vip.vjtools.vjkit.io.IOUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -10,11 +8,10 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 
-import static java.nio.file.FileVisitResult.CONTINUE;
+import static java.nio.file.FileVisitResult.*;
 
 public class ResourceWalker {
     public static final String SPRING_BOOT_CLASSES = "/BOOT-INF/classes";
-    private static Logger logger = LoggerFactory.getLogger(ResourceWalker.class);
 
     /**
      * @param classpath e.g. /static
