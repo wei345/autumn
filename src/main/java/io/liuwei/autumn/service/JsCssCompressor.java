@@ -72,6 +72,7 @@ public class JsCssCompressor {
         if (logger.isDebugEnabled()) {
             logger.debug(StringUtils.join(commands, ' '));
         }
+
         CommandExecutor.Result result = CommandExecutor.execute(commands.toArray(new String[0]));
 
         String resultJs = outToFile ? FileUtil.toString(outputFile.toFile()) : result.getStdout();
@@ -98,14 +99,6 @@ public class JsCssCompressor {
         return resultJs;
     }
 
-    @PostConstruct
-    private void check() {
-        if (closureJarFullPath != null && !new File(closureJarFullPath).exists()) {
-            logger.warn("Closure Compiler jar '{}' not exist", closureJarFullPath);
-            closureJarFullPath = null;
-        }
-    }
-
     @SuppressWarnings("WeakerAccess")
     public String compressJs(String input) {
         if (!compressJs) {
@@ -120,6 +113,10 @@ public class JsCssCompressor {
 
     @VisibleForTesting
     void setClosureJarFullPath(String closureJarFullPath) {
+        if (closureJarFullPath != null && !new File(closureJarFullPath).exists()) {
+            logger.warn("Closure Compiler jar '{}' not exist", closureJarFullPath);
+            closureJarFullPath = null;
+        }
         this.closureJarFullPath = closureJarFullPath;
     }
 

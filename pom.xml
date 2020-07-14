@@ -25,7 +25,6 @@
         <skipTests>true</skipTests>
         <flexmark.version>0.34.48</flexmark.version>
         <highlightjs.version>9.8.0</highlightjs.version>
-        <closure-compiler.version>v20200614</closure-compiler.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -118,11 +117,11 @@
         <dependency>
             <groupId>com.google.javascript</groupId>
             <artifactId>closure-compiler</artifactId>
-            <version>${closure-compiler.version}</version>
+            <version>v20200614</version>
             <exclusions>
                 <exclusion>
-                    <artifactId>*</artifactId>
                     <groupId>*</groupId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
