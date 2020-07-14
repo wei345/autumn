@@ -14,6 +14,7 @@ import io.liuwei.autumn.domain.TreeNode;
 import io.liuwei.autumn.reader.PageReaders;
 import io.liuwei.autumn.util.MimeTypeUtil;
 import io.liuwei.autumn.util.WebUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -193,7 +194,12 @@ public class DataLoader implements Runnable {
                             pageAddedOrModified++;
                             page = PageReaders.getPageReader(file.getName()).toPage(file, path);
                         }
-                        path2page.put(path, page);
+                        Page prev = path2page.put(path, page);
+                        if (prev != null) {
+                            logger.warn("{} 覆盖了 {}",
+                                    FilenameUtils.normalize(page.getFile().getAbsolutePath()),
+                                    FilenameUtils.normalize(prev.getFile().getAbsolutePath()));
+                        }
 
                         // add node
                         TreeNode node = new TreeNode(name, path, false);
@@ -209,7 +215,12 @@ public class DataLoader implements Runnable {
                             media = new Media(file);
                             loadMediaInfo(media, file);
                         }
-                        path2media.put(path, media);
+                        Media prev = path2media.put(path, media);
+                        if (prev != null) {
+                            logger.warn("{} 覆盖了 {}",
+                                    FilenameUtils.normalize(media.getFile().getAbsolutePath()),
+                                    FilenameUtils.normalize(prev.getFile().getAbsolutePath()));
+                        }
                     }
                 }
             }

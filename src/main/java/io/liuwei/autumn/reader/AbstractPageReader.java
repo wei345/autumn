@@ -46,7 +46,9 @@ public abstract class AbstractPageReader implements PageReader {
             throw new RuntimeException(e);
         }
 
-        return toPage(text, path, file.lastModified());
+        Page page = toPage(text, path, file.lastModified());
+        page.setFile(file);
+        return page;
     }
 
     @Override

@@ -4,6 +4,7 @@ import io.liuwei.autumn.search.PageHit;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
@@ -30,6 +31,7 @@ public class Page {
     private String source; // file content
     private SourceFormat sourceFormat;
     private long fileLastModified;
+    private File file;
     private volatile ViewCache userViewCache; // 已登录用户页面缓存
     private volatile ViewCache guestViewCache; // 未登录用户页面缓存
     private String path; // 页面路径，以 '/' 开头，无后缀名。如：/java/idea
