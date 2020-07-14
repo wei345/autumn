@@ -2,6 +2,10 @@
 
 映射 Asciidoc/Markdown 文件目录为网站，有简单的访问控制，有好用的搜索功能。
 
+搜索功能支持单词完全匹配、句子完全匹配、通配符、排除指定词、分类、标签，还支持多条件之间与和或的逻辑。
+
+详见 link:src/main/resources/static/help.adoc#_search[]
+
 == 环境需求
 
 * Java 8+
@@ -106,33 +110,6 @@ mvn -q -DskipTests=false -Dtest=io.liuwei.autumn.AesTest#generateKey test
 ----
 2FDFCEF1DAA8E567549C52C10422BE09A81CC80B0A05BFE8CF75F223BD87DEB6
 ----
-
-== 搜索
-
-=== 全文搜索
-
-在搜索框输入文字，按回车，会提交到服务端进行搜索。搜索范围包括页面路径、标题、分类、标签、全文。
-
-* 单词完全匹配。例如 `word1 word2` 匹配包含 `word1` 并且包含 `word2` 的页面。
-* 句子完全匹配。例如 `"word1 word2"` 匹配包含 `word1 word2` 的页面。
-* 句子完全匹配支持通配符。例如 `"word1 * word2"` 匹配包含 `word1 这里可以有 0 个或多个任意字符 word2` 的页面。
-* 排除特定字词。例如 `-word1`，匹配不包含 `word1` 的页面。
-* category。例如 `c:cat1` 匹配标记为分类 `cat1` 的页面。
-* tag。例如 `t:tag1` 匹配标记为标签 `tag1` 的页面。
-* OR。例如 `word1 OR word2` 匹配包含 `word1` 或 `word2` 的页面。
-
-在一次搜索中可以任意组合使用以上功能，例如：`t:tag1 word1 -word2` 匹配标记为 `tag1` 并且包含 `word1` 并且不包含 `word2` 的页面。
-
-=== 快速搜索
-
-在搜索框输入文字，下方立刻显示快速搜索结果。搜索范围包括页面路径、标题、分类、标签。
-
-* 单词完全匹配。例如 `word1 word2` 匹配包含 `word1` 并且包含 `word2` 的页面。
-* 排除特定字词。例如 `-word1`，匹配不包含 `word1` 的页面。
-* category。例如 `c:cat1` 匹配标记为分类 `cat1` 的页面。
-* tag。例如 `t:tag1` 匹配标记为标签 `tag1` 的页面。
-
-在一次搜索中可以任意组合使用以上功能，例如：`t:tag1 word1 -word2` 匹配标记为 `tag1` 并且包含 `word1` 并且不包含 `word2` 的页面。
 
 == 生产环境部署
 
