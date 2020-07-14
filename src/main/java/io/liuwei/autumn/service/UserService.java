@@ -260,7 +260,7 @@ public class UserService {
         return users.get(username);
     }
 
-    @Value("${autumn.rememberMe.aesKey}")
+    @Value("${autumn.remember-me.aes-key}")
     private void setAesKey(String aesKey) {
         this.aesKey = decodeHex(aesKey);
     }

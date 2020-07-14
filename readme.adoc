@@ -30,23 +30,48 @@ bin/start.sh
 
 新建文件 src/main/resources/application-local.properties。
 
-最重要的几项配置是：`autumn.data-dir`，`autumn.users` 和 `autumn.rememberMe.aesKey`。
+最重要的几项配置是：`autumn.data-dir`，`autumn.users` 和 `autumn.remember-me.aes-key`。
 
-=== autumn.rememberMe.aesKey
+=== autumn.data-dir
 
-生成 AES key:
+一个包含 .adoc 或 .md 文件的目录路径。
 
-[source,bash]
+.adoc 或 .md 文件会被映射为网页。例如 `${autumn.data-dir}/a/b/c.adoc` 会被映射为网页 `+http://localhost:8601/a/b/c+`。
+
+其他文件会被视为静态文件。例如 `${autumn.data-dir}/a/b/c.png` 会被映射为 `+http://localhost:8601/a/b/c.png+`。
+
+.adoc 文件格式示例：
+[source,asciidoc]
 ----
-mvn -q -DskipTests=false -Dtest=io.liuwei.autumn.AesTest#generateKey test
+= Title
+:created: 2018-02-20 12:59:50 +0800
+:modified: 2018-12-03 20:18:42 +0800
+:category: at_most_one_category
+:tags: tag1, tag2, tag3
+:published: false
+
+正文内容
 ----
 
-输出示例：
+.md 文件格式示例：
+[source,markdown]
+----
+---
+created: 2018-02-20 12:59:50
+modified: 2018-12-03 20:18:42
+category: at_most_one_category
+tags: tag1, tag2, tag3
+published: false
+---
 
-[source,text]
+# Title
+
+正文内容
 ----
-2FDFCEF1DAA8E567549C52C10422BE09A81CC80B0A05BFE8CF75F223BD87DEB6
-----
+
+published 用于访问控制，已登录用户可以看到全部页面，未登录只能看到 published 设为 true 的页面。
+
+如果不符合以上格式，系统会自动设置默认值。`created` 和 `modified` 默认值是文件修改时间，`published` 默认值是 `false`。
 
 === autumn.users
 
@@ -64,50 +89,23 @@ mvn -q -DskipTests=false -Dtest=io.liuwei.autumn.service.UserServiceTest#generat
 1 Username 1B62BCEB123EB08F73BE3970394C23973FADF75CDCEE153A27FD2EC808805ED29BCC77CDCB966E4C775347D55E82753510D9E8154387BB7286D8CBAF9E68324A 75F0FF8B5CF34B050491DBB9F0BBF85F;
 ----
 
-Username 可随意修改。
+`Username` 可随意修改。
 
-=== autumn.data-dir
+=== autumn.remember-me.aes-key
 
-数据目录（`autumn.data-dir`）里可以有 .adoc 或 .md 文件和其他任意格式文件，可以有子目录。
+生成 AES key:
 
-.adoc 或 .md 文件会被映射为网页。例如 `${autumn.data-dir}/a/b/c.adoc` 会被映射为网页 `+http://localhost:8601/a/b/c+`。
-
-其他文件会被视为静态文件。例如 `${autumn.data-dir}/a/b/c.png` 会被映射为 `+http://localhost:8601/a/b/c.png+`。
-
-.adoc 文件格式约定：
-[source,asciidoc]
+[source,bash]
 ----
-= Title
-:created: 2018-02-20 12:59:50
-:modified: 2018-12-03 20:18:42
-:category: atMostOne
-:tags: one two three more
-:published: true
-
-正文内容
+mvn -q -DskipTests=false -Dtest=io.liuwei.autumn.AesTest#generateKey test
 ----
 
-.md 文件格式约定：
-[source,markdown]
+输出示例：
+
+[source,text]
 ----
----
-created: 2018-02-20 12:59:50
-modified: 2018-12-03 20:18:42
-category: atMostOne
-tags: one two three more
-published: true
----
-
-# Title
-
-正文内容
+2FDFCEF1DAA8E567549C52C10422BE09A81CC80B0A05BFE8CF75F223BD87DEB6
 ----
-
-如果不符合以上格式，系统会自动设置默认值。`created` 和 `modified` 默认值是文件修改时间，`published` 默认值是 `false`。
-
-== 访问控制
-
-已登录用户可以看到全部页面，未登录只能看到 published 设为 true 的页面。
 
 == 搜索
 
@@ -148,7 +146,7 @@ autumn.data.reload-interval-seconds=0
 autumn.resource.reload-interval-seconds=0
 # id username password salt; id ...
 autumn.users=<your users>
-autumn.rememberMe.aesKey=<your aes key>
+autumn.remember-me.aes-key=<your aes key>
 # 若要启用 Redis
 spring.autoconfigure.exclude=
 ----
