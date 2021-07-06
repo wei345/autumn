@@ -47,7 +47,7 @@ class WildcardQuoteMatcher extends AbstractPageHitMatcher {
                     continue;
                 }
 
-                if ((found = Kmp.kmpIgnoreCase(source, search, start)) == -1) {
+                if ((found = Kmp.indexOfIgnoreCase(source, search, start)) == -1) {
                     return hits;
                 }
 

@@ -31,7 +31,7 @@ class ExactMatcher extends AbstractPageHitMatcher {
         }
         List<Hit> hits = new ArrayList<>();
         int i = 0, start;
-        while ((start = Kmp.kmpIgnoreCase(source, search, i)) >= 0) {
+        while ((start = Kmp.indexOfIgnoreCase(source, search, i)) >= 0) {
             i = start + search.length();
             hits.add(new Hit(start, i, search));
         }

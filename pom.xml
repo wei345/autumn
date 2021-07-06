@@ -141,7 +141,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <excludes>
-                        application-local.properties
+                        application-*.properties
                     </excludes>
                 </configuration>
             </plugin>
