@@ -1,5 +1,6 @@
 package io.liuwei.autumn.domain;
 
+import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.search.PageHit;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,7 +30,7 @@ public class Page {
     private String body;
     private volatile PageHtml pageHtml;
     private String source; // file content
-    private SourceFormat sourceFormat;
+    private SourceFormatEnum sourceFormat;
     private long fileLastModified;
     private File file;
     private volatile ViewCache userViewCache; // 已登录用户页面缓存
@@ -61,7 +62,7 @@ public class Page {
         page.setFileLastModified(now.getTime());
         page.setTags(Collections.emptySet());
         page.setPath(path);
-        page.setSourceFormat(SourceFormat.ASCIIDOC);
+        page.setSourceFormat(SourceFormatEnum.ASCIIDOC);
         return page;
     }
 
@@ -119,7 +120,4 @@ public class Page {
         }
     }
 
-    public enum SourceFormat {
-        ASCIIDOC, MARKDOWN
-    }
 }

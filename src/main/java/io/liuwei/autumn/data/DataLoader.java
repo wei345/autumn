@@ -11,6 +11,7 @@ import io.liuwei.autumn.domain.Media;
 import io.liuwei.autumn.domain.Page;
 import io.liuwei.autumn.domain.TreeJson;
 import io.liuwei.autumn.domain.TreeNode;
+import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.reader.PageReaders;
 import io.liuwei.autumn.util.MimeTypeUtil;
 import io.liuwei.autumn.util.WebUtil;
@@ -422,7 +423,7 @@ public class DataLoader implements Runnable {
                     .filter(page -> !page.isGenerated()).collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(recently)) {
                 StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
-                stringBuilder.append("## Recently Modified\n")
+                stringBuilder.append("== Recently Modified\n")
                         .append("<ol class='recently_modified'>");
                 for (int i = 0; i < 20 && i < recently.size(); i++) {
                     Page page = recently.get(i);
@@ -457,7 +458,7 @@ public class DataLoader implements Runnable {
         page.setTitle(title);
         page.setFileLastModified(now.getTime());
         page.setPath("/");
-        page.setSourceFormat(Page.SourceFormat.MARKDOWN);
+        page.setSourceFormat(SourceFormatEnum.ASCIIDOC);
         return page;
     }
 
@@ -513,7 +514,7 @@ public class DataLoader implements Runnable {
         page.setPublished(published);
         page.setBody(html);
         page.setSource(html);
-        page.setSourceFormat(Page.SourceFormat.MARKDOWN);
+        page.setSourceFormat(SourceFormatEnum.ASCIIDOC);
         page.setTitle("Sitemap");
         page.setFileLastModified(now.getTime());
         page.setPath(sitemapPath);

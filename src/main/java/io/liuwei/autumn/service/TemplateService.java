@@ -1,7 +1,8 @@
 package io.liuwei.autumn.service;
 
-import freemarker.template.Configuration;
-import freemarker.template.Template;
+// disable freemarker
+//import freemarker.template.Configuration;
+//import freemarker.template.Template;
 import io.liuwei.autumn.data.DataLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import static io.liuwei.autumn.service.UserService.isLogged;
  * @author liuwei
  * Created by liuwei on 2018/11/28.
  */
+@Deprecated
 @Component
 public class TemplateService {
 
@@ -38,11 +40,13 @@ public class TemplateService {
     private static final String TITLE = "title";
     private static Logger logger = LoggerFactory.getLogger(TemplateService.class);
 
-    @Autowired
-    private Configuration freeMarkerConfiguration;
+    // disable freemarker
+//    @Autowired
+//    private Configuration freeMarkerConfiguration;
 
-    @Autowired
-    private FreeMarkerProperties freeMarkerProperties;
+    //disable freemarker
+//    @Autowired
+//    private FreeMarkerProperties freeMarkerProperties;
 
     @Autowired
     private WebUtil webUtil;
@@ -81,6 +85,7 @@ public class TemplateService {
     }
 
     public String merge(Map<String, Object> model, String view) {
+        /* disable freemarker
         Template template;
         try {
             setCtx(model);
@@ -91,7 +96,8 @@ public class TemplateService {
             return out.toString();
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
+        }*/
+        return null;
     }
 
     public void setCtx(Map<String, Object> model) {

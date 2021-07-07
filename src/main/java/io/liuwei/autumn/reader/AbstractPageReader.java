@@ -2,7 +2,8 @@ package io.liuwei.autumn.reader;
 
 import com.vip.vjtools.vjkit.io.FileUtil;
 import io.liuwei.autumn.domain.Page;
-import lombok.Getter;
+import io.liuwei.autumn.enums.SourceFormatEnum;
+import io.liuwei.autumn.util.LineReader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
@@ -14,7 +15,6 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,7 +53,7 @@ public abstract class AbstractPageReader implements PageReader {
 
     @Override
     public Page toPage(@NotNull String text, @NotNull String path, long fileLastModified) {
-        Lines lines = new Lines(text);
+        LineReader lineReader = new LineReader(text);
         Page page = new Page();
 
         page.setPath(path);
@@ -63,9 +63,9 @@ public abstract class AbstractPageReader implements PageReader {
 
         page.setSource(text);
         page.setSourceFormat(getSourceFormat());
-        readHeader(lines, page);
-        page.setTitle(readTitle(lines));
-        page.setBody(lines.remainingText());
+        readHeader(lineReader, page);
+        page.setTitle(readTitle(lineReader));
+        page.setBody(lineReader.remainingText());
 
         page.setFileLastModified(fileLastModified);
 
@@ -84,14 +84,14 @@ public abstract class AbstractPageReader implements PageReader {
         return page;
     }
 
-    protected abstract void readHeader(Lines lines, Page page);
+    protected abstract void readHeader(LineReader lineReader, Page page);
 
     protected abstract String getTitlePrefix();
 
-    protected abstract Page.SourceFormat getSourceFormat();
+    protected abstract SourceFormatEnum getSourceFormat();
 
-    protected String readTitle(Lines lines) {
-        for(String line : lines){
+    protected String readTitle(LineReader lineReader) {
+        for(String line : lineReader){
             if (StringUtils.isBlank(line)) {
                 continue;
             }
@@ -100,7 +100,7 @@ public abstract class AbstractPageReader implements PageReader {
             if (line.startsWith(titlePrefix)) {
                 return line.substring(titlePrefix.length()).trim();
             } else {
-                lines.back();
+                lineReader.back();
                 return "";
             }
         }
@@ -124,57 +124,4 @@ public abstract class AbstractPageReader implements PageReader {
         page.setBlog(true);
     }
 
-    protected static class Lines implements Iterable<String> {
-        @Getter
-        private final String text;
-        private int start; // default 0
-        private int prev;
-
-        Lines(String text) {
-            this.text = text;
-        }
-
-        private String readLine() {
-            String text = this.text;
-            int start = this.start;
-
-            if (start >= text.length()) {
-                return null;
-            }
-
-            int end = text.indexOf("\n", start);
-            if (end == -1) {
-                end = text.length();
-            }
-
-            String line = text.substring(start, end);
-
-            this.prev = start;
-            this.start = end + 1;
-            return line;
-        }
-
-        void back() {
-            this.start = this.prev;
-        }
-
-        String remainingText() {
-            return text.substring(start);
-        }
-
-        @Override
-        public Iterator<String> iterator() {
-            return new Iterator<String>() {
-                @Override
-                public boolean hasNext() {
-                    return start < text.length();
-                }
-
-                @Override
-                public String next() {
-                    return readLine();
-                }
-            };
-        }
-    }
 }

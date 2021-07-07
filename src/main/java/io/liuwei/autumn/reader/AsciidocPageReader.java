@@ -1,7 +1,9 @@
 package io.liuwei.autumn.reader;
 
 import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.util.Asciidoctors;
+import io.liuwei.autumn.util.LineReader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.asciidoctor.ast.DocumentHeader;
@@ -27,8 +29,8 @@ public class AsciidocPageReader extends AbstractPageReader {
     private static final FastDateFormat DATE_PARSER_ON_SECOND = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
 
     @Override
-    protected void readHeader(Lines lines, Page page) {
-        DocumentHeader dh = Asciidoctors.getAsciidoctor().readDocumentHeader(lines.getText());
+    protected void readHeader(LineReader lineReader, Page page) {
+        DocumentHeader dh = Asciidoctors.getAsciidoctor().readDocumentHeader(lineReader.getText());
 
         Map<String, Object> attributes = dh.getAttributes();
         if (attributes.get(ATTR_CREATED) != null) {
@@ -50,9 +52,9 @@ public class AsciidocPageReader extends AbstractPageReader {
             page.setPublished(Boolean.parseBoolean((String) attributes.get(ATTR_PUBLISHED)));
         }
 
-        for (String line : lines) {
+        for (String line : lineReader) {
             if (StringUtils.isNotBlank(line) && !line.startsWith(":")) {
-                lines.back();
+                lineReader.back();
                 break;
             }
         }
@@ -72,7 +74,7 @@ public class AsciidocPageReader extends AbstractPageReader {
     }
 
     @Override
-    protected Page.SourceFormat getSourceFormat() {
-        return Page.SourceFormat.ASCIIDOC;
+    protected SourceFormatEnum getSourceFormat() {
+        return SourceFormatEnum.ASCIIDOC;
     }
 }

@@ -32,7 +32,8 @@ import java.util.Map;
 import static io.liuwei.autumn.service.DataService.LOGIN_REQUIRED_MEDIA;
 import static io.liuwei.autumn.service.DataService.LOGIN_REQUIRED_PAGE;
 
-@RestController
+@Deprecated
+//@RestController
 public class DefaultController {
 
     private static final String DOT_TXT = ".txt";

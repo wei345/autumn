@@ -2,6 +2,8 @@ package io.liuwei.autumn.reader;
 
 
 import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.enums.SourceFormatEnum;
+import io.liuwei.autumn.util.LineReader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
@@ -28,9 +30,9 @@ public class MarkdownPageReader extends AbstractPageReader {
     private static final Logger logger = LoggerFactory.getLogger(MarkdownPageReader.class);
 
     @Override
-    protected void readHeader(Lines lines, Page page) {
+    protected void readHeader(LineReader lineReader, Page page) {
         boolean entered = false;
-        for (String line : lines) {
+        for (String line : lineReader) {
             if (StringUtils.isBlank(line)) {
                 continue;
             }
@@ -41,7 +43,7 @@ public class MarkdownPageReader extends AbstractPageReader {
                     entered = true;
                 } else {
                     // 没有 header
-                    lines.back();
+                    lineReader.back();
                     break;
                 }
             } else {
@@ -81,8 +83,8 @@ public class MarkdownPageReader extends AbstractPageReader {
     }
 
     @Override
-    protected Page.SourceFormat getSourceFormat() {
-        return Page.SourceFormat.MARKDOWN;
+    protected SourceFormatEnum getSourceFormat() {
+        return SourceFormatEnum.MARKDOWN;
     }
 
     private Date parseDate(String source) {

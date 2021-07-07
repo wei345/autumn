@@ -4,6 +4,7 @@ import io.liuwei.autumn.converter.AsciidocPageConverter;
 import io.liuwei.autumn.converter.PageConverter;
 import io.liuwei.autumn.data.DataLoader;
 import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.util.WebUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,7 @@ public class PageService {
     @Value("${autumn.breadcrumb.enabled}")
     private boolean breadcrumbEnabled;
 
+    @Deprecated
     public byte[] handlePageRequest(@NotNull Page page,
                                     Map<String, Object> model,
                                     String view,
@@ -149,7 +151,7 @@ public class PageService {
         return page.getPageHtml();
     }
 
-    private PageConverter getPageConverter(Page.SourceFormat sourceFormat) {
+    private PageConverter getPageConverter(SourceFormatEnum sourceFormat) {
         Objects.requireNonNull(sourceFormat, "sourceFormat must not be null");
         switch (sourceFormat) {
             case ASCIIDOC:

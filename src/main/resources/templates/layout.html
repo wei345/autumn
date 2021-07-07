@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="utf-8">
+    <meta name="google" content="notranslate">
+    <meta http-equiv="Content-Language" content="en">
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta id="ctx" name="ctx" th:value="${ctx}">
+    <meta id="prefix" name="prefix" th:value="${prefix}">
+    <meta id="treeVersionKeyValue" name="treeVersionKeyValue" th:value="${treeVersionKeyValue}">
+    <title th:text="${pageTitle} + '-' + ${title}"></title>
+    <link rel="icon" th:href="${faviconUrl}" type="image/x-icon"/>
+    <link rel="stylesheet" th:href="@{/css/all.css(${cssVersionKeyValue})}"/>
+    <script>
+        var autumn = {
+            ctx: document.getElementById('ctx').getAttribute('value'),
+            prefix: document.getElementById('prefix').getAttribute('value'),
+            treeVersionKeyValue: document.getElementById('treeVersionKeyValue').getAttribute('value')
+        };
+    </script>
+    <script async th:src="@{/js/all.js(${jsVersionKeyValue})}"></script>
+</head>
+<body class="multiple_columns">
+<div class="container">
+    <div class="header">
+        <div class="header__row_1 row">
+            <div class="header__row_1__heading column">
+                <h1>
+                    <a th:href="@{/}" th:text="${title}"></a>
+                </h1>
+            </div>
+            <div class="header__row_1__search_box column">
+                <form class="header__row_1__search_form" method="GET" th:action="@{/search}">
+                    <span class="search_icon btn"></span>
+                    <span class="search_box__ct_toggle btn"></span>
+                    <span class="btn_clear_search btn"></span>
+                    <input class="header__row_1__search_input" type="search" name="s" th:value="${s}" autocomplete="off"
+                           placeholder="Search"/>
+                    <div class="search_box__ct no_selection"></div>
+                    <div class="qsr">
+                        <span class="qsr__close btn"></span>
+                        <div class="qsr__stats"></div>
+                        <ul class="qsr__list"></ul>
+                    </div>
+                </form>
+            </div>
+            <div class="header__row_1__right column">
+                <ul class="header__row_1__tools no_selection">
+                    <!--/* sitemap 移至单独的页面
+                    <li><span class="sitemap_toggle action_toggle">Sitemap</span></li> */-->
+                    <li><a th:href="@{/sitemap#${path}}">Sitemap</a></li>
+                    <li><a th:href="@{/help}">Help</a></li>
+                    <li th:if="${logged}"><a class="header__row_1__right__logout" th:href="@{/logout}">Logout</a></li>
+                    <li th:if="not ${logged}"><a class="header__row_1__right__logout" th:href="@{/login}">Login</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="header__toolbar">
+        <!--/*<span class="sidebar_toggle no_selection action_toggle">Sidebar</span>*/-->
+    </div>
+    <!--/* sitemap 移至单独的页面
+    <div class="sitemap">
+        <div class="tree_box">
+        </div>
+    </div> */-->
+    <div class="main row">
+        <div class="sidebar column"></div>
+        <div class="content column">
+            <div layout:fragment="content"></div>
+        </div>
+    </div>
+    <div class="footer">
+        <a class="powered" href="https://github.com/wei345/autumn">Powered by Autumn</a>
+    </div>
+</div>
+</body>
+</html>
