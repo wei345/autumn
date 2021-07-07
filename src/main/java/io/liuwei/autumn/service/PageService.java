@@ -1,7 +1,6 @@
 package io.liuwei.autumn.service;
 
 import io.liuwei.autumn.converter.AsciidocPageConverter;
-import io.liuwei.autumn.converter.MarkdownPageConverter;
 import io.liuwei.autumn.converter.PageConverter;
 import io.liuwei.autumn.data.DataLoader;
 import io.liuwei.autumn.domain.Page;
@@ -39,9 +38,6 @@ public class PageService {
     private static final Logger logger = LoggerFactory.getLogger(PageService.class);
     @Autowired
     private DataService dataService;
-
-    @Autowired
-    private MarkdownPageConverter markdownPageConverter;
 
     @Autowired
     private AsciidocPageConverter asciidocPageConverter;
@@ -159,7 +155,7 @@ public class PageService {
             case ASCIIDOC:
                 return asciidocPageConverter;
             case MARKDOWN:
-                return markdownPageConverter;
+                throw new RuntimeException("不支持 Markdown");
             default:
                 throw new RuntimeException("没有合适的 PageConverter. sourceFormat=" + sourceFormat);
         }

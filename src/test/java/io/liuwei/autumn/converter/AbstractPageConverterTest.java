@@ -1,5 +1,6 @@
 package io.liuwei.autumn.converter;
 
+import io.liuwei.autumn.domain.Page;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -32,8 +33,13 @@ public class AbstractPageConverterTest {
                 "</li>\n" +
                 "</ul>\n" +
                 "</div>";
-        MarkdownPageConverter parser = new MarkdownPageConverter(null);
-        String tocHtml2 = parser.makeNumberedToc(toHtml);
+        AbstractPageConverter pageConverter = new AbstractPageConverter(null){
+            @Override
+            protected Page.PageHtml parse(String title, String body) {
+                return null;
+            }
+        };
+        String tocHtml2 = pageConverter.makeNumberedToc(toHtml);
         System.out.println(tocHtml2);
     }
 }
