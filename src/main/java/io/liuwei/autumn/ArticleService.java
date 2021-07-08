@@ -1,6 +1,9 @@
 package io.liuwei.autumn;
 
+import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
+import io.liuwei.autumn.model.ArticleVO;
+import io.liuwei.autumn.model.RevisionContent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,10 +20,22 @@ public class ArticleService {
     private ArticleManager articleManager;
 
     public File getFile(String relativePath) {
-        return articleManager.getFileByPath(relativePath);
+        return articleManager.getMediaFile(relativePath);
     }
 
     public Article getArticle(String path) {
         return articleManager.getArticleByPath(path);
+    }
+
+    public RevisionContent getTreeJson(AccessLevelEnum accessLevel) {
+        return articleManager.getTreeJson(accessLevel);
+    }
+
+    public boolean checkAccessLevel(Article article, AccessLevelEnum accessLevel) {
+        return article.getAccessLevel().getLevel() >= accessLevel.getLevel();
+    }
+
+    public ArticleVO toVO(Article article) {
+        return articleManager.toVO(article);
     }
 }

@@ -8,6 +8,9 @@ import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.ArticleHtml;
 import io.liuwei.autumn.model.ArticleVO;
+import io.liuwei.autumn.model.RevisionContent;
+import io.liuwei.autumn.util.HtmlUtil;
+import io.liuwei.autumn.util.RevisionContentUtil;
 import io.liuwei.autumn.util.TreeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -46,6 +49,9 @@ public class ArticleManager {
     @Autowired
     private PageConverter pageConverter;
 
+    @Autowired
+    private MediaRevisionResolver mediaRevisionResolver;
+
     // file path -> File. file path 以 "/" 开头，"/" 表示数据目录
     private volatile Map<String, File> allFileMap;
 
@@ -74,7 +80,7 @@ public class ArticleManager {
     }
 
 
-    public File getFileByPath(String path) {
+    public File getMediaFile(String path) {
         return allFileMap.get(path);
     }
 
@@ -88,21 +94,24 @@ public class ArticleManager {
             return new ArrayList<>(articleMap.values());
         }
         return articleMap
-                .entrySet()
+                .values()
                 .stream()
-                .map(Map.Entry::getValue)
                 .filter(o -> o.getAccessLevel().getLevel() >= accessLevel.getLevel())
                 .collect(Collectors.toList());
     }
 
     @Cacheable(value = CacheConstants.TREE_JSON)
-    public String getTreeJson(AccessLevelEnum accessLevel) {
-        return jsonMapper.toJson(TreeUtil.toArticleTree(listArticles(accessLevel)));
+    public RevisionContent getTreeJson(AccessLevelEnum accessLevel) {
+        String json = jsonMapper.toJson(TreeUtil.toArticleTree(listArticles(accessLevel)));
+        return RevisionContentUtil.newRevisionContent(json, mediaRevisionResolver);
     }
 
     @Cacheable(value = CacheConstants.ARTICLE_VO, key = "#article.path")
     public ArticleVO toVO(Article article) {
-        ArticleHtml articleHtml = pageConverter.convert(article.getTitle(), article.getContent(), article.getPath());
+        ArticleHtml articleHtml = pageConverter.convert(article.getTitle(), article.getContent());
+        articleHtml.setToc(HtmlUtil.makeNumberedToc(articleHtml.getToc()));
+        articleHtml.setContent(HtmlUtil
+                .rewriteImgSrcAppendVersionParam(articleHtml.getContent(), article.getPath(), mediaRevisionResolver));
 
         ArticleVO vo = new ArticleVO();
         vo.setTitle(article.getTitle());

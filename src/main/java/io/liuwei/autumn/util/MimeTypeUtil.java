@@ -26,7 +26,7 @@ public class MimeTypeUtil {
     private static final String DEFAULT_MIME_TYPE = MediaType.APPLICATION_OCTET_STREAM_VALUE;
     private static Logger logger = LoggerFactory.getLogger(MimeTypeUtil.class);
     private static Map<String, String> fileExtensionToMimeType;
-    private static Map<String, MediaType> mimeTypeToMediaType;
+    private static Map<String, MediaType> mimeType2MediaType;
 
     static {
         setMimeTypes();
@@ -38,11 +38,12 @@ public class MimeTypeUtil {
     }
 
     public static MediaType getMediaType(String filename) {
-        return mimeTypeToMediaType.get(getMimeType(filename));
+        MediaType mediaType = mimeType2MediaType.get(getMimeType(filename));
+        return mediaType == null ? MediaType.APPLICATION_OCTET_STREAM : mediaType;
     }
 
     public static MediaType getMediaTypeByMimeType(String mimeType) {
-        MediaType mediaType = mimeTypeToMediaType.get(mimeType);
+        MediaType mediaType = mimeType2MediaType.get(mimeType);
         return mediaType == null ? MediaType.valueOf(mimeType) : mediaType;
     }
 
@@ -58,7 +59,7 @@ public class MimeTypeUtil {
                 mimeTypeToMediaType.put(entry.getValue(), MediaType.valueOf(entry.getValue()));
             }
         }
-        MimeTypeUtil.mimeTypeToMediaType = mimeTypeToMediaType;
+        MimeTypeUtil.mimeType2MediaType = mimeTypeToMediaType;
     }
 
     private static Map<String, String> parseMimeTypes() {

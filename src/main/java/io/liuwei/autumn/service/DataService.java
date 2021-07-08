@@ -3,7 +3,7 @@ package io.liuwei.autumn.service;
 import io.liuwei.autumn.data.DataSource;
 import io.liuwei.autumn.domain.Media;
 import io.liuwei.autumn.domain.Page;
-import io.liuwei.autumn.domain.TreeJson;
+import io.liuwei.autumn.model.RevisionContent;
 import io.liuwei.autumn.domain.Link;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,7 +31,7 @@ public class DataService {
     @Autowired
     private StaticService staticService;
 
-    public TreeJson getTreeJson() {
+    public RevisionContent getTreeJson() {
         return UserService.isLogged() ?
                 dataSource.getAllData().getTreeJson() :
                 dataSource.getPublishedData().getTreeJson();

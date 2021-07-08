@@ -2,6 +2,7 @@ package io.liuwei.autumn.service;
 
 import com.google.common.hash.Hashing;
 import com.vip.vjtools.vjkit.number.RandomUtil;
+import io.liuwei.autumn.model.User;
 import org.junit.Test;
 import org.springframework.util.DigestUtils;
 
@@ -41,7 +42,7 @@ public class UserServiceTest {
         UserService userService = new UserService();
         userService.setUsers(userString);
         assertThat(userService.getUser(username)).isNotNull();
-        UserService.User user = userService.checkPlainPassword(username, plainPassword);
+        User user = userService.checkPlainPassword(username, plainPassword);
         assertThat(user.getUsername()).isEqualTo(username);
     }
 

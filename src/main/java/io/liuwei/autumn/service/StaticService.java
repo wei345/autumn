@@ -2,10 +2,13 @@ package io.liuwei.autumn.service;
 
 import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
+import io.liuwei.autumn.MediaRevisionResolver;
 import io.liuwei.autumn.data.ResourceLoader;
 import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.model.RevisionContent;
 import io.liuwei.autumn.reader.PageReaders;
 import io.liuwei.autumn.util.JsCompressor;
+import io.liuwei.autumn.util.RevisionContentUtil;
 import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -13,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.DigestUtils;
 import org.springframework.web.context.request.WebRequest;
 
 import javax.annotation.PostConstruct;
@@ -27,7 +29,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.liuwei.autumn.data.ResourceLoader.*;
-import static java.nio.charset.StandardCharsets.*;
 
 /**
  * @author liuwei
@@ -38,8 +39,8 @@ public class StaticService {
     private static final Logger logger = LoggerFactory.getLogger(StaticService.class);
     private static final StringBuilderHolder STRING_BUILDER_HOLDER = new StringBuilderHolder(1024);
     private final List<ResourceLoader.StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
-    private volatile WebPageReferenceData jsCache;
-    private volatile WebPageReferenceData cssCache;
+    private volatile RevisionContent jsCache;
+    private volatile RevisionContent cssCache;
     private volatile Page helpPage;
     private String codeBlockLineNumberJs;
     private String codeBlockHighlightJs;
@@ -70,6 +71,9 @@ public class StaticService {
 
     @Autowired
     private JsCssCompressor jsCssCompressor;
+
+    @Autowired
+    private MediaRevisionResolver mediaRevisionResolver;
 
     @PostConstruct
     private void init() {
@@ -108,11 +112,11 @@ public class StaticService {
         return resourceLoader.getResourceCache(STATIC_ROOT + path);
     }
 
-    public WebPageReferenceData getJsCache() {
+    public RevisionContent getJsCache() {
         return jsCache;
     }
 
-    public WebPageReferenceData getCssCache() {
+    public RevisionContent getCssCache() {
         return cssCache;
     }
 
@@ -146,7 +150,7 @@ public class StaticService {
         List<Long> sourceTimeList = sourceList.stream()
                 .map(ResourceLoader.ResourceCache::getLastModified).collect(Collectors.toList());
 
-        if (jsCache == null || jsCache.checkChanged(sourceTimeList)) {
+        if (jsCache == null || checkChanged(sourceTimeList, jsCache)) {
             jsCache = createJsCache(sourceList);
             logger.info("jsCache updated");
             changed = true;
@@ -155,7 +159,7 @@ public class StaticService {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private WebPageReferenceData createJsCache(List<ResourceLoader.ResourceCache> sourceList) {
+    private RevisionContent createJsCache(List<ResourceLoader.ResourceCache> sourceList) {
 
         // 如果把 tree.js 也加进来：
         // 每次浏览器打开页面少发一个请求
@@ -189,22 +193,14 @@ public class StaticService {
             js += getGoogleAnalyticsJs();
         }
 
-        byte[] jsBytes = js.getBytes(UTF_8);
-        String md5 = DigestUtils.md5DigestAsHex(jsBytes);
-        String etag = WebUtil.getEtag(md5);
-
-        WebPageReferenceData jsCache = new WebPageReferenceData();
-        jsCache.setContent(jsBytes);
-        jsCache.setEtag(etag);
-        jsCache.setVersionKeyValue(WebUtil.getVersionKeyValue(md5));
-        return jsCache;
+        return RevisionContentUtil.newRevisionContent(js, mediaRevisionResolver);
     }
 
     private boolean refreshCssCache() {
         List<ResourceLoader.ResourceCache> sourceList = Stream.of("/css/lib/normalize.css", "/css/style.css")
                 .map(this::getStaticResourceCache).collect(Collectors.toList());
         List<Long> sourceTimeList = sourceList.stream().map(ResourceLoader.ResourceCache::getLastModified).collect(Collectors.toList());
-        if (cssCache != null && !cssCache.checkChanged(sourceTimeList)) {
+        if (cssCache != null && !checkChanged(sourceTimeList, cssCache)) {
             return false;
         }
 
@@ -215,13 +211,7 @@ public class StaticService {
             stringBuilder.append(getCodeBlockHighlightCss()).append("\n");
         }
 
-        WebPageReferenceData cssCache = new WebPageReferenceData();
-        cssCache.setContent(stringBuilder.toString().getBytes(UTF_8));
-        String md5 = DigestUtils.md5DigestAsHex(cssCache.getContent());
-        String etag = WebUtil.getEtag(md5);
-        cssCache.setEtag(etag);
-        cssCache.setVersionKeyValue(WebUtil.getVersionKeyValue(md5));
-        this.cssCache = cssCache;
+        this.cssCache = RevisionContentUtil.newRevisionContent(stringBuilder.toString(), mediaRevisionResolver);
         logger.info("cssCache updated");
         return true;
     }
@@ -296,6 +286,11 @@ public class StaticService {
         this.staticChangedListeners.add(listener);
     }
 
+    boolean checkChanged(List<Long> sourceTimeList, RevisionContent revisionContent) {
+        Optional<Long> optionalLong = sourceTimeList.stream().max(Long::compareTo);
+        return optionalLong.isPresent() && optionalLong.get() > revisionContent.getTimestamp();
+    }
+
     public static class WebPageReferenceData {
         private String versionKeyValue;
         private byte[] content;
@@ -304,11 +299,6 @@ public class StaticService {
 
         WebPageReferenceData() {
             time = System.currentTimeMillis();
-        }
-
-        boolean checkChanged(List<Long> sourceTimeList) {
-            Optional<Long> optionalLong = sourceTimeList.stream().max(Long::compareTo);
-            return optionalLong.isPresent() && optionalLong.get() > time;
         }
 
         String getVersionKeyValue() {

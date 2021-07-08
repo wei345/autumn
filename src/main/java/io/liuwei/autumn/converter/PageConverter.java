@@ -8,5 +8,5 @@ import io.liuwei.autumn.model.ArticleHtml;
  */
 public interface PageConverter {
 
-    ArticleHtml convert(String title, String body, String path);
+    ArticleHtml convert(String title, String body);
 }

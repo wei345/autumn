@@ -7,13 +7,15 @@ import com.vip.vjtools.vjkit.io.IOUtil;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import com.vip.vjtools.vjkit.number.MathUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
+import io.liuwei.autumn.MediaRevisionResolver;
 import io.liuwei.autumn.domain.Media;
 import io.liuwei.autumn.domain.Page;
-import io.liuwei.autumn.domain.TreeJson;
+import io.liuwei.autumn.model.RevisionContent;
 import io.liuwei.autumn.domain.TreeNode;
 import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.reader.PageReaders;
 import io.liuwei.autumn.util.MimeTypeUtil;
+import io.liuwei.autumn.util.RevisionContentUtil;
 import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.Validate;
@@ -69,6 +71,8 @@ public class DataLoader implements Runnable {
     private WebUtil webUtil;
     @Value("${server.servlet.context-path}")
     private String ctx;
+    @Autowired
+    private MediaRevisionResolver mediaRevisionResolver;
     private ScheduledExecutorService scheduler;
 
     private volatile long mediaLastChanged;
@@ -235,15 +239,15 @@ public class DataLoader implements Runnable {
             return;
         }
 
-        TreeJson oldAllTreeJson = dataSource.getAllData().getTreeJson();
-        TreeJson oldPublishedTreeJson = dataSource.getPublishedData().getTreeJson();
+        RevisionContent oldAllTreeJson = dataSource.getAllData().getTreeJson();
+        RevisionContent oldPublishedTreeJson = dataSource.getPublishedData().getTreeJson();
 
         sortAndRemoveEmptyNode(root);
 
         String json = jsonMapper.toJson(root);
         path2page.put(sitemapPath, newSitemapPage(root, false));
         DataSource.Data data = new DataSource.Data(
-                new TreeJson(json),
+                RevisionContentUtil.newRevisionContent(json, mediaRevisionResolver),
                 newHomepage(path2page, false),
                 path2page,
                 path2media);
@@ -383,7 +387,7 @@ public class DataLoader implements Runnable {
         }
 
         DataSource.Data data = new DataSource.Data(
-                new TreeJson(json),
+                RevisionContentUtil.newRevisionContent(json, mediaRevisionResolver),
                 newHomepage(path2page, true),
                 path2page,
                 publishedMedia);

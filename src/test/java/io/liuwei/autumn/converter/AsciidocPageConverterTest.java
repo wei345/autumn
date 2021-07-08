@@ -40,5 +40,4 @@ public class AsciidocPageConverterTest {
         return new ArticleHtml(null, null, bodyHtml);
     }
 
-
 }

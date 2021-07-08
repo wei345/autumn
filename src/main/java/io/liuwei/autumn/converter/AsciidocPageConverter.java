@@ -2,7 +2,6 @@ package io.liuwei.autumn.converter;
 
 import com.vip.vjtools.vjkit.text.EscapeUtil;
 import io.liuwei.autumn.model.ArticleHtml;
-import io.liuwei.autumn.service.DataService;
 import io.liuwei.autumn.util.Asciidoctors;
 import org.asciidoctor.AttributesBuilder;
 import org.asciidoctor.OptionsBuilder;
@@ -16,51 +15,55 @@ import org.springframework.stereotype.Component;
  * @since 2020-06-01 18:45
  */
 @Component
-public class AsciidocPageConverter extends AbstractPageConverter {
+public class AsciidocPageConverter implements PageConverter {
 
     private final OptionsBuilder optionsBuilder = OptionsBuilder.options()
             .attributes(AttributesBuilder.attributes()
                     .showTitle(true)
                     .tableOfContents(true));
 
-    public AsciidocPageConverter(DataService dataService) {
-        super(dataService);
-    }
-
     @Override
-    protected ArticleHtml parse(String title, String body) {
-
+    public ArticleHtml convert(String title, String body) {
+        // title html
         String titleId = "articletitle";
-
         String titleHtml = "<h1 id=\"" + titleId + "\">" + EscapeUtil.escapeHtml(title) + "</h1>";
 
-        // body
-        String bodyHtml = Asciidoctors.getAsciidoctor().convert(body, optionsBuilder);
+        // content html
+        String contentHtml = Asciidoctors.getAsciidoctor().convert(body, optionsBuilder);
 
-        // toc
+        // toc html
         String tocHtml = null;
-        Document document = Jsoup.parse(bodyHtml);
-        Element toc = document.getElementById("toc");
-        if (toc != null) {
-            toc.remove();
-            bodyHtml = document.body().html();
+        Document document = Jsoup.parse(contentHtml);
+        Element tocEl = document.getElementById("toc");
+        if (tocEl != null) {
+            // 从 content html 中删除 toc
+            tocEl.remove();
+            contentHtml = document.body().html();
 
-            // change toc title div to h3
-            toc.select("#toctitle").first()
+            // 把 toc 标题标签改为 h3
+            tocEl
+                    .select("#toctitle")
+                    .first()
                     .replaceWith(new Element("h3")
                             .attr("id", "toctitle")
                             .text("TOC"));
 
-            // add article title in toc
-            Element oldUl = toc.selectFirst("ul.sectlevel1");
+            // 在 toc 第一行插入文章标题，点击可以跳到标题
+            Element oldUl = tocEl.selectFirst("ul.sectlevel1");
+            Element articleTitleLink = new Element("a")
+                    .attr("href", "#" + titleId)
+                    .text(title);
+            Element articleTitleLi = new Element("li")
+                    .appendChild(articleTitleLink)
+                    .appendChild(oldUl);
+            Element newUl = new Element("ul")
+                    .attr("class", "sectlevel0")
+                    .appendChild(articleTitleLi);
+            tocEl.appendChild(newUl);
 
-            Element a = new Element("a").attr("href", "#" + titleId).text(title);
-            Element li = new Element("li").appendChild(a).appendChild(oldUl);
-            Element newUl = new Element("ul").attr("class", "sectlevel0").appendChild(li);
-            toc.appendChild(newUl);
-            tocHtml = toc.outerHtml();
+            tocHtml = tocEl.outerHtml();
         }
 
-        return new ArticleHtml(tocHtml, titleHtml, bodyHtml);
+        return new ArticleHtml(titleHtml, tocHtml, contentHtml);
     }
 }

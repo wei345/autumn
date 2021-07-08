@@ -2,7 +2,7 @@ package io.liuwei.autumn.data;
 
 import io.liuwei.autumn.domain.Media;
 import io.liuwei.autumn.domain.Page;
-import io.liuwei.autumn.domain.TreeJson;
+import io.liuwei.autumn.model.RevisionContent;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
@@ -31,12 +31,12 @@ public class DataSource {
     @Getter
     public static class Data {
         static final Data EMPTY = new Data(
-                TreeJson.EMPTY,
+                RevisionContent.EMPTY_TREE_JSON,
                 Page.newEmptyPage("/"),
                 Collections.emptyMap(),
                 Collections.emptyMap());
         @NotNull
-        private final TreeJson treeJson;
+        private final RevisionContent treeJson;
 
         @NotNull
         private final Map<String, Page> path2page;
@@ -49,7 +49,7 @@ public class DataSource {
 
         private final long pageCountExcludeGenerated;
 
-        Data(@NotNull TreeJson treeJson,
+        Data(@NotNull RevisionContent treeJson,
              @NotNull Page homepage,
              @NotNull Map<String, Page> path2page,
              @NotNull Map<String, Media> path2media) {

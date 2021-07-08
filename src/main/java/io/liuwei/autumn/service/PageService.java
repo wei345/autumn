@@ -1,11 +1,13 @@
 package io.liuwei.autumn.service;
 
+import io.liuwei.autumn.MediaRevisionResolver;
 import io.liuwei.autumn.converter.AsciidocPageConverter;
 import io.liuwei.autumn.converter.PageConverter;
 import io.liuwei.autumn.data.DataLoader;
 import io.liuwei.autumn.domain.Page;
 import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.model.ArticleHtml;
+import io.liuwei.autumn.util.HtmlUtil;
 import io.liuwei.autumn.util.WebUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +54,9 @@ public class PageService {
 
     @Autowired
     private DataLoader dataLoader;
+
+    @Autowired
+    private MediaRevisionResolver mediaRevisionResolver;
 
     @Value("${autumn.breadcrumb.enabled}")
     private boolean breadcrumbEnabled;
@@ -144,7 +149,10 @@ public class PageService {
             synchronized (page) {
                 if (page.getPageHtml() == null || page.getPageHtml().getTime() < dataLoader.getMediaLastChanged()) {
                     ArticleHtml pageHtml = getPageConverter(page.getSourceFormat())
-                            .convert(page.getTitle(), page.getBody(), path);
+                            .convert(page.getTitle(), page.getBody());
+                    pageHtml.setToc(HtmlUtil.makeNumberedToc(pageHtml.getToc()));
+                    pageHtml.setContent(HtmlUtil
+                            .rewriteImgSrcAppendVersionParam(pageHtml.getContent(), path, mediaRevisionResolver));
                     page.setPageHtml(pageHtml);
                 }
             }
