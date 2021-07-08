@@ -6,7 +6,8 @@ import io.liuwei.autumn.annotation.CheckModified;
 import io.liuwei.autumn.config.AutumnProperties;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
-import io.liuwei.autumn.model.RevisionContent;
+import io.liuwei.autumn.model.ArticleVO;
+import io.liuwei.autumn.model.Media;
 import io.liuwei.autumn.service.StaticService;
 import io.liuwei.autumn.util.MimeTypeUtil;
 import io.liuwei.autumn.util.WebUtil;
@@ -17,11 +18,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.context.request.WebRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -35,6 +37,8 @@ import java.util.Map;
 @RequestMapping
 public class ArticleController {
 
+    private static final String TREE_JS_PATH = "/tree.json";
+
     @Autowired
     private ArticleService articleService;
 
@@ -47,43 +51,53 @@ public class ArticleController {
     @Autowired
     private WebUtil webUtil;
 
+    @GetMapping("")
+    @ResponseBody
+    public String index() {
+        return "welcome";
+    }
+
     @GetMapping(value = "/js*/all.js", produces = "text/javascript;charset=UTF-8")
     @ResponseBody
     @CheckModified
-    public RevisionContent getAllJs() {
+    public Object getAllJs() {
         return staticService.getJsCache();
     }
 
     @GetMapping(value = "/css*/all.css", produces = "text/css;charset=UTF-8")
     @ResponseBody
     @CheckModified
-    public RevisionContent getAllCss() {
+    public Object getAllCss() {
         return staticService.getCssCache();
     }
 
-    @GetMapping(value = "/tree.json", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = TREE_JS_PATH, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     @CheckModified
-    public RevisionContent getTreeJson(@AccessLevel AccessLevelEnum accessLevel) {
+    public Object getTreeJson(@AccessLevel AccessLevelEnum accessLevel) {
         return articleService.getTreeJson(accessLevel);
     }
 
     @GetMapping(value = "/**/*.*")
     @ResponseBody
-    public void getFile(HttpServletRequest request, HttpServletResponse response, WebRequest webRequest) throws IOException {
+    public void getMedia(HttpServletRequest request, HttpServletResponse response, WebRequest webRequest,
+                        @AccessLevel AccessLevelEnum accessLevel) throws IOException {
         String path = WebUtil.getInternalPath(request);
-        File file = articleService.getFile(path);
-        if (file == null) {
+        Media media = articleService.getMedia(path);
+
+        if (media == null || !media.getAccessLevel().allow(accessLevel)) {
             response.sendError(404);
             return;
         }
-        if (webRequest.checkNotModified(file.lastModified())) {
+
+        if (webRequest.checkNotModified(media.getFile().lastModified())) {
             return;
         }
-        MediaType mediaType = MimeTypeUtil.getMediaType(file.getName());
+
+        MediaType mediaType = MimeTypeUtil.getMediaType(media.getFile().getName());
         response.setContentType(mediaType.toString());
         OutputStream out = response.getOutputStream();
-        try (FileInputStream in = new FileInputStream(file)) {
+        try (FileInputStream in = new FileInputStream(media.getFile())) {
             IOUtils.copy(in, out);
         }
         out.flush();
@@ -94,23 +108,25 @@ public class ArticleController {
                              HttpServletResponse response, @AccessLevel AccessLevelEnum accessLevel) throws IOException {
         String path = WebUtil.getInternalPath(request);
         Article article = articleService.getArticle(path);
-        if (!articleService.checkAccessLevel(article, accessLevel)) {
+
+        if (article == null || !article.getAccessLevel().allow(accessLevel)) {
             response.sendError(404);
             return null;
         }
 
-        model.put("article", articleService.toVO(article));
-        setGlobalConfig(model);
+        ArticleVO articleVO = articleService.toVO(article);
+        model.put("article", articleVO);
+        setGlobalConfig(model, accessLevel);
         return "article";
     }
 
-    private void setGlobalConfig(Map<String, Object> model) {
+    private void setGlobalConfig(Map<String, Object> model, AccessLevelEnum accessLevel) {
+        String ctx = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest().getContextPath();
         model.put("highlightjsVersion", autumnProperties.getCodeBlock().getHighlightjsVersion());
-        model.put("ctx", "");
+        model.put("ctx", ctx);
         model.put("prefix", webUtil.getPrefix());
-        model.put("treeVersionKeyValue", "");
-        model.put("pageTitle", "pageTitle");
-        model.put("title", "title");
+        model.put("treeJsUrl", ctx + TREE_JS_PATH + "?" + articleService.getTreeJson(accessLevel).getVersionKeyValue());
+        model.put("title", autumnProperties.getSiteTitle());
     }
 
 }

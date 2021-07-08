@@ -11,6 +11,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "autumn")
 public class AutumnProperties {
 
+    private String siteTitle;
+
     private CodeBlock codeBlock = new CodeBlock();
 
     @Data

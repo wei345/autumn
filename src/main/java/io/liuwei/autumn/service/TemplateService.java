@@ -63,7 +63,7 @@ public class TemplateService {
     @Autowired
     private ResourceLoader resourceLoader;
 
-    @Value("${autumn.title}")
+    @Value("${autumn.site-title}")
     private String title;
 
     private String faviconUrl;

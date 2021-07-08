@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="~{base_layout}">
+
+<div layout:fragment="content" th:with="pageTitle='Login'" class="login_box">
+    <p>${message!}</p>
+    <form method="POST" action="">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" value="${username!}"
+               placeholder="Username" autofocus autocomplete="off">
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" placeholder="Password" autofocus>
+<input class="button-primary" type="submit" value="Login">
+</form>
+</div>
+</html>

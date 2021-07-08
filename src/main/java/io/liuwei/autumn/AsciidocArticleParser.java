@@ -64,11 +64,7 @@ public class AsciidocArticleParser {
 
         article.setCategory((String) attributes.get(attrCategory));
 
-        if (attributes.get(attrAccessLevel) != null) {
-            AccessLevelEnum accessLevel = AccessLevelEnum
-                    .of((String) attributes.get(attrAccessLevel), AccessLevelEnum.PRIVATE);
-            article.setAccessLevel(accessLevel);
-        }
+        article.setAccessLevel(AccessLevelEnum.of((String) attributes.get(attrAccessLevel), AccessLevelEnum.OWNER));
 
         for (String line : lineReader) {
             if (StringUtils.isNotBlank(line) && !line.startsWith(":")) {

@@ -2,14 +2,12 @@ package io.liuwei.autumn;
 
 import com.google.common.collect.Maps;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
-import io.liuwei.autumn.converter.PageConverter;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.model.Article;
-import io.liuwei.autumn.model.ArticleHtml;
-import io.liuwei.autumn.model.ArticleVO;
+import io.liuwei.autumn.model.ArticleTreeNode;
+import io.liuwei.autumn.model.Media;
 import io.liuwei.autumn.model.RevisionContent;
-import io.liuwei.autumn.util.HtmlUtil;
 import io.liuwei.autumn.util.RevisionContentUtil;
 import io.liuwei.autumn.util.TreeUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -47,13 +45,10 @@ public class ArticleManager {
     private JsonMapper jsonMapper;
 
     @Autowired
-    private PageConverter pageConverter;
-
-    @Autowired
     private MediaRevisionResolver mediaRevisionResolver;
 
     // file path -> File. file path 以 "/" 开头，"/" 表示数据目录
-    private volatile Map<String, File> allFileMap;
+    private volatile Map<String, Media> mediaMap;
 
     private volatile Map<String, Article> articleMap;
 
@@ -62,35 +57,43 @@ public class ArticleManager {
         reload();
     }
 
-    @Caching(evict = {@CacheEvict(value = CacheConstants.ARTICLES)})
+    @Caching(evict = {
+            @CacheEvict(value = CacheConstants.ARTICLES),
+            @CacheEvict(value = CacheConstants.TREE_JSON),
+            @CacheEvict(value = CacheConstants.ARTICLE_VO),
+    })
     public synchronized void reload() throws IOException {
         Map<String, File> allFileMap = dataFileDao.getAllFileMap();
 
+        Map<String, Media> mediaMap = Maps.newHashMapWithExpectedSize(allFileMap.size());
         Map<String, Article> articleMap = Maps.newHashMapWithExpectedSize(allFileMap.size());
         for (Map.Entry<String, File> fileEntry : allFileMap.entrySet()) {
+            Media media = toMedia(fileEntry.getValue(), fileEntry.getKey());
+            mediaMap.put(media.getPath(), media);
             if (SourceFormatEnum.getByFileName(fileEntry.getKey()) == SourceFormatEnum.ASCIIDOC) {
-                String articlePath = StringUtils.substringBeforeLast(fileEntry.getKey(), ".");
-                Article article = toArticle(fileEntry.getValue(), articlePath);
-                articleMap.put(articlePath, article);
+                String path = StringUtils.substringBeforeLast(fileEntry.getKey(), ".");
+                Article article = toArticle(fileEntry.getValue(), path);
+                articleMap.put(path, article);
+                media.setAccessLevel(article.getAccessLevel());
             }
         }
         log.info("found {} article", articleMap.size());
-        this.allFileMap = allFileMap;
+        this.mediaMap = mediaMap;
         this.articleMap = articleMap;
     }
 
 
-    public File getMediaFile(String path) {
-        return allFileMap.get(path);
+    public Media getMedia(String path) {
+        return mediaMap.get(path);
     }
 
-    public Article getArticleByPath(String path) {
+    public Article getArticle(String path) {
         return articleMap.get(path);
     }
 
     @Cacheable(value = CacheConstants.ARTICLES)
     public List<Article> listArticles(AccessLevelEnum accessLevel) {
-        if (accessLevel == AccessLevelEnum.PRIVATE) {
+        if (accessLevel == AccessLevelEnum.OWNER) {
             return new ArrayList<>(articleMap.values());
         }
         return articleMap
@@ -102,35 +105,21 @@ public class ArticleManager {
 
     @Cacheable(value = CacheConstants.TREE_JSON)
     public RevisionContent getTreeJson(AccessLevelEnum accessLevel) {
-        String json = jsonMapper.toJson(TreeUtil.toArticleTree(listArticles(accessLevel)));
+        List<Article> articles = listArticles(accessLevel);
+        ArticleTreeNode articleTree = TreeUtil.toArticleTree(articles);
+        String json = jsonMapper.toJson(articleTree);
         return RevisionContentUtil.newRevisionContent(json, mediaRevisionResolver);
     }
 
-    @Cacheable(value = CacheConstants.ARTICLE_VO, key = "#article.path")
-    public ArticleVO toVO(Article article) {
-        ArticleHtml articleHtml = pageConverter.convert(article.getTitle(), article.getContent());
-        articleHtml.setToc(HtmlUtil.makeNumberedToc(articleHtml.getToc()));
-        articleHtml.setContent(HtmlUtil
-                .rewriteImgSrcAppendVersionParam(articleHtml.getContent(), article.getPath(), mediaRevisionResolver));
-
-        ArticleVO vo = new ArticleVO();
-        vo.setTitle(article.getTitle());
-        vo.setName(article.getName());
-        vo.setCreated(article.getCreated());
-        vo.setModified(article.getModified());
-        vo.setCategory(article.getCategory());
-        vo.setTags(article.getTags());
-        vo.setAccessLevel(article.getAccessLevel());
-        vo.setContent(article.getContent());
-        vo.setSource(article.getSource());
-        vo.setSourceMd5(article.getSourceMd5());
-        vo.setTitleHtml(articleHtml.getTitle());
-        vo.setContentHtml(articleHtml.getContent());
-        vo.setTocHtml(articleHtml.getToc());
-        return vo;
+    private Media toMedia(File file, String path) {
+        Media media = new Media();
+        media.setPath(path);
+        media.setFile(file);
+        media.setAccessLevel(AccessLevelEnum.PUBLIC);
+        return media;
     }
 
-    private Article toArticle(File file, String articlePath) {
+    private Article toArticle(File file, String path) {
         if (file == null) {
             return null;
         }
@@ -147,7 +136,7 @@ public class ArticleManager {
             throw new RuntimeException(e);
         }
 
-        Article article = asciidocArticleParser.parse(fileContent, articlePath);
+        Article article = asciidocArticleParser.parse(fileContent, path);
         if (article.getCreated() == null) {
             article.setCreated(new Date(file.lastModified()));
         }

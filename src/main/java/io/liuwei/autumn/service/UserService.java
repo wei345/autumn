@@ -111,7 +111,7 @@ public class UserService {
             return AccessLevelEnum.PUBLIC;
         }
         if (user.getIsOwner()) {
-            return AccessLevelEnum.PRIVATE;
+            return AccessLevelEnum.OWNER;
         }
         return AccessLevelEnum.USER;
     }

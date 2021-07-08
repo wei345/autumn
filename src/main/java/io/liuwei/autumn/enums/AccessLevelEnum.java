@@ -7,7 +7,7 @@ import lombok.Getter;
  * @since 2021-07-07 16:34
  */
 public enum AccessLevelEnum {
-    PRIVATE(0), USER(1), PUBLIC(2);
+    OWNER(0), USER(1), PUBLIC(2);
 
     @Getter
     private final int level;
@@ -27,5 +27,12 @@ public enum AccessLevelEnum {
             }
         }
         return defaultVal;
+    }
+
+    /**
+     * 给定级别的用户是否可以访问此级别的资源
+     */
+    public boolean allow(AccessLevelEnum accessLevel) {
+        return accessLevel != null && accessLevel.getLevel() <= level;
     }
 }

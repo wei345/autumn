@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="utf-8">
+    <meta name="google" content="notranslate">
+    <meta http-equiv="Content-Language" content="en">
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta id="ctx" name="ctx" th:value="${ctx}">
+    <meta id="prefix" name="prefix" th:value="${prefix}">
+    <meta id="treeVersionKeyValue" name="treeVersionKeyValue" th:value="${treeVersionKeyValue}">
+    <title th:text="${pageTitle} + '-' + ${title}"></title>
+    <link rel="icon" th:href="${faviconUrl}" type="image/x-icon"/>
+    <link rel="stylesheet" th:href="@{/css/all.css(${cssVersionKeyValue})}"/>
+    <script>
+        var autumn = {
+            ctx: document.getElementById('ctx').getAttribute('value'),
+            prefix: document.getElementById('prefix').getAttribute('value'),
+            treeVersionKeyValue: document.getElementById('treeVersionKeyValue').getAttribute('value')
+        };
+    </script>
+    <script async th:src="@{/js/all.js(${jsVersionKeyValue})}"></script>
+</head>
+<body class="multiple_columns">
+<div class="container">
+    <div layout:fragment="content"></div>
+</div>
+</body>
+</html>

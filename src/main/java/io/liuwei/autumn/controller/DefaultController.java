@@ -62,7 +62,7 @@ public class DefaultController {
         return handleWebPageReferenceData(staticService.getCssCache(), webRequest);
     }
 
-    private Object handleWebPageReferenceData(StaticService.WebPageReferenceData data, WebRequest webRequest) {
+    private Object handleWebPageReferenceData(RevisionContent data, WebRequest webRequest) {
         if (WebUtil.checkNotModified(webRequest, data.getEtag())) {
             return null;
         }

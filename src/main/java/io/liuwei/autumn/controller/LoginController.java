@@ -6,6 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import io.liuwei.autumn.service.UserService;
@@ -33,13 +35,13 @@ public class LoginController {
     @Autowired
     private TemplateService templateService;
 
-    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    @GetMapping("/login")
     public String login(Map<String, Object> model) {
         templateService.setCtx(model);
         return "login";
     }
 
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    @PostMapping("/login")
     public String loginSubmit(String username,
                               String password,
                               String ret,
@@ -74,7 +76,7 @@ public class LoginController {
         return "login";
     }
 
-    @RequestMapping(value = "/logout", method = RequestMethod.GET)
+    @GetMapping("/logout")
     public String logout(HttpServletRequest request, HttpServletResponse response) {
         userService.logout(request, response);
         return "redirect:/";

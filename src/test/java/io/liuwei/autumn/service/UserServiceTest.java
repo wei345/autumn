@@ -42,7 +42,8 @@ public class UserServiceTest {
         UserService userService = new UserService();
         userService.setUsers(userString);
         assertThat(userService.getUser(username)).isNotNull();
-        User user = userService.checkPlainPassword(username, plainPassword);
+        User user = userService.getUser(username);
+        userService.checkPlainPassword(user, plainPassword);
         assertThat(user.getUsername()).isEqualTo(username);
     }
 

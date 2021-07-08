@@ -1,10 +1,9 @@
 package io.liuwei.autumn;
 
+import io.liuwei.autumn.model.Media;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.io.File;
 
 /**
  * @author liuwei
@@ -30,18 +29,18 @@ public class MediaRevisionResolver {
     }
 
     public String getMediaRevision(String path) {
-        File file = articleManager.getMediaFile(path);
-        if (file == null) {
+        Media media = articleManager.getMedia(path);
+        if (media == null) {
             return null;
         }
-        return getRevision(file.lastModified());
+        return getRevision(media.getFile().lastModified());
     }
 
     public String getEtag(String messageDigest) {
         return majorVersion + "." + messageDigest;
     }
 
-    public String getRevisionParamName(){
+    public String getRevisionParamName() {
         return "v";
     }
 }
