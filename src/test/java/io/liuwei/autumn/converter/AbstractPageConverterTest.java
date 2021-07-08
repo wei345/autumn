@@ -1,9 +1,7 @@
 package io.liuwei.autumn.converter;
 
-import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.model.ArticleHtml;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * @author liuwei
@@ -35,7 +33,7 @@ public class AbstractPageConverterTest {
                 "</div>";
         AbstractPageConverter pageConverter = new AbstractPageConverter(null){
             @Override
-            protected Page.PageHtml parse(String title, String body) {
+            protected ArticleHtml parse(String title, String body) {
                 return null;
             }
         };

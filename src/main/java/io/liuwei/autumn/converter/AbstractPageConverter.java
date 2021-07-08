@@ -2,7 +2,7 @@ package io.liuwei.autumn.converter;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
-import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.model.ArticleHtml;
 import io.liuwei.autumn.service.DataService;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -23,14 +23,14 @@ public abstract class AbstractPageConverter implements PageConverter {
     }
 
     @Override
-    public Page.PageHtml convert(String title, String body, String path) {
-        Page.PageHtml pageHtml = parse(title, body);
+    public ArticleHtml convert(String title, String body, String path) {
+        ArticleHtml pageHtml = parse(title, body);
         String bodyHtml = rewriteImageSrc(pageHtml.getContent(), path);
         String tocHtml = makeNumberedToc(pageHtml.getToc());
-        return new Page.PageHtml(tocHtml, pageHtml.getTitle(), bodyHtml);
+        return new ArticleHtml(tocHtml, pageHtml.getTitle(), bodyHtml);
     }
 
-    protected abstract Page.PageHtml parse(String title, String body);
+    protected abstract ArticleHtml parse(String title, String body);
 
     private String rewriteImageSrc(String html, String path) {
         Document document = Jsoup.parse(html);

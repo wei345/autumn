@@ -1,6 +1,7 @@
 package io.liuwei.autumn.domain;
 
 import io.liuwei.autumn.enums.SourceFormatEnum;
+import io.liuwei.autumn.model.ArticleHtml;
 import io.liuwei.autumn.search.PageHit;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,7 +29,7 @@ public class Page {
     private String name; // path 最后一个斜线之后的部分
     private String title;
     private String body;
-    private volatile PageHtml pageHtml;
+    private volatile ArticleHtml pageHtml;
     private String source; // file content
     private SourceFormatEnum sourceFormat;
     private long fileLastModified;
@@ -64,36 +65,6 @@ public class Page {
         page.setPath(path);
         page.setSourceFormat(SourceFormatEnum.ASCIIDOC);
         return page;
-    }
-
-    public static class PageHtml {
-        private final String toc;
-        private final String title;
-        private final String content;
-        private final long time;
-
-        public PageHtml(String toc, String title, String content) {
-            this.toc = toc;
-            this.title = title;
-            this.content = content;
-            this.time = System.currentTimeMillis();
-        }
-
-        public String getToc() {
-            return toc;
-        }
-
-        public String getContent() {
-            return content;
-        }
-
-        public long getTime() {
-            return time;
-        }
-
-        public String getTitle() {
-            return title;
-        }
     }
 
     public static class ViewCache {

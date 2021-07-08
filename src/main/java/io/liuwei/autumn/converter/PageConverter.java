@@ -1,6 +1,6 @@
 package io.liuwei.autumn.converter;
 
-import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.model.ArticleHtml;
 
 /**
  * @author liuwei
@@ -8,5 +8,5 @@ import io.liuwei.autumn.domain.Page;
  */
 public interface PageConverter {
 
-    Page.PageHtml convert(String title, String body, String path);
+    ArticleHtml convert(String title, String body, String path);
 }

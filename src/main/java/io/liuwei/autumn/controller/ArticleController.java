@@ -57,7 +57,7 @@ public class ArticleController {
 
     @GetMapping(value = "/css*/all.css", produces = "text/css;charset=UTF-8")
     @ResponseBody
-    public byte[] getAllCss(WebRequest webRequest) {
+    public byte[] getAllCss() {
         return staticService.getCssCache().getContent();
     }
 

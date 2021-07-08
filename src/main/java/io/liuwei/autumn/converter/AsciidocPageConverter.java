@@ -1,7 +1,7 @@
 package io.liuwei.autumn.converter;
 
 import com.vip.vjtools.vjkit.text.EscapeUtil;
-import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.model.ArticleHtml;
 import io.liuwei.autumn.service.DataService;
 import io.liuwei.autumn.util.Asciidoctors;
 import org.asciidoctor.AttributesBuilder;
@@ -28,7 +28,7 @@ public class AsciidocPageConverter extends AbstractPageConverter {
     }
 
     @Override
-    protected Page.PageHtml parse(String title, String body) {
+    protected ArticleHtml parse(String title, String body) {
 
         String titleId = "articletitle";
 
@@ -61,6 +61,6 @@ public class AsciidocPageConverter extends AbstractPageConverter {
             tocHtml = toc.outerHtml();
         }
 
-        return new Page.PageHtml(tocHtml, titleHtml, bodyHtml);
+        return new ArticleHtml(tocHtml, titleHtml, bodyHtml);
     }
 }

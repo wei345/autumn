@@ -5,6 +5,7 @@ import io.liuwei.autumn.converter.PageConverter;
 import io.liuwei.autumn.data.DataLoader;
 import io.liuwei.autumn.domain.Page;
 import io.liuwei.autumn.enums.SourceFormatEnum;
+import io.liuwei.autumn.model.ArticleHtml;
 import io.liuwei.autumn.util.WebUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +70,7 @@ public class PageService {
                 viewCache = dataService.getViewCache(page);
                 if (viewCache == null || viewCache.getTime() < templateLastModified) {
                     logger.info("Building cache path={}", page.getPath());
-                    Page.PageHtml pageHtml = getPageHtml(page, WebUtil.getInternalPath(request));
+                    ArticleHtml pageHtml = getPageHtml(page, WebUtil.getInternalPath(request));
                     model.put(PAGE_TITLE, htmlEscape(page.getTitle()));
                     model.put(PAGE_TITLE_H1, pageHtml.getTitle());
                     model.put(TOC, pageHtml.getToc());
@@ -96,7 +97,7 @@ public class PageService {
                                              Map<String, Object> model,
                                              String view,
                                              HttpServletRequest request) {
-        Page.PageHtml pageHtml = getPageHtml(page, WebUtil.getInternalPath(request));
+        ArticleHtml pageHtml = getPageHtml(page, WebUtil.getInternalPath(request));
         String toc = searchService.highlightSearchStr(pageHtml.getToc(), searchStrList);
         String content = searchService.highlightSearchStr(pageHtml.getContent(), searchStrList);
         String title = searchService.highlightSearchStr(pageHtml.getTitle(), searchStrList);
@@ -137,12 +138,12 @@ public class PageService {
         return page.getSource();
     }
 
-    private Page.PageHtml getPageHtml(Page page, String path) {
+    private ArticleHtml getPageHtml(Page page, String path) {
         if (page.getPageHtml() == null || page.getPageHtml().getTime() < dataLoader.getMediaLastChanged()) {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (page) {
                 if (page.getPageHtml() == null || page.getPageHtml().getTime() < dataLoader.getMediaLastChanged()) {
-                    Page.PageHtml pageHtml = getPageConverter(page.getSourceFormat())
+                    ArticleHtml pageHtml = getPageConverter(page.getSourceFormat())
                             .convert(page.getTitle(), page.getBody(), path);
                     page.setPageHtml(pageHtml);
                 }

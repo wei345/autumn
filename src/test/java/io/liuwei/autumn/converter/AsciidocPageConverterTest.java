@@ -1,6 +1,6 @@
 package io.liuwei.autumn.converter;
 
-import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.model.ArticleHtml;
 import org.apache.commons.io.IOUtils;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.AttributesBuilder;
@@ -23,12 +23,12 @@ public class AsciidocPageConverterTest {
     public void convert() throws IOException {
         String adoc = IOUtils.resourceToString("/example.adoc", StandardCharsets.UTF_8);
 
-        Page.PageHtml pageHtml = convert("title", adoc, "/example.adoc");
+        ArticleHtml pageHtml = convert("title", adoc, "/example.adoc");
 
         System.out.println(pageHtml.getContent());
     }
 
-    public Page.PageHtml convert(String title, String body, String path) {
+    public ArticleHtml convert(String title, String body, String path) {
         Asciidoctor asciidoctor = new JRubyAsciidoctor();
 
         String bodyHtml = asciidoctor.convert(body,
@@ -37,7 +37,7 @@ public class AsciidocPageConverterTest {
 
         Document document = Jsoup.parse(bodyHtml);
         bodyHtml = document.body().html(); // pretty print HTML
-        return new Page.PageHtml(null, null, bodyHtml);
+        return new ArticleHtml(null, null, bodyHtml);
     }
 
 
