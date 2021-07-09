@@ -1,6 +1,8 @@
 package io.liuwei.autumn.controller;
 
+import io.liuwei.autumn.annotation.AccessLevel;
 import io.liuwei.autumn.domain.Pagination;
+import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.search.SearchResult;
 import io.liuwei.autumn.service.RateLimitService;
 import io.liuwei.autumn.service.SearchService;
@@ -11,7 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,7 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 
-import static org.springframework.web.util.HtmlUtils.*;
+import static org.springframework.web.util.HtmlUtils.htmlEscape;
 
 /**
  * @author liuwei
@@ -43,6 +44,7 @@ public class SearchController {
     @GetMapping("/search")
     public Object search(String s,
                          Integer offset,
+                         @AccessLevel AccessLevelEnum accessLevel,
                          Map<String, Object> model,
                          HttpServletRequest request,
                          HttpServletResponse response) throws IOException {
@@ -60,7 +62,7 @@ public class SearchController {
 
         if (rateLimitService.acquireSearch(WebUtil.getClientIpAddress(request))) {
             String q = s;
-            SearchResult sr = searchService.search(s, offset, pageSize);
+            SearchResult sr = searchService.search(s, accessLevel, offset, pageSize);
             model.put("s", htmlEscape(s));
             model.put("sr", sr);
             model.put("pagination",

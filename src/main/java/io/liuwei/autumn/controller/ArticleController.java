@@ -8,6 +8,7 @@ import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.ArticleVO;
 import io.liuwei.autumn.model.Media;
+import io.liuwei.autumn.service.SearchService;
 import io.liuwei.autumn.service.StaticService;
 import io.liuwei.autumn.util.MimeTypeUtil;
 import io.liuwei.autumn.util.WebUtil;
@@ -26,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +44,9 @@ public class ArticleController {
 
     @Autowired
     private StaticService staticService;
+
+    @Autowired
+    private SearchService searchService;
 
     @GetMapping("")
     public String index(@AccessLevel AccessLevelEnum accessLevel, Model model) {
@@ -122,8 +127,11 @@ public class ArticleController {
     }
 
     @GetMapping(value = "/**")
-    public String getArticle(HttpServletRequest request, Map<String, Object> model,
-                             HttpServletResponse response, @AccessLevel AccessLevelEnum accessLevel) throws IOException {
+    public String getArticle(String[] h, // h=a&h=b..
+                             HttpServletRequest request,
+                             HttpServletResponse response,
+                             @AccessLevel AccessLevelEnum accessLevel,
+                             Map<String, Object> model) throws IOException {
         String path = WebUtil.getInternalPath(request);
         Article article = articleService.getArticle(path);
 
@@ -133,6 +141,21 @@ public class ArticleController {
         }
 
         ArticleVO articleVO = articleService.toVO(article);
+
+        // highlight
+        if (h != null && h.length > 0) {
+            String[] strings = h;
+            // 太多高亮词会影响性能，正常不会太多
+            if (strings.length > 10) {
+                strings = new String[10];
+                System.arraycopy(h, 0, strings, 0, strings.length);
+            }
+            List<String> searchStrList = Arrays.asList(strings);
+            articleVO.setTocHtml(searchService.highlightSearchStr(articleVO.getTocHtml(), searchStrList));
+            articleVO.setContentHtml(searchService.highlightSearchStr(articleVO.getContentHtml(), searchStrList));
+            articleVO.setTitleHtml(searchService.highlightSearchStr(articleVO.getTitleHtml(), searchStrList));
+        }
+
         model.put("article", articleVO);
         return "article";
     }

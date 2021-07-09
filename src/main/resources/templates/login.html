@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="~{basisc_layout}" th:with="pageTitle='Login'">
+      layout:decorator="~{basic_layout}" th:with="pageTitle='Login'">
 <body>
-<div layout:fragment="basisc_layout_fragment" class="login_box">
+<div layout:fragment="basic_layout_fragment" class="login_box">
     <p th:text="${message}"></p>
     <form method="POST" action="">
         <label for="username">Username</label>

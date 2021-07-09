@@ -18,7 +18,7 @@ class TagMatcher extends AbstractMatcher {
 
     @Override
     protected boolean test(SearchingPage searchingPage) {
-        Set<String> tags = searchingPage.getPage().getTags();
+        Set<String> tags = searchingPage.getArticle().getTags();
         return tags != null && tags.contains(searchStr);
     }
 

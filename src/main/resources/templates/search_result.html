@@ -10,16 +10,16 @@
         <div class="sr_pages">
             <div th:each="sp : ${sr.pages}" class="sr_page">
                 <div class="sr_page__link">
-                    <a th:href="@{${sp.page.path}} + ${sp.highlightString} == '' ? '' : '?' + ${sp.highlightString}">
+                    <a th:href="@{${sp.article.path}} + (${sp.highlightString} == '' ? '' : '?' + ${sp.highlightString})">
                         <span class="sr_page_title"
-                              th:text="${sp.titlePreview} == '' ? 'No Title' : ${sp.titlePreview}"></span><br/>
+                              th:utext="${sp.titlePreview} == '' ? 'No Title' : ${sp.titlePreview}"></span><br/>
                         <span class="sr_page_path" th:text="${sp.pathPreview}"></span>
                     </a>
                 </div>
                 <div class="sr_page_body" th:utext="${sp.bodyPreview}"></div>
                 <div class="sr_page_info">
                     <span class="sr_page_hit"><span th:text="${sp.hitCount}"></span> Hits, </span>
-                    <span class="sr_page_date" th:text="${#dates.format(sp.page.modified, 'yyyy-MM-dd')}"></span>
+                    <span class="sr_page_date" th:text="${#dates.format(sp.article.modified, 'yyyy-MM-dd')}"></span>
                 </div>
             </div>
         </div>

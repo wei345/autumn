@@ -46,12 +46,6 @@ class Sorting {
                 return v;
             }
 
-            // 非归档目录
-            v = Integer.compare(o1.getPage().isArchived() ? 1 : 0, o2.getPage().isArchived() ? 1 : 0);
-            if (v != 0) {
-                return v;
-            }
-
             // 路径匹配
             v = Integer.compare(o2.getPathHitCount(), o1.getPathHitCount());
             if (v != 0) {
@@ -65,13 +59,13 @@ class Sorting {
             }
 
             // 最近修改日期
-            v = Long.compare(o2.getPage().getModified().getTime(), o1.getPage().getModified().getTime());
+            v = Long.compare(o2.getArticle().getModified().getTime(), o1.getArticle().getModified().getTime());
             if (v != 0) {
                 return v;
             }
 
             // 字典顺序
-            return o1.getPage().getPath().compareTo(o2.getPage().getPath());
+            return o1.getArticle().getPath().compareTo(o2.getArticle().getPath());
         });
         return list;
     }

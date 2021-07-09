@@ -1,12 +1,14 @@
 package io.liuwei.autumn.model;
 
 import io.liuwei.autumn.enums.AccessLevelEnum;
+import io.liuwei.autumn.search.PageHit;
 import lombok.Data;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Date;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author liuwei
@@ -50,5 +52,8 @@ public class Article {
      */
     @Nullable
     private File file;
+
+    // lazy init
+    private volatile ConcurrentHashMap<String, PageHit> searchHitCache;
 
 }

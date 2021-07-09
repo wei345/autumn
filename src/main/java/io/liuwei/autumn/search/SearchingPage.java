@@ -2,6 +2,9 @@ package io.liuwei.autumn.search;
 
 import com.google.common.collect.Maps;
 import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.model.Article;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Collections;
 import java.util.Map;
@@ -10,9 +13,11 @@ import java.util.Map;
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
+@Getter
+@Setter
 public class SearchingPage {
 
-    private Page page;
+    private Article article;
 
     // Matcher expression -> PageHit
     private Map<String, PageHit> hitMap;
@@ -32,15 +37,10 @@ public class SearchingPage {
     // h=a&h=b
     private String highlightString;
 
-    public SearchingPage(Page page) {
-        this.page = page;
+    public SearchingPage(Article article) {
+        this.article = article;
         this.hitMap = Maps.newHashMapWithExpectedSize(3);
     }
-
-    public Page getPage() {
-        return page;
-    }
-
 
     PageHit getPageHit(String expression) {
         return hitMap.get(expression);
@@ -66,73 +66,12 @@ public class SearchingPage {
         hitCount = pathHitCount + titleHitCount + bodyHitCount;
     }
 
-    @SuppressWarnings("WeakerAccess")
-    public int getHitCount() {
-        return hitCount;
-    }
-
-    int getNameHitCount() {
-        return nameHitCount;
-    }
-
-    int getPathHitCount() {
-        return pathHitCount;
-    }
-
-    int getTitleHitCount() {
-        return titleHitCount;
-    }
-
-    public int getBodyHitCount() {
-        return bodyHitCount;
-    }
-
     Map<String, PageHit> getUnmodifiableHitMap() {
         return Collections.unmodifiableMap(hitMap);
     }
 
-    public String getPathPreview() {
-        return pathPreview;
-    }
-
-    void setPathPreview(String pathPreview) {
-        this.pathPreview = pathPreview;
-    }
-
-    public String getTitlePreview() {
-        return titlePreview;
-    }
-
-    void setTitlePreview(String titlePreview) {
-        this.titlePreview = titlePreview;
-    }
-
-    public String getBodyPreview() {
-        return bodyPreview;
-    }
-
-    void setBodyPreview(String bodyPreview) {
-        this.bodyPreview = bodyPreview;
-    }
-
-    public String getHighlightString() {
-        return highlightString;
-    }
-
-    void setHighlightString(String highlightString) {
-        this.highlightString = highlightString;
-    }
-
-    int getNameEqCount() {
-        return nameEqCount;
-    }
-
-    int getTitleEqCount() {
-        return titleEqCount;
-    }
-
     @Override
     public String toString() {
-        return page.getPath() + ":" + hitMap;
+        return article.getPath() + ":" + hitMap;
     }
 }

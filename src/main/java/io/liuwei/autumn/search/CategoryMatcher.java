@@ -16,7 +16,7 @@ class CategoryMatcher extends AbstractMatcher {
 
     @Override
     protected boolean test(SearchingPage searchingPage) {
-        return searchStr.equals(searchingPage.getPage().getCategory());
+        return searchStr.equals(searchingPage.getArticle().getCategory());
     }
 
     static class Parser extends AbstractPrefixMatcherParser {

@@ -3,6 +3,7 @@ package io.liuwei.autumn.search;
 import com.google.common.collect.Sets;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.model.Article;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jsoup.Jsoup;
@@ -52,12 +53,12 @@ public class Highlighter {
     }
 
     private void highlightSearchingPage(SearchingPage searchingPage) {
-        Page page = searchingPage.getPage();
+        Article page = searchingPage.getArticle();
         if (CollectionUtils.isEmpty(searchingPage.getUnmodifiableHitMap())) {
             searchingPage.setPathPreview(escapeHtml(page.getPath()));
             searchingPage.setTitlePreview(escapeHtml(page.getTitle()));
             searchingPage.setBodyPreview(escapeHtml(
-                    StringUtils.substring(page.getBody(), 0, maxPreviewLength)));
+                    StringUtils.substring(page.getContent(), 0, maxPreviewLength)));
             return;
         }
 
@@ -76,7 +77,7 @@ public class Highlighter {
         searchingPage.setTitlePreview(
                 highlightHits(page.getTitle(), titleHits, true));
         searchingPage.setBodyPreview(
-                highlightHitsLessOrEqLength(page.getBody(), new ArrayList<>(bodyHits), maxPreviewLength));
+                highlightHitsLessOrEqLength(page.getContent(), new ArrayList<>(bodyHits), maxPreviewLength));
 
         Set<String> searchStrSet = Sets.union(getSearchStrs(titleHits), getSearchStrs(bodyHits));
         String highlightString = toHighlightString(searchStrSet);

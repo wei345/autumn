@@ -1,6 +1,6 @@
 package io.liuwei.autumn.search;
 
-import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.model.Article;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,7 @@ abstract class AbstractPageHitMatcher extends AbstractMatcher {
         // 本次查询缓存
         PageHit pageHit = searchingPage.getPageHit(cacheKey);
         if (pageHit == null) {
-            Page page = searchingPage.getPage();
+            Article page = searchingPage.getArticle();
             // Page 里的缓存
             ConcurrentHashMap<String, PageHit> searchStrToPageHit = page.getSearchHitCache();
             if (searchStrToPageHit == null) {
@@ -48,7 +48,7 @@ abstract class AbstractPageHitMatcher extends AbstractMatcher {
                 List<Hit> n = find.apply(page.getName());
                 List<Hit> p = find.apply(page.getPath());
                 List<Hit> t = find.apply(page.getTitle());
-                List<Hit> b = find.apply(page.getBody());
+                List<Hit> b = find.apply(page.getContent());
                 Hit h;
                 boolean nameEq = (n.size() == 1)
                         && (h = n.get(0)).getStart() == 0

@@ -1,6 +1,7 @@
 package io.liuwei.autumn.search;
 
 import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.model.Article;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -20,10 +21,10 @@ public class Searcher {
 
     private Highlighter highlighter = new Highlighter();
 
-    public SearchResult search(String input, Collection<Page> source, int offset, int count) {
+    public SearchResult search(String input, Collection<Article> articles, int offset, int count) {
         long startTime = System.currentTimeMillis();
 
-        Set<SearchingPage> searchResult = doSearch(input, source);
+        Set<SearchingPage> searchResult = doSearch(input, articles);
         List<SearchingPage> sortedResult = Sorting.sort(searchResult);
         int fromIndex = Math.min(offset, sortedResult.size());
         int toIndex = Math.min(offset + count, sortedResult.size());
@@ -34,8 +35,8 @@ public class Searcher {
         return new SearchResult(result, cost, sortedResult.size());
     }
 
-    private Set<SearchingPage> doSearch(String input, Collection<Page> pages) {
-        Set<SearchingPage> sourceData = toSearchingPageSet(pages);
+    private Set<SearchingPage> doSearch(String input, Collection<Article> articles) {
+        Set<SearchingPage> sourceData = toSearchingPageSet(articles);
 
         List<Token> tokenList = inputParser.parse(input);
 
@@ -77,7 +78,7 @@ public class Searcher {
         return result.search();
     }
 
-    private Set<SearchingPage> toSearchingPageSet(Collection<Page> all) {
+    private Set<SearchingPage> toSearchingPageSet(Collection<Article> all) {
         return all.stream().map(SearchingPage::new).collect(Collectors.toCollection(Sorting.SET_SUPPLIER));
     }
 
