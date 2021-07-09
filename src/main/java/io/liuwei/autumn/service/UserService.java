@@ -49,6 +49,7 @@ public class UserService {
     private static final String SEPARATOR = "|";
     private static final User NULL_USER = new User();
     private static Logger logger = LoggerFactory.getLogger(UserService.class);
+    private static final String REQUEST_ATTRIBUTE_CURRENT_USER = UserService.class.getName() + ".current_user";
     private static ThreadLocal<User> userThreadLocal = new ThreadLocal<>();
     private String rememberMeCookieName;
     private byte[] aesKey;
@@ -58,7 +59,7 @@ public class UserService {
 
     private Map<String, User> users;
 
-    private Map<Long, User> idToUser;
+    private Map<Long, User> userMap;
 
     @Value("${autumn.access.owner-user-id}")
     private Long ownerUserId;
@@ -103,7 +104,12 @@ public class UserService {
     }
 
     public User getCurrentUser(HttpServletRequest request, HttpServletResponse response) {
-        return getRememberMeUser(request, response);
+        User user = (User) request.getAttribute(REQUEST_ATTRIBUTE_CURRENT_USER);
+        if (user == null) {
+            user = getRememberMeUser(request, response);
+            request.setAttribute(REQUEST_ATTRIBUTE_CURRENT_USER, user);
+        }
+        return user;
     }
 
     public AccessLevelEnum getAccessLevel(User user) {
@@ -209,11 +215,8 @@ public class UserService {
             }
             long id = Long.parseLong(tokenizer.nextToken());
             String password = tokenizer.nextToken();
-            User user = idToUser.get(id);
-            if (user == null) {
-                return null;
-            }
-            if (!checkRememberMePassword(user, decodeBase64UrlSafe(password))) {
+            User user = userMap.get(id);
+            if (user == null || !checkRememberMePassword(user, decodeBase64UrlSafe(password))) {
                 return null;
             }
             return user;
@@ -277,7 +280,7 @@ public class UserService {
     void setUsers(String input) {
         Validate.notBlank(input, "config 'autumn.users' is blank");
         users = Maps.newHashMapWithExpectedSize(2);
-        idToUser = Maps.newHashMapWithExpectedSize(2);
+        userMap = Maps.newHashMapWithExpectedSize(2);
         for (String s : input.trim().split("\\s*;\\s*")) {
             if (StringUtils.isBlank(s)) {
                 continue;
@@ -289,9 +292,9 @@ public class UserService {
             String salt = parts[3];
             User user = new User(id, username, password, salt, decodeHex(password), decodeHex(salt));
             Validate.isTrue(users.get(username) == null, "Duplicate username '%s'", username);
-            Validate.isTrue(idToUser.get(id) == null, "Duplicate id '%s'", id);
+            Validate.isTrue(userMap.get(id) == null, "Duplicate id '%s'", id);
             users.put(username, user);
-            idToUser.put(id, user);
+            userMap.put(id, user);
         }
     }
 

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="~{layout}" th:with="pageTitle='Home'">
+<div layout:fragment="content" class="page">
+    <div class="page_content">
+        <h1>Home</h1>
+        <h2>Recently Modified</h2>
+        <ol class='recently_modified'>
+            <li th:each="article : ${articles}">
+                <a href="@{article.path}" th:text="${article.title}"></a>
+                <i data-time="${article.modified.time}" th:text="${#dates.format(article.modified, 'yyyy-MM-dd')}"></i>
+            </li>
+        </ol>
+    </div>
+</div>
+</html>

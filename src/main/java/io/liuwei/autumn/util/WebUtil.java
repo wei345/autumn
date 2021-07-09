@@ -114,9 +114,9 @@ public class WebUtil {
         // 可以简单省事直接在配置文件里加一条配置，指定最终用户访问的 port。
         // 但我不需要区分 port，所以这里只考虑 contextPath。
         // 我设置 Autumn contextPath 和最终用户（经反向代理）访问的 contextPath 是相同的。
-        String instance = contextPath;
-        if (instance.length() > 0) {
-            prefix += (BaseEncoding.base64Url().omitPadding().encode(instance.getBytes(UTF_8)) + ".");
+        String contextPath = this.contextPath;
+        if (contextPath.length() > 0) {
+            prefix += BaseEncoding.base64Url().omitPadding().encode(contextPath.getBytes(UTF_8)) + ".";
         }
         this.prefix = prefix;
     }

@@ -20,24 +20,32 @@ public class MediaRevisionResolver {
     /**
      * @param messageDigest 消息摘要结果，如 md5
      */
-    public String getRevision(String messageDigest) {
+    public String getRevisionByDigest(String messageDigest) {
         return majorVersion + "." + StringUtils.substring(messageDigest, 0, 7);
     }
 
-    public String getRevision(long messageTimestamp) {
+    public String getRevisionByTimestamp(long messageTimestamp) {
         return majorVersion + "." + messageTimestamp;
     }
 
-    public String getMediaRevision(String path) {
+    public String getRevisionByMediaPath(String path) {
         Media media = articleManager.getMedia(path);
         if (media == null) {
-            return null;
+            return "";
         }
-        return getRevision(media.getFile().lastModified());
+        return getRevisionByTimestamp(media.getFile().lastModified());
     }
 
     public String getEtag(String messageDigest) {
         return majorVersion + "." + messageDigest;
+    }
+
+    public String getMediaRevisionUrl(String path) {
+        return toRevisionUrl(path, getRevisionByMediaPath(path));
+    }
+
+    public String toRevisionUrl(String path, String revision) {
+        return path + "?" + getRevisionParamName() + "=" + revision;
     }
 
     public String getRevisionParamName() {

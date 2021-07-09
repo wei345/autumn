@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * @author liuwei
  * @since 2021-07-07 16:30
@@ -30,6 +32,10 @@ public class ArticleService {
 
     public Article getArticle(String path) {
         return articleManager.getArticle(path);
+    }
+
+    public List<Article> listArticles(AccessLevelEnum accessLevel){
+        return articleManager.listArticles(accessLevel);
     }
 
     public RevisionContent getTreeJson(AccessLevelEnum accessLevel) {

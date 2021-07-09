@@ -32,9 +32,9 @@ public class DataFileDao {
         Collection<File> files = FileUtils.listFiles(dataDirFile, fileFilter, fileFilter);
 
         Map<String, File> allMap = Maps.newHashMapWithExpectedSize(files.size());
-        String dataDirCanonicalPath = dataDirFile.getCanonicalPath();
+        String dataDirAbsolutePath = dataDirFile.getAbsolutePath();
         for (File file : files) {
-            String relativePath = file.getCanonicalPath().substring(dataDirCanonicalPath.length());
+            String relativePath = file.getAbsolutePath().substring(dataDirAbsolutePath.length());
             allMap.put(relativePath, file);
         }
         log.info("found {} files in data dir {}", allMap.size(), dataDir);
@@ -46,23 +46,26 @@ public class DataFileDao {
         public boolean accept(File file) {
             if (file.isHidden() ||
                     file.getName().startsWith(".") ||
-                    file.getName().startsWith("_") ||
-                    file.getName().endsWith(".iml")) {
+                    file.getName().startsWith("_")) {
                 return false;
+            }
+
+            if (file.isFile()) {
+                if (file.getName().endsWith(".iml")) {
+                    return false;
+                }
+            } else {
+                if (file.getName().toLowerCase().endsWith(".graffle") ||
+                        file.getName().equalsIgnoreCase("target")) {
+                    return false;
+                }
             }
             return true;
         }
 
         @Override
         public boolean accept(File dir, String name) {
-            if (dir.isHidden() ||
-                    dir.getName().startsWith(".") ||
-                    dir.getName().startsWith("_") ||
-                    dir.getName().toLowerCase().endsWith(".graffle") ||
-                    dir.getName().equalsIgnoreCase("target")) {
-                return false;
-            }
-            return true;
+            throw new IllegalStateException("不会调用这个方法");
         }
     }
 

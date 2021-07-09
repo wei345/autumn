@@ -1,9 +1,9 @@
 package io.liuwei.autumn.controller;
 
 import io.liuwei.autumn.ArticleService;
+import io.liuwei.autumn.Constants;
 import io.liuwei.autumn.annotation.AccessLevel;
 import io.liuwei.autumn.annotation.CheckModified;
-import io.liuwei.autumn.config.AutumnProperties;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.ArticleVO;
@@ -15,11 +15,10 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.context.request.WebRequest;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,24 +37,31 @@ import java.util.Map;
 @RequestMapping
 public class ArticleController {
 
-    private static final String TREE_JS_PATH = "/tree.json";
-
     @Autowired
     private ArticleService articleService;
 
     @Autowired
-    private AutumnProperties autumnProperties;
-
-    @Autowired
     private StaticService staticService;
 
-    @Autowired
-    private WebUtil webUtil;
-
     @GetMapping("")
-    @ResponseBody
-    public String index() {
-        return "welcome";
+    public String index(@AccessLevel AccessLevelEnum accessLevel, Model model) {
+        List<Article> list = articleService.listArticles(accessLevel);
+        list.sort((o1, o2) -> {
+            // 一定要分出先后，也就是不能返回 0，否则每次搜索结果顺序可能不完全一样
+            int v;
+
+            // 最近修改日期
+            v = Long.compare(o2.getModified().getTime(), o1.getModified().getTime());
+            if (v != 0) {
+                return v;
+            }
+
+            // 字典顺序
+            return o1.getPath().compareTo(o2.getPath());
+        });
+
+        model.addAttribute("articles", list);
+        return "index";
     }
 
     @GetMapping(value = "/js*/all.js", produces = "text/javascript;charset=UTF-8")
@@ -71,7 +78,7 @@ public class ArticleController {
         return staticService.getCssCache();
     }
 
-    @GetMapping(value = TREE_JS_PATH, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = Constants.TREE_JS_PATH, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     @CheckModified
     public Object getTreeJson(@AccessLevel AccessLevelEnum accessLevel) {
@@ -81,7 +88,7 @@ public class ArticleController {
     @GetMapping(value = "/**/*.*")
     @ResponseBody
     public void getMedia(HttpServletRequest request, HttpServletResponse response, WebRequest webRequest,
-                        @AccessLevel AccessLevelEnum accessLevel) throws IOException {
+                         @AccessLevel AccessLevelEnum accessLevel) throws IOException {
         String path = WebUtil.getInternalPath(request);
         Media media = articleService.getMedia(path);
 
@@ -116,17 +123,7 @@ public class ArticleController {
 
         ArticleVO articleVO = articleService.toVO(article);
         model.put("article", articleVO);
-        setGlobalConfig(model, accessLevel);
         return "article";
-    }
-
-    private void setGlobalConfig(Map<String, Object> model, AccessLevelEnum accessLevel) {
-        String ctx = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest().getContextPath();
-        model.put("highlightjsVersion", autumnProperties.getCodeBlock().getHighlightjsVersion());
-        model.put("ctx", ctx);
-        model.put("prefix", webUtil.getPrefix());
-        model.put("treeJsUrl", ctx + TREE_JS_PATH + "?" + articleService.getTreeJson(accessLevel).getVersionKeyValue());
-        model.put("title", autumnProperties.getSiteTitle());
     }
 
 }

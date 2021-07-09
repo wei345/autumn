@@ -104,7 +104,7 @@ public class HtmlUtil {
             // 转为绝对路径
             mediaPath = Files.simplifyPath(getDirPath(refererPath) + mediaPath);
         }
-        String revision = mediaRevisionResolver.getMediaRevision(mediaPath);
+        String revision = mediaRevisionResolver.getRevisionByMediaPath(mediaPath);
         if (StringUtils.isBlank(revision)) {
             return mediaUrl;
         }

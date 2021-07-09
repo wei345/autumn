@@ -17,8 +17,8 @@ public class RevisionContentUtil {
         RevisionContent rc = new RevisionContent(content);
         rc.setMd5(md5);
         rc.setEtag(mediaRevisionResolver.getEtag(md5));
-        rc.setRevision(mediaRevisionResolver.getRevision(md5));
-        rc.setVersionKeyValue(mediaRevisionResolver.getRevisionParamName() + "=" + mediaRevisionResolver.getRevision(md5));
+        rc.setRevision(mediaRevisionResolver.getRevisionByDigest(md5));
+        rc.setVersionKeyValue(mediaRevisionResolver.getRevisionParamName() + "=" + mediaRevisionResolver.getRevisionByDigest(md5));
         rc.setTimestamp(System.currentTimeMillis());
         return rc;
     }
