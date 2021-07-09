@@ -156,6 +156,7 @@ public class ArticleController {
             articleVO.setTitleHtml(searchService.highlightSearchStr(articleVO.getTitleHtml(), searchStrList));
         }
 
+        model.put("breadcrumb", articleService.getBreadcrumbLinks(article, accessLevel));
         model.put("article", articleVO);
         return "article";
     }

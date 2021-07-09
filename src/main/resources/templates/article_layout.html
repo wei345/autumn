@@ -5,6 +5,13 @@
 <body>
 <div layout:fragment="content_layout_fragment" class="page">
     <div class="page_content">
+        <ul th:if="${not #lists.isEmpty(breadcrumb)}" class="breadcrumb">
+            <li th:each="link : ${breadcrumb}">
+                <span class="separator">/</span>
+                <a th:if="${link.href} != null" th:href="@{${link.href}}" th:text="${link.text}"></a>
+                <span th:if="${link.href} == null" th:text="${link.text}"></span>
+            </li>
+        </ul>
         <div layout:fragment="article_layout_fragment"></div>
     </div>
 </div>

@@ -2,16 +2,19 @@ package io.liuwei.autumn;
 
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import io.liuwei.autumn.converter.PageConverter;
+import io.liuwei.autumn.domain.Link;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.*;
 import io.liuwei.autumn.util.HtmlUtil;
 import io.liuwei.autumn.util.RevisionContentUtil;
 import io.liuwei.autumn.util.TreeUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -67,6 +70,46 @@ public class ArticleService {
     public ArticleTreeNode getTreeRoot(AccessLevelEnum accessLevel) {
         List<Article> articles = listArticles(accessLevel);
         return TreeUtil.toArticleTree(articles);
+    }
+
+    public List<Link> getBreadcrumbLinks(Article article, AccessLevelEnum accessLevel) {
+        LinkedList<Link> links = new LinkedList<>();
+        int lastSlash;
+        String path = article.getPath();
+        while ((lastSlash = path.lastIndexOf('/')) >= 0) {
+            String parent = path.substring(0, lastSlash);
+            links.addFirst(getBreadcrumbDirectoryLink(parent, accessLevel));
+            path = parent;
+        }
+
+        if (article.getPath().equals(links.getLast().getHref())) { // e.g. path is / or /a/b/b
+            links.getLast().setHref(null);
+        } else {
+            links.addLast(new Link(article.getTitle()));
+        }
+
+        return links;
+    }
+
+    /**
+     * @param path e.g. /a/b
+     */
+    private Link getBreadcrumbDirectoryLink(String path, AccessLevelEnum accessLevel) {
+        if (path.length() == 0) {
+            return new Link("Home", "/");
+        }
+        String name = StringUtils.substringAfterLast(path, "/");
+
+        Article article = articleManager.getArticle(path);
+        if (article == null) {
+            article = articleManager.getArticle(path + "/" + name);
+        }
+
+        if (article == null || !article.getAccessLevel().allow(accessLevel)) {
+            return new Link(name);
+        } else {
+            return new Link(article.getTitle(), article.getPath());
+        }
     }
 
     @Cacheable(value = CacheConstants.ARTICLE_VO, key = "#article.path")
