@@ -82,11 +82,12 @@ public class ContextInterceptor implements HandlerInterceptor {
             User user = userService.getCurrentUser(request, response);
             AccessLevelEnum accessLevel = userService.getAccessLevel(user);
             request.setAttribute("ctx", request.getContextPath());
+            request.setAttribute("path", request.getRequestURI().substring(request.getContextPath().length()));
             request.setAttribute("siteTitle", siteTitle);
             request.setAttribute("faviconUrl", mediaRevisionResolver.getMediaRevisionUrl(Constants.FAVICON_ICO_PATH));
-            request.setAttribute("cssUrl", toRevisionUrl("/css/all.css", staticService.getCssCache()));
-            request.setAttribute("jsUrl", toRevisionUrl("/js/all.js", staticService.getJsCache()));
-            request.setAttribute("treeJsonUrl", toRevisionUrl(Constants.TREE_JS_PATH, articleService.getTreeJson(accessLevel)));
+            request.setAttribute("cssUrl", toRevisionUrl(Constants.ALL_CSS_PATH, staticService.getCssCache()));
+            request.setAttribute("jsUrl", toRevisionUrl(Constants.ALL_JS_PATH, staticService.getJsCache()));
+            request.setAttribute("treeJsonUrl", toRevisionUrl(Constants.TREE_JSON_PATH, articleService.getTreeJson(accessLevel)));
             request.setAttribute("prefix", prefix);
             request.setAttribute("user", user);
 

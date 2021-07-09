@@ -42,9 +42,6 @@ public class ArticleManager {
     private DataFileDao dataFileDao;
 
     @Autowired
-    private JsonMapper jsonMapper;
-
-    @Autowired
     private MediaRevisionResolver mediaRevisionResolver;
 
     // file path -> File. file path 以 "/" 开头，"/" 表示数据目录
@@ -101,14 +98,6 @@ public class ArticleManager {
                 .stream()
                 .filter(o -> o.getAccessLevel().getLevel() >= accessLevel.getLevel())
                 .collect(Collectors.toList());
-    }
-
-    @Cacheable(value = CacheConstants.TREE_JSON)
-    public RevisionContent getTreeJson(AccessLevelEnum accessLevel) {
-        List<Article> articles = listArticles(accessLevel);
-        ArticleTreeNode articleTree = TreeUtil.toArticleTree(articles);
-        String json = jsonMapper.toJson(articleTree);
-        return RevisionContentUtil.newRevisionContent(json, mediaRevisionResolver);
     }
 
     private Media toMedia(File file, String path) {

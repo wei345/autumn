@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="~{content_layout}" th:with="pageTitle='Search'">
+<body>
+<div layout:fragment="content_layout_fragment" class="sr">
+    <div th:if="${sr != null}">
+        <div class="sr_stats"><span th:text="${sr.total}"></span> results (<span th:text="${sr.timeCost}"></span> ms)
+        </div>
+        <div class="sr_pages">
+            <div th:each="sp : ${sr.pages}" class="sr_page">
+                <div class="sr_page__link">
+                    <a th:href="@{${sp.page.path}} + ${sp.highlightString} == '' ? '' : '?' + ${sp.highlightString}">
+                        <span class="sr_page_title"
+                              th:text="${sp.titlePreview} == '' ? 'No Title' : ${sp.titlePreview}"></span><br/>
+                        <span class="sr_page_path" th:text="${sp.pathPreview}"></span>
+                    </a>
+                </div>
+                <div class="sr_page_body" th:utext="${sp.bodyPreview}"></div>
+                <div class="sr_page_info">
+                    <span class="sr_page_hit"><span th:text="${sp.hitCount}"></span> Hits, </span>
+                    <span class="sr_page_date" th:text="${#dates.format(sp.page.modified, 'yyyy-MM-dd')}"></span>
+                </div>
+            </div>
+        </div>
+        <div th:if="${pagination} != null and ${pagination.hasMore()}" class="pagination">
+            <a th:if="pagination.hasPrevious()" class="previous" th:href="@{${pagination.previous.url}}">
+                <span class="pn">Previous</span>
+            </a>
+            <span th:each="p : ${pagination.pageList}">
+                <span th:if="${p.page} == pagination.page" th:text="${p.page}" class="pn"></span>
+                <a th:if="${p.page} != pagination.page" th:href="@{${p.url}}">
+                    <span class="pn" th:text="${p.page}"></span>
+                </a>
+            </span>
+            <a th:if="${pagination.hasNext()}" class="next" th:href="@{${pagination.next.url}}">
+                <span class="pn">Next</span>
+            </a>
+        </div>
+    </div>
+    <p th:if="${sr == null}" th:text="${message}"></p>
+</div>
+</body>
+</html>

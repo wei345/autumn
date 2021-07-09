@@ -7,5 +7,7 @@ package io.liuwei.autumn;
 public class CacheConstants {
     public static final String ARTICLES = "autumn:articles";
     public static final String TREE_JSON = "autumn:tree_json";
+    public static final String TREE_HTML = "autumn:tree_html";
+    public static final String TREE_ROOT = "autumn:tree_root";
     public static final String ARTICLE_VO = "autumn:article_vo";
 }

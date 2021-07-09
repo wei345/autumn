@@ -194,7 +194,7 @@ function setupQuickSearch(treeRoot) {
         while (dir = dirs.pop()) {
             for (var i = 0; i < dir.children.length; i++) {
                 var node = dir.children[i];
-                if (node.children) {
+                if (node.children && node.children.length > 0) {
                     dirs.push(node);
                 } else {
                     pages.push(node);

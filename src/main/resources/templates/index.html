@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="~{layout}" th:with="pageTitle='Home'">
-<div layout:fragment="content" class="page">
+      layout:decorator="~{article_layout}" th:with="pageTitle='Home'">
+<div layout:fragment="article_layout_fragment" class="page">
     <div class="page_content">
-        <h1>Home</h1>
-        <h2>Recently Modified</h2>
-        <ol class='recently_modified'>
+        <h1 id="home">Home</h1>
+        <h2 id="recently-modified">Recently Modified</h2>
+        <p th:if="${#lists.isEmpty(articles)}">Welcome</p>
+        <ol th:if="${not #lists.isEmpty(articles)}" class='recently_modified'>
             <li th:each="article : ${articles}">
-                <a href="@{article.path}" th:text="${article.title}"></a>
-                <i data-time="${article.modified.time}" th:text="${#dates.format(article.modified, 'yyyy-MM-dd')}"></i>
+                <a th:href="@{${article.path}}" th:text="${article.title}"></a>
+                <i th:data-time="${article.modified.time}" th:text="${#dates.format(article.modified, 'yyyy-MM-dd')}"></i>
             </li>
         </ol>
     </div>

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="~{content_layout}">
+<body>
+<div layout:fragment="content_layout_fragment" class="page">
+    <div class="page_content">
+        <div layout:fragment="article_layout_fragment"></div>
+    </div>
+</div>
+</body>
+</html>

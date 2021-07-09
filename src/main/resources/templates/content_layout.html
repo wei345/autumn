@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
-
-<div th:replace="base_layout.html :: head"></div>
-<body class="multiple_columns">
-<div class="container">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="~{basic_layout}">
+<body>
+<div layout:fragment="basic_layout_fragment">
     <div class="header">
         <div class="header__row_1 row">
             <div class="header__row_1__heading column">
@@ -31,7 +30,7 @@
                 <ul class="header__row_1__tools no_selection">
                     <!--/* sitemap 移至单独的页面
                     <li><span class="sitemap_toggle action_toggle">Sitemap</span></li> */-->
-                    <li><a th:href="@{/sitemap#${path}}">Sitemap</a></li>
+                    <li><a th:href="@{/sitemap} + '#' + ${#request.getAttribute('path')}">Sitemap</a></li>
                     <li><a th:href="@{/help}">Help</a></li>
                     <li th:if="${logged}"><a class="header__row_1__right__logout" th:href="@{/logout}">Logout</a></li>
                     <li th:if="not ${logged}"><a class="header__row_1__right__logout" th:href="@{/login}">Login</a></li>
@@ -50,11 +49,8 @@
     <div class="main row">
         <div class="sidebar column"></div>
         <div class="content column">
-            <div layout:fragment="content"></div>
+            <div layout:fragment="content_layout_fragment"></div>
         </div>
-    </div>
-    <div class="footer">
-        <a class="powered" href="https://github.com/wei345/autumn">Powered by Autumn</a>
     </div>
 </div>
 </body>

@@ -60,29 +60,40 @@ public class ArticleController {
             return o1.getPath().compareTo(o2.getPath());
         });
 
+        if (list.size() > 20) {
+            list = list.subList(0, 20);
+        }
+
         model.addAttribute("articles", list);
         return "index";
     }
 
-    @GetMapping(value = "/js*/all.js", produces = "text/javascript;charset=UTF-8")
+    @GetMapping(value = Constants.ALL_JS_PATH, produces = MimeTypeUtil.TEXT_JAVASCRIPT_UTF8)
     @ResponseBody
     @CheckModified
     public Object getAllJs() {
         return staticService.getJsCache();
     }
 
-    @GetMapping(value = "/css*/all.css", produces = "text/css;charset=UTF-8")
+    @GetMapping(value = Constants.ALL_CSS_PATH, produces = MimeTypeUtil.TEXT_CSS_UTF8)
     @ResponseBody
     @CheckModified
     public Object getAllCss() {
         return staticService.getCssCache();
     }
 
-    @GetMapping(value = Constants.TREE_JS_PATH, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = Constants.TREE_JSON_PATH, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     @CheckModified
     public Object getTreeJson(@AccessLevel AccessLevelEnum accessLevel) {
         return articleService.getTreeJson(accessLevel);
+    }
+
+    @GetMapping("/sitemap")
+    public String sitemap(@AccessLevel AccessLevelEnum accessLevel, Model model) {
+        String treeHtml = articleService.getTreeHtml(accessLevel);
+        model.addAttribute("treeHtml", treeHtml);
+        return "sitemap";
     }
 
     @GetMapping(value = "/**/*.*")

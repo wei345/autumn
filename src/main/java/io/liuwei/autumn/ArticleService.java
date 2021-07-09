@@ -1,10 +1,14 @@
 package io.liuwei.autumn;
 
+import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import io.liuwei.autumn.converter.PageConverter;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.*;
 import io.liuwei.autumn.util.HtmlUtil;
+import io.liuwei.autumn.util.RevisionContentUtil;
+import io.liuwei.autumn.util.TreeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +30,12 @@ public class ArticleService {
     @Autowired
     private MediaRevisionResolver mediaRevisionResolver;
 
+    @Autowired
+    private JsonMapper jsonMapper;
+
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
+
     public Media getMedia(String relativePath) {
         return articleManager.getMedia(relativePath);
     }
@@ -34,12 +44,29 @@ public class ArticleService {
         return articleManager.getArticle(path);
     }
 
-    public List<Article> listArticles(AccessLevelEnum accessLevel){
+    public List<Article> listArticles(AccessLevelEnum accessLevel) {
         return articleManager.listArticles(accessLevel);
     }
 
+    @Cacheable(value = CacheConstants.TREE_JSON)
     public RevisionContent getTreeJson(AccessLevelEnum accessLevel) {
-        return articleManager.getTreeJson(accessLevel);
+        ArticleTreeNode root = getTreeRoot(accessLevel);
+        String json = jsonMapper.toJson(root);
+        return RevisionContentUtil.newRevisionContent(json, mediaRevisionResolver);
+    }
+
+    @Cacheable(value = CacheConstants.TREE_HTML)
+    public String getTreeHtml(AccessLevelEnum accessLevel) {
+        ArticleTreeNode root = getTreeRoot(accessLevel);
+        StringBuilder stringBuilder = new StringBuilder(10240);
+        TreeUtil.buildTreeHtml(root.getChildren(), contextPath, stringBuilder);
+        return stringBuilder.toString();
+    }
+
+    @Cacheable(value = CacheConstants.TREE_ROOT)
+    public ArticleTreeNode getTreeRoot(AccessLevelEnum accessLevel) {
+        List<Article> articles = listArticles(accessLevel);
+        return TreeUtil.toArticleTree(articles);
     }
 
     @Cacheable(value = CacheConstants.ARTICLE_VO, key = "#article.path")

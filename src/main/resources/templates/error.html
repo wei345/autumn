@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="~{layout}" th:with="pageTitle=${status} + ' ' + ${error}">
+      layout:decorator="~{content_layout}" th:with="pageTitle=${status} + ' ' + ${error}">
 <body>
-<div class="error_page center_position">
+<div layout:fragment="content_layout_fragment" class="error_page center_position">
     <h1 th:text="${pageTitle}"></h1>
-    <p th:if="${message} != ${error}" th:text="${message}"></p>
+    <p th:if="${message != error}" th:text="${message}"></p>
 </div>
 </body>
 </html>
