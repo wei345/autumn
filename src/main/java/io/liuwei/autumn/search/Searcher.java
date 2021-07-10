@@ -79,7 +79,7 @@ public class Searcher {
     }
 
     private Set<SearchingPage> toSearchingPageSet(Collection<Article> all) {
-        return all.stream().map(SearchingPage::new).collect(Collectors.toCollection(Sorting.SET_SUPPLIER));
+        return all.stream().map(SearchingPage::new).collect(Collectors.toSet());
     }
 
 }

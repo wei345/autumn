@@ -13,7 +13,7 @@
                     <a th:href="@{${sp.article.path}} + (${sp.highlightString} == '' ? '' : '?' + ${sp.highlightString})">
                         <span class="sr_page_title"
                               th:utext="${sp.titlePreview} == '' ? 'No Title' : ${sp.titlePreview}"></span><br/>
-                        <span class="sr_page_path" th:text="${sp.pathPreview}"></span>
+                        <span class="sr_page_path" th:utext="${sp.pathPreview}"></span>
                     </a>
                 </div>
                 <div class="sr_page_body" th:utext="${sp.bodyPreview}"></div>
@@ -24,12 +24,12 @@
             </div>
         </div>
         <div th:if="${pagination} != null and ${pagination.hasMore()}" class="pagination">
-            <a th:if="pagination.hasPrevious()" class="previous" th:href="@{${pagination.previous.url}}">
+            <a th:if="${pagination.hasPrevious()}" class="previous" th:href="@{${pagination.previous.url}}">
                 <span class="pn">Previous</span>
             </a>
             <span th:each="p : ${pagination.pageList}">
-                <span th:if="${p.page} == pagination.page" th:text="${p.page}" class="pn"></span>
-                <a th:if="${p.page} != pagination.page" th:href="@{${p.url}}">
+                <span th:if="${p.page} == ${pagination.page}" th:text="${p.page}" class="pn"></span>
+                <a th:if="${p.page} != ${pagination.page}" th:href="@{${p.url}}">
                     <span class="pn" th:text="${p.page}"></span>
                 </a>
             </span>

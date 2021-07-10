@@ -1,19 +1,14 @@
 package io.liuwei.autumn.search;
 
-import com.google.common.collect.Sets;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/28.
  */
 class Sorting {
-
-    static Supplier<Set<SearchingPage>> SET_SUPPLIER = Sets::newHashSet;
 
     static List<SearchingPage> sort(Set<SearchingPage> set) {
         List<SearchingPage> list = new ArrayList<>(set);

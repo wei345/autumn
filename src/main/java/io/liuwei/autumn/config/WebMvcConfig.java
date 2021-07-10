@@ -3,8 +3,11 @@ package io.liuwei.autumn.config;
 import io.liuwei.autumn.AccessLevelMethodArgumentResolver;
 import io.liuwei.autumn.interceptor.ContextInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.web.servlet.error.ErrorViewResolver;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
@@ -28,13 +31,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
         viewResolver.setRedirectHttp10Compatible(false);
     }
 
-    /*@Bean
-    public SpringTemplateEngine templateEngine() {
-        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
-        templateEngine.addDialect(new LayoutDialect());
-        return templateEngine;
-    }*/
-
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(contextInterceptor);
@@ -44,4 +40,5 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(accessLevelMethodArgumentResolver);
     }
+
 }

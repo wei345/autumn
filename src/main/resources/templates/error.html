@@ -1,10 +1,28 @@
+<!--/*
+当 Thymeleaf 模版解析出错时，Tomcat 会捕捉到这个错误，
+如果 response.isCommitted() 为 true，Tomcat 会 include 错误页面。
+
+如果之前的页面使用了和错误页面一样的 layout:fragment 值，并且是在这个 fragment 里出错的，
+那么错误页面里的 layout:fragment 将不会起作用，并且会使用之前页面的 layout:fragment，
+并且也会报错，会导致浏览器显示一片空白。
+
+所以，如果我们检查到错误页面被 include，不使用 layout，只是简单输出错误信息。
+*/-->
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html th:if="${#request.getDispatcherType().name() != 'INCLUDE'}" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorator="~{content_layout}" th:with="pageTitle=${status} + ' ' + ${error}">
 <body>
 <div layout:fragment="content_layout_fragment" class="error_page center_position">
     <h1 th:text="${pageTitle}"></h1>
+    <p th:if="${message != error}" th:text="${message}"></p>
+</div>
+</body>
+</html>
+<html th:if="${#request.getDispatcherType().name() == 'INCLUDE'}" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div>
+    <b>**ERROR**</b>
     <p th:if="${message != error}" th:text="${message}"></p>
 </div>
 </body>

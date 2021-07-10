@@ -27,7 +27,7 @@ abstract class AbstractMatcher implements Matcher {
     public Set<SearchingPage> search(Set<SearchingPage> source) {
         return source.stream()
                 .filter(this::test)
-                .collect(Collectors.toCollection(Sorting.SET_SUPPLIER));
+                .collect(Collectors.toSet());
     }
 
     @Override

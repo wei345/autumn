@@ -9,7 +9,8 @@
     <meta id="ctx" name="ctx" th:value="${#request.getAttribute('ctx')}">
     <meta id="prefix" name="prefix" th:value="${#request.getAttribute('prefix')}">
     <meta id="treeJsonUrl" name="treeJsonUrl" th:value="${#request.getAttribute('treeJsonUrl')}">
-    <title th:text="${pageTitle} + ' - ' + ${#request.getAttribute('siteTitle')}"></title>
+    <title th:if="${pageTitle} == null or ${pageTitle} == ''" th:text="${#request.getAttribute('siteTitle')}"></title>
+    <title th:if="${pageTitle} != null and ${pageTitle} != ''" th:text="${pageTitle} + ' - ' + ${#request.getAttribute('siteTitle')}"></title>
     <link rel="icon" th:href="@{${#request.getAttribute('faviconUrl')}}" type="image/x-icon"/>
     <link rel="stylesheet" th:href="@{${#request.getAttribute('cssUrl')}}"/>
     <script>

@@ -2,7 +2,6 @@ package io.liuwei.autumn;
 
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
-import io.liuwei.autumn.util.Asciidoctors;
 import io.liuwei.autumn.util.LineReader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -22,16 +21,15 @@ import java.util.*;
  */
 @Component
 public class AsciidocArticleParser {
+    private static final FastDateFormat DATE_PARSER_ON_SECOND = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
     private final String attrCreated = "created";
     private final String attrModified = "modified";
     private final String attrCategory = "category";
     private final String attrTags = "tags";
     private final String attrAccessLevel = "access";
     private final String titlePrefix = "= ";
-
-    private static final FastDateFormat DATE_PARSER_ON_SECOND = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
-
     private final Asciidoctor asciidoctor;
+    private final String ASCIIDOC_HEADER_PRIFIX = ":";
 
     @Autowired
     public AsciidocArticleParser(Asciidoctor asciidoctor) {
@@ -46,7 +44,7 @@ public class AsciidocArticleParser {
         LineReader lineReader = new LineReader(text);
         parseHeader(lineReader, article);
         article.setTitle(parseTitle(lineReader));
-        article.setContent(lineReader.remainingText());
+        article.setContent(parseContent(lineReader));
         article.setSource(text);
         article.setSourceMd5(DigestUtils.md5DigestAsHex(text.getBytes(StandardCharsets.UTF_8)));
         article.setPath(path);
@@ -66,14 +64,14 @@ public class AsciidocArticleParser {
             article.setModified(parseDate((String) attributes.get(attrModified)));
         }
 
-        if (attributes.get(attrTags) != null) {
-            String tagsString = (String) attributes.get(attrTags);
+        String tagsString = StringUtils.trimToNull((String) attributes.get(attrTags));
+        if (tagsString != null) {
             article.setTags(new LinkedHashSet<>(Arrays.asList(tagsString.split("\\s*,\\s*"))));
         } else {
             article.setTags(Collections.emptySet());
         }
 
-        article.setCategory((String) attributes.get(attrCategory));
+        article.setCategory(StringUtils.trimToNull((String) attributes.get(attrCategory)));
 
         article.setAccessLevel(AccessLevelEnum.of((String) attributes.get(attrAccessLevel), AccessLevelEnum.OWNER));
 
@@ -99,6 +97,16 @@ public class AsciidocArticleParser {
             }
         }
         return "";
+    }
+
+    private String parseContent(LineReader lineReader){
+        for (String line : lineReader) {
+            if(StringUtils.isNotBlank(line) && !line.startsWith(ASCIIDOC_HEADER_PRIFIX)){
+                lineReader.back();
+                break;
+            }
+        }
+        return lineReader.remainingText();
     }
 
 
