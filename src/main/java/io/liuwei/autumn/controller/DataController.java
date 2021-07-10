@@ -35,7 +35,7 @@ public class DataController {
 
     // curl --silent -X POST http://localhost:8061/data/reload
     @PostMapping("/data/reload")
-    public DataInfo reload(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public DataInfo reload(HttpServletRequest request, HttpServletResponse response) {
         if (!checkAuth(request, response)) {
             return null;
         }

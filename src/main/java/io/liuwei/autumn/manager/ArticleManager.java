@@ -54,7 +54,7 @@ public class ArticleManager {
     private volatile DataInfo dataInfo;
 
     @PostConstruct
-    public void init() throws IOException {
+    public void init() {
         reload();
     }
 
@@ -62,11 +62,11 @@ public class ArticleManager {
             @CacheEvict(value = CacheConstants.ARTICLE_LIST),
             @CacheEvict(value = CacheConstants.ARTICLE_TREE_JSON),
             @CacheEvict(value = CacheConstants.ARTICLE_TREE_HTML),
-            @CacheEvict(value = CacheConstants.ARTICLE_TREE_ROOT),
+            @CacheEvict(value = CacheConstants.ARTICLE_TREE),
             @CacheEvict(value = CacheConstants.ARTICLE_VO),
             @CacheEvict(value = CacheConstants.ARTICLE_BREADCRUMB),
     })
-    public synchronized DataInfo reload() throws IOException {
+    public synchronized DataInfo reload() {
         long startTime = System.currentTimeMillis();
 
         Map<String, File> allFileMap = dataFileDao.getAllFileMap();

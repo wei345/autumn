@@ -42,8 +42,8 @@ public class ArticleService {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
-    public Media getMedia(String relativePath) {
-        return articleManager.getMedia(relativePath);
+    public Media getMedia(String path) {
+        return articleManager.getMedia(path);
     }
 
     public Article getArticle(String path) {
@@ -56,23 +56,22 @@ public class ArticleService {
 
     @Cacheable(CacheConstants.ARTICLE_TREE_JSON)
     public RevisionContent getTreeJson(AccessLevelEnum accessLevel) {
-        ArticleTreeNode root = getTreeRoot(accessLevel);
+        ArticleTreeNode root = getTree(accessLevel);
         String json = jsonMapper.toJson(root);
         return RevisionContentUtil.newRevisionContent(json, mediaRevisionResolver);
     }
 
     @Cacheable(CacheConstants.ARTICLE_TREE_HTML)
     public String getTreeHtml(AccessLevelEnum accessLevel) {
-        ArticleTreeNode root = getTreeRoot(accessLevel);
+        ArticleTreeNode root = getTree(accessLevel);
         StringBuilder stringBuilder = new StringBuilder(10240);
         TreeUtil.buildTreeHtml(root.getChildren(), contextPath, stringBuilder);
         return stringBuilder.toString();
     }
 
-    @Cacheable(CacheConstants.ARTICLE_TREE_ROOT)
-    public ArticleTreeNode getTreeRoot(AccessLevelEnum accessLevel) {
-        List<Article> articles = listArticles(accessLevel);
-        return TreeUtil.toArticleTree(articles);
+    @Cacheable(CacheConstants.ARTICLE_TREE)
+    public ArticleTreeNode getTree(AccessLevelEnum accessLevel) {
+        return TreeUtil.toArticleTree(listArticles(accessLevel));
     }
 
     @Cacheable(CacheConstants.ARTICLE_BREADCRUMB)

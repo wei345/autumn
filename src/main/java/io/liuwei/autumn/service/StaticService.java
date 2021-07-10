@@ -2,6 +2,7 @@ package io.liuwei.autumn.service;
 
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import io.liuwei.autumn.component.MediaRevisionResolver;
+import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.converter.ContentHtmlConverter;
 import io.liuwei.autumn.dao.ResourceFileDao;
 import io.liuwei.autumn.model.ContentHtml;
@@ -43,23 +44,9 @@ public class StaticService {
     private String codeBlockLineNumberJs;
     private String codeBlockHighlightJs;
     private String codeBlockHighlightCss;
-    @Value("${autumn.code-block-line-number.enabled}")
-    private boolean codeBlockLineNumberEnabled;
-
-    @Value("${autumn.code-block-highlighting.enabled}")
-    private boolean codeBlockHighlightEnabled;
-
-    @Value("${autumn.highlightjs-version}")
-    private String highlightjsVersion;
 
     @Value("${autumn.google-analytics-id}")
     private String googleAnalyticsId;
-
-    @Value("${autumn.code-block-highlighting.languages}")
-    private List<String> highlightLanguages;
-
-    @Value("${autumn.code-block-highlighting.style}")
-    private String codeBlockHighlightStyle;
 
     @Value("${autumn.compressor.javascript.enabled}")
     private boolean jsCompressEnabled;
@@ -72,6 +59,13 @@ public class StaticService {
 
     @Autowired
     private ContentHtmlConverter contentHtmlConverter;
+
+    private AppProperties.CodeBlock codeBlock;
+
+    @Autowired
+    private void setAppProperties(AppProperties appProperties) {
+        this.codeBlock = appProperties.getCodeBlock();
+    }
 
     @PostConstruct
     private void init() {
@@ -128,11 +122,11 @@ public class StaticService {
                         .append("\n"));
         stringBuilder.append("})();\n");
 
-        if (codeBlockHighlightEnabled) {
+        if (codeBlock.isHighlightingEnabled()) {
             stringBuilder.append(getCodeBlockHighlightJs()).append("\n");
         }
 
-        if (codeBlockLineNumberEnabled) {
+        if (codeBlock.isLineNumberEnabled()) {
             stringBuilder.append(getCodeBlockLineNumberJs()).append("\n");
         }
 
@@ -159,7 +153,7 @@ public class StaticService {
         StringBuilder stringBuilder = STRING_BUILDER_HOLDER.get();
         sourceList.forEach(resourceCache ->
                 stringBuilder.append(resourceCache.getContentString()).append("\n"));
-        if (codeBlockHighlightEnabled) {
+        if (codeBlock.isHighlightingEnabled()) {
             stringBuilder.append(getCodeBlockHighlightCss()).append("\n");
         }
 
@@ -205,12 +199,14 @@ public class StaticService {
             return codeBlockHighlightJs;
         }
 
-        String hljsContent = resourceFileDao.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/highlight.js");
+        String hljsContent = resourceFileDao.getWebJarResourceAsString(
+                "/highlightjs/" + codeBlock.getHighlightjsVersion() + "/highlight.js");
 
         StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
         stringBuilder.append(hljsContent).append("\n");
-        highlightLanguages.forEach(language -> {
-            String text = resourceFileDao.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/languages/" + language + ".js");
+        codeBlock.getHighlightingLanguages().forEach(language -> {
+            String text = resourceFileDao.getWebJarResourceAsString(
+                    "/highlightjs/" + codeBlock.getHighlightjsVersion() + "/languages/" + language + ".js");
             String js = text.substring(text.indexOf("function"));
             // hljs.registerLanguage('language', function(hljs){...});
             stringBuilder.append("hljs.registerLanguage('").append(language).append("', ").append(js).append(");\n");
@@ -241,11 +237,14 @@ public class StaticService {
             return codeBlockHighlightCss;
         }
 
-        if (StringUtils.isBlank(codeBlockHighlightStyle)) {
+        if (StringUtils.isBlank(codeBlock.getHighlightingStyle())) {
             return (codeBlockHighlightCss = "");
         }
 
-        String text = resourceFileDao.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/styles/" + codeBlockHighlightStyle + ".css");
+        String text = resourceFileDao.getWebJarResourceAsString(
+                "/highlightjs/" + codeBlock.getHighlightjsVersion() +
+                        "/styles/" + codeBlock.getHighlightingStyle() + ".css");
+
         return codeBlockHighlightCss = text;
     }
 
