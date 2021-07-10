@@ -1,12 +1,21 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="~{article_layout}" th:with="pageTitle=${article.title}">
+      layout:decorator="~{content_layout}" th:with="pageTitle=${article.title}">
 <body>
-<div layout:fragment="article_layout_fragment">
-    <div th:utext="${article.tocHtml}"></div>
-    <div th:utext="${article.titleHtml}"></div>
-    <div th:utext="${article.contentHtml}"></div>
+<div layout:fragment="content_layout_fragment" class="page">
+    <div class="page_content">
+        <ul th:if="${not #lists.isEmpty(breadcrumb)}" class="breadcrumb">
+            <li th:each="link : ${breadcrumb}">
+                <span class="separator">/</span>
+                <a th:if="${link.href} != null" th:href="@{${link.href}}" th:text="${link.text}"></a>
+                <span th:if="${link.href} == null" th:text="${link.text}"></span>
+            </li>
+        </ul>
+        <div th:remove="tag" th:utext="${article.tocHtml}"></div>
+        <div th:remove="tag" th:utext="${article.titleHtml}"></div>
+        <div th:remove="tag" th:utext="${article.contentHtml}"></div>
+    </div>
 </div>
 </body>
 </html>
