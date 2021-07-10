@@ -20,6 +20,7 @@ public class TreeUtil {
         if (articleList == null) {
             return null;
         }
+
         ArticleTreeNode root = new ArticleTreeNode("/", "Home");
         if (articleList.size() == 0) {
             return root;
@@ -27,6 +28,7 @@ public class TreeUtil {
 
         Map<String, ArticleTreeNode> path2node = Maps.newHashMapWithExpectedSize(articleList.size());
         for (Article article : articleList) {
+            // 创建目录节点. e.g. /a/b/c, 依次创建 /a/, /a/b/
             int slash1Pos = 0;
             int slash2Pos;
             ArticleTreeNode parent = root;
@@ -43,6 +45,8 @@ public class TreeUtil {
                 parent = dir;
                 slash1Pos = slash2Pos;
             }
+
+            // 创建叶子节点
             ArticleTreeNode leaf = new ArticleTreeNode(path, article.getName());
             leaf.setTitle(article.getTitle());
             leaf.setCategory(article.getCategory());
@@ -51,7 +55,8 @@ public class TreeUtil {
             leaf.setModified(article.getModified());
             parent.getChildren().add(leaf);
         }
-        sort(root, Comparator
+
+        sortAllChildren(root, Comparator
                 // 目录排前面
                 .comparingInt((ArticleTreeNode o) -> (o.getChildren().size() > 0 ? 0 : 1))
                 // 然后按字母顺序排序
@@ -59,7 +64,7 @@ public class TreeUtil {
         return root;
     }
 
-    private static void sort(ArticleTreeNode root, Comparator<ArticleTreeNode> comparator) {
+    private static void sortAllChildren(ArticleTreeNode root, Comparator<ArticleTreeNode> comparator) {
         Stack<ArticleTreeNode> stack = new Stack<>();
         stack.push(root);
         while (!stack.empty()) {
