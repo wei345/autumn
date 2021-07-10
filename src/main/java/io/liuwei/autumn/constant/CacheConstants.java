@@ -1,4 +1,4 @@
-package io.liuwei.autumn;
+package io.liuwei.autumn.constant;
 
 /**
  * @author liuwei

@@ -1,5 +1,6 @@
-package io.liuwei.autumn;
+package io.liuwei.autumn.component;
 
+import io.liuwei.autumn.manager.ArticleManager;
 import io.liuwei.autumn.model.Media;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

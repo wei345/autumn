@@ -1,6 +1,6 @@
 package io.liuwei.autumn.util;
 
-import io.liuwei.autumn.MediaRevisionResolver;
+import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.model.RevisionContent;
 import org.springframework.util.DigestUtils;
 
@@ -18,7 +18,6 @@ public class RevisionContentUtil {
         rc.setMd5(md5);
         rc.setEtag(mediaRevisionResolver.getEtag(md5));
         rc.setRevision(mediaRevisionResolver.getRevisionByDigest(md5));
-        rc.setVersionKeyValue(mediaRevisionResolver.getRevisionParamName() + "=" + mediaRevisionResolver.getRevisionByDigest(md5));
         rc.setTimestamp(System.currentTimeMillis());
         return rc;
     }

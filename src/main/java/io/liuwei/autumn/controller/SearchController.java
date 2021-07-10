@@ -1,7 +1,7 @@
 package io.liuwei.autumn.controller;
 
 import io.liuwei.autumn.annotation.AccessLevel;
-import io.liuwei.autumn.domain.Pagination;
+import io.liuwei.autumn.model.Pagination;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.search.SearchResult;
 import io.liuwei.autumn.service.RateLimitService;

@@ -1,6 +1,5 @@
 package io.liuwei.autumn.search;
 
-import io.liuwei.autumn.domain.Page;
 import io.liuwei.autumn.model.Article;
 import org.springframework.stereotype.Component;
 

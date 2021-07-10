@@ -1,4 +1,4 @@
-package io.liuwei.autumn;
+package io.liuwei.autumn.manager;
 
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
@@ -29,7 +29,7 @@ public class AsciidocArticleParser {
     private final String attrAccessLevel = "access";
     private final String titlePrefix = "= ";
     private final Asciidoctor asciidoctor;
-    private final String ASCIIDOC_HEADER_PRIFIX = ":";
+    private final String ASCIIDOC_HEADER_PREFIX = ":";
 
     @Autowired
     public AsciidocArticleParser(Asciidoctor asciidoctor) {
@@ -101,7 +101,7 @@ public class AsciidocArticleParser {
 
     private String parseContent(LineReader lineReader){
         for (String line : lineReader) {
-            if(StringUtils.isNotBlank(line) && !line.startsWith(ASCIIDOC_HEADER_PRIFIX)){
+            if(StringUtils.isNotBlank(line) && !line.startsWith(ASCIIDOC_HEADER_PREFIX)){
                 lineReader.back();
                 break;
             }

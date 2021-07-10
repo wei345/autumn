@@ -1,4 +1,4 @@
-package io.liuwei.autumn.domain;
+package io.liuwei.autumn.model;
 
 import lombok.Getter;
 import lombok.Setter;

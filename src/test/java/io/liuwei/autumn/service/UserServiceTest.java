@@ -39,7 +39,7 @@ public class UserServiceTest {
         System.out.println("password: " + plainPassword);
 
         // check password
-        UserService userService = new UserService();
+        UserService userService = new UserService("autumn.");
         userService.setUsers(userString);
         assertThat(userService.getUser(username)).isNotNull();
         User user = userService.getUser(username);

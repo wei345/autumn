@@ -9,8 +9,10 @@
         <h2 th:if="${not #lists.isEmpty(articles)}" id="recently-modified">Recently Modified</h2>
         <ol th:if="${not #lists.isEmpty(articles)}" class='recently_modified'>
             <li th:each="article : ${articles}">
-                <a th:href="@{${article.path}}" th:text="${article.title}"></a>
-                <i th:data-time="${article.modified.time}" th:text="${#dates.format(article.modified, 'yyyy-MM-dd')}"></i>
+                <a th:href="@{${article.path}}" th:text="${article.title}">
+                    <i th:data-time="${article.modified.time}"
+                       th:text="${#dates.format(article.modified, 'yyyy-MM-dd')}"></i>
+                </a>
             </li>
         </ol>
     </div>

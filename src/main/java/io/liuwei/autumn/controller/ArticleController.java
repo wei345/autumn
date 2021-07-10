@@ -1,7 +1,7 @@
 package io.liuwei.autumn.controller;
 
-import io.liuwei.autumn.ArticleService;
-import io.liuwei.autumn.Constants;
+import io.liuwei.autumn.service.ArticleService;
+import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.annotation.AccessLevel;
 import io.liuwei.autumn.annotation.CheckModified;
 import io.liuwei.autumn.enums.AccessLevelEnum;

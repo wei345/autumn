@@ -1,17 +1,14 @@
 package io.liuwei.autumn.controller;
 
 import io.liuwei.autumn.service.RateLimitService;
-import io.liuwei.autumn.service.TemplateService;
+import io.liuwei.autumn.service.UserService;
+import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import io.liuwei.autumn.service.UserService;
-import io.liuwei.autumn.util.WebUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,23 +29,18 @@ public class LoginController {
     @Autowired
     private RateLimitService rateLimitService;
 
-    @Autowired
-    private TemplateService templateService;
-
     @GetMapping("/login")
-    public String login(Map<String, Object> model) {
-        templateService.setCtx(model);
+    public String login() {
         return "login";
     }
 
     @PostMapping("/login")
     public String loginSubmit(String username,
                               String password,
-                              String ret,
+                              String returnUrl,
                               Map<String, Object> model,
                               HttpServletRequest request,
                               HttpServletResponse response) {
-        templateService.setCtx(model);
 
         String clientIp = WebUtil.getClientIpAddress(request);
         if (!rateLimitService.acquireLogin(clientIp)) {
@@ -65,7 +57,7 @@ public class LoginController {
 
             if (userService.login(username, password, request, response)) {
                 // 登录成功
-                return (ret != null && ret.startsWith("/")) ? "redirect:" + ret : "redirect:/";
+                return (returnUrl != null && returnUrl.startsWith("/")) ? "redirect:" + returnUrl : "redirect:/";
             }
         }
 

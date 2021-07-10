@@ -1,4 +1,4 @@
-package io.liuwei.autumn.data;
+package io.liuwei.autumn.dao;
 
 import com.google.common.collect.Maps;
 import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
@@ -43,22 +43,22 @@ import static java.nio.file.FileVisitResult.CONTINUE;
  * Created by liuwei on 2018/12/11.
  */
 @Component
-public class ResourceLoader implements Runnable {
+public class ResourceFileDao implements Runnable {
 
     public static final String STATIC_ROOT = "/static";
     private static final String WEBJARS_ROOT = "/META-INF/resources/webjars";
     private static final String TEMPLATE_ROOT = "/templates";
-    private static final Logger logger = LoggerFactory.getLogger(ResourceLoader.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResourceFileDao.class);
     private final List<StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
     private final List<TemplateLastChangedListener> templateLastChangedListeners = new ArrayList<>(1);
     private volatile long templateLastModified;
     @Value("${autumn.resource.reload-interval-seconds}")
     private long reloadIntervalSeconds;
-    private volatile Map<String, ResourceLoader.ResourceCache> resourceCacheMap = Collections.emptyMap();
+    private volatile Map<String, ResourceFileDao.ResourceCache> resourceCacheMap = Collections.emptyMap();
     private ScheduledExecutorService scheduler;
 
     private static byte[] getResourceAsBytes(String classpath) {
-        InputStream in = ResourceLoader.class.getResourceAsStream(classpath);
+        InputStream in = ResourceFileDao.class.getResourceAsStream(classpath);
         try {
             return StreamUtils.copyToByteArray(in);
         } catch (IOException e) {

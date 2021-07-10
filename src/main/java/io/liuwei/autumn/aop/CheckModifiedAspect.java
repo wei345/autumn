@@ -1,4 +1,4 @@
-package io.liuwei.autumn;
+package io.liuwei.autumn.aop;
 
 import io.liuwei.autumn.annotation.CheckModified;
 import io.liuwei.autumn.model.RevisionContent;

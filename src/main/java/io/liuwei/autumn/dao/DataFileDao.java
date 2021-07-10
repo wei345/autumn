@@ -1,4 +1,4 @@
-package io.liuwei.autumn;
+package io.liuwei.autumn.dao;
 
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;

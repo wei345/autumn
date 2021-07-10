@@ -17,30 +17,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.web.util.CookieGenerator;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static com.vip.vjtools.vjkit.security.CryptoUtil.*;
-import static com.vip.vjtools.vjkit.text.EncodeUtil.*;
-import static java.nio.charset.StandardCharsets.*;
+import static com.vip.vjtools.vjkit.security.CryptoUtil.aesEncrypt;
+import static com.vip.vjtools.vjkit.text.EncodeUtil.decodeHex;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/22.
  */
 @SuppressWarnings({"UnstableApiUsage", "WeakerAccess"})
-@Component
 public class UserService {
 
     // 改变这个值会使所有已登录 Cookie 失效
@@ -48,9 +44,8 @@ public class UserService {
     private static final String LOGOUT_COOKIE_NAME = "logout";
     private static final String SEPARATOR = "|";
     private static final User NULL_USER = new User();
-    private static Logger logger = LoggerFactory.getLogger(UserService.class);
     private static final String REQUEST_ATTRIBUTE_CURRENT_USER = UserService.class.getName() + ".current_user";
-    private static ThreadLocal<User> userThreadLocal = new ThreadLocal<>();
+    private static Logger logger = LoggerFactory.getLogger(UserService.class);
     private String rememberMeCookieName;
     private byte[] aesKey;
 
@@ -64,15 +59,13 @@ public class UserService {
     @Value("${autumn.access.owner-user-id}")
     private Long ownerUserId;
 
-    @Autowired
-    private WebUtil webUtil;
     private Cache<String, User> rememberMe2UserCache = CacheBuilder.newBuilder()
             .expireAfterWrite(30, TimeUnit.SECONDS)
             .maximumSize(10_000)
             .build();
 
-    public static boolean isLogged() {
-        return userThreadLocal.get() != null;
+    public UserService(String rememberMeCookieName) {
+        this.rememberMeCookieName = rememberMeCookieName;
     }
 
     @VisibleForTesting
@@ -91,16 +84,6 @@ public class UserService {
 
     private static String encodeBase64UrlSafe(byte[] bytes) {
         return BaseEncoding.base64Url().omitPadding().encode(bytes);
-    }
-
-    @PostConstruct
-    private void init() {
-        rememberMeCookieName = webUtil.getPrefix() + "me";
-    }
-
-    public void setCurrentUser(HttpServletRequest request, HttpServletResponse response) {
-        User user = getRememberMeUser(request, response);
-        userThreadLocal.set(user);
     }
 
     public User getCurrentUser(HttpServletRequest request, HttpServletResponse response) {
@@ -204,7 +187,7 @@ public class UserService {
      * @param rememberMe 存在登录用户 cookie 里 AES 加密的字符串
      * @return USER_REMEMBER_ME_PARSE_ERROR 或 USER_NOT_EXIST_OR_PASSWORD_ERROR 或正常用户对象
      */
-    private @NotNull User parseRememberMeForUser(String rememberMe) {
+    private User parseRememberMeForUser(String rememberMe) {
         try {
             String decrypted = CryptoUtil.aesDecrypt(decodeBase64UrlSafe(rememberMe), aesKey);
             StringTokenizer tokenizer = new StringTokenizer(decrypted, SEPARATOR);
@@ -247,7 +230,7 @@ public class UserService {
     }
 
     private void addCookie(CookieGenerator cg, String value, HttpServletRequest request, HttpServletResponse response) {
-        cg.setCookiePath(webUtil.getContextPath() + "/");
+        cg.setCookiePath(request.getContextPath() + "/");
         cg.setCookieSecure(WebUtil.isSecure(request));
         cg.addCookie(response, value);
     }

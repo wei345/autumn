@@ -1,7 +1,6 @@
 package io.liuwei.autumn.search;
 
 import com.google.common.collect.Maps;
-import io.liuwei.autumn.domain.Page;
 import io.liuwei.autumn.model.Article;
 import lombok.Getter;
 import lombok.Setter;

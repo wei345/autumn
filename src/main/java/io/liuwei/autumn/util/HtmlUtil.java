@@ -1,7 +1,7 @@
 package io.liuwei.autumn.util;
 
 import com.google.common.io.Files;
-import io.liuwei.autumn.MediaRevisionResolver;
+import io.liuwei.autumn.component.MediaRevisionResolver;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

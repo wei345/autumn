@@ -1,6 +1,6 @@
 package io.liuwei.autumn.controller;
 
-import io.liuwei.autumn.ArticleManager;
+import io.liuwei.autumn.manager.ArticleManager;
 import io.liuwei.autumn.model.DataInfo;
 import io.liuwei.autumn.util.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;

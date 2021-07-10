@@ -1,7 +1,7 @@
 package io.liuwei.autumn.service;
 
 
-import io.liuwei.autumn.ArticleManager;
+import io.liuwei.autumn.manager.ArticleManager;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.search.Highlighter;

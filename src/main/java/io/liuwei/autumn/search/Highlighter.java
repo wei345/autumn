@@ -2,7 +2,6 @@ package io.liuwei.autumn.search;
 
 import com.google.common.collect.Sets;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
-import io.liuwei.autumn.domain.Page;
 import io.liuwei.autumn.model.Article;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;

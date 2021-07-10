@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(prefix = "autumn")
-public class AutumnProperties {
+public class AppProperties {
 
     private String siteTitle;
 

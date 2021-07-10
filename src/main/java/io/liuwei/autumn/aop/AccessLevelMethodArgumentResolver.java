@@ -1,4 +1,4 @@
-package io.liuwei.autumn;
+package io.liuwei.autumn.aop;
 
 import io.liuwei.autumn.annotation.AccessLevel;
 import io.liuwei.autumn.model.User;

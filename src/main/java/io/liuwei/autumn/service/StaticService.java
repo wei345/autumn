@@ -1,17 +1,13 @@
 package io.liuwei.autumn.service;
 
-import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
-import io.liuwei.autumn.MediaRevisionResolver;
+import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.converter.ContentHtmlConverter;
-import io.liuwei.autumn.data.ResourceLoader;
-import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.dao.ResourceFileDao;
 import io.liuwei.autumn.model.ContentHtml;
 import io.liuwei.autumn.model.RevisionContent;
-import io.liuwei.autumn.reader.PageReaders;
 import io.liuwei.autumn.util.JsCompressor;
 import io.liuwei.autumn.util.RevisionContentUtil;
-import io.liuwei.autumn.util.WebUtil;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -19,20 +15,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.WebRequest;
 
 import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.liuwei.autumn.data.ResourceLoader.ResourceCache;
-import static io.liuwei.autumn.data.ResourceLoader.STATIC_ROOT;
+import static io.liuwei.autumn.dao.ResourceFileDao.STATIC_ROOT;
 
 /**
  * @author liuwei
@@ -42,14 +33,13 @@ import static io.liuwei.autumn.data.ResourceLoader.STATIC_ROOT;
 public class StaticService {
     private static final Logger logger = LoggerFactory.getLogger(StaticService.class);
     private static final StringBuilderHolder STRING_BUILDER_HOLDER = new StringBuilderHolder(1024);
-    private final List<ResourceLoader.StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
+    private final List<ResourceFileDao.StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
     @Getter
     private volatile RevisionContent jsCache;
     @Getter
     private volatile RevisionContent cssCache;
     @Getter
     private volatile ContentHtml helpCache;
-    private volatile Page helpPage;
     private String codeBlockLineNumberJs;
     private String codeBlockHighlightJs;
     private String codeBlockHighlightCss;
@@ -75,7 +65,7 @@ public class StaticService {
     private boolean jsCompressEnabled;
 
     @Autowired
-    private ResourceLoader resourceLoader;
+    private ResourceFileDao resourceFileDao;
 
     @Autowired
     private MediaRevisionResolver mediaRevisionResolver;
@@ -88,69 +78,29 @@ public class StaticService {
         refreshJsCache();
         refreshCssCache();
         refreshHelpCache();
-        refreshHelpPage();
 
-        resourceLoader.addStaticChangedListener(() -> {
+        resourceFileDao.addStaticChangedListener(() -> {
             refreshHelpCache();
-            refreshHelpPage();
             if (refreshJsCache() || refreshCssCache()) {
-                staticChangedListeners.forEach(ResourceLoader.StaticChangedListener::onChanged);
+                staticChangedListeners.forEach(ResourceFileDao.StaticChangedListener::onChanged);
             }
         });
     }
 
-    public Object handleRequest(@NotNull ResourceLoader.ResourceCache resourceCache,
-                                WebRequest webRequest,
-                                HttpServletRequest request,
-                                HttpServletResponse response) {
-        String etag = WebUtil.getEtag(resourceCache.getMd5());
-        if (WebUtil.checkNotModified(webRequest, etag)) {
-            return null;
-        }
-
-        return MediaService.handleRequest(
-                resourceCache.getContent(),
-                etag,
-                FileUtil.getFileName(resourceCache.getPath()),
-                resourceCache.getMimeType(),
-                webRequest,
-                request
-        );
+    public ResourceFileDao.ResourceCache getStaticResourceCache(String path) {
+        return resourceFileDao.getResourceCache(STATIC_ROOT + path);
     }
 
-    public ResourceLoader.ResourceCache getStaticResourceCache(String path) {
-        return resourceLoader.getResourceCache(STATIC_ROOT + path);
-    }
-
-    Page getHelpPage() {
-        return helpPage;
-    }
-
-    private void refreshHelpPage() {
-        ResourceLoader.ResourceCache data = getStaticResourceCache("/help.adoc");
-        if (helpPage != null && helpPage.getFileLastModified() >= data.getLastModified()) {
-            return;
-        }
-
-        Page page = newPage(data, "/help");
-        helpPage = page;
-        logger.info("Updated {}", page.getPath());
-    }
-
-    private Page newPage(ResourceCache resourceCache, String path) {
-        String content = resourceCache.getContentString();
-        return PageReaders.getPageReader(resourceCache.getPath()).toPage(content, path, resourceCache.getLastModified());
-    }
 
     private boolean refreshJsCache() {
         boolean changed = false;
 
-        List<ResourceLoader.ResourceCache> sourceList = Stream.of(
+        List<ResourceFileDao.ResourceCache> sourceList = Stream.of(
                 "/js/script.js", "/js/quick_search.js", "/js/util.js")
                 .map(this::getStaticResourceCache).collect(Collectors.toList());
 
         List<Long> sourceTimeList = sourceList.stream()
-                .map(ResourceLoader.ResourceCache::getLastModified).collect(Collectors.toList());
+                .map(ResourceFileDao.ResourceCache::getLastModified).collect(Collectors.toList());
 
         if (jsCache == null || checkChanged(sourceTimeList, jsCache)) {
             jsCache = createJsCache(sourceList);
@@ -161,7 +111,7 @@ public class StaticService {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private RevisionContent createJsCache(List<ResourceLoader.ResourceCache> sourceList) {
+    private RevisionContent createJsCache(List<ResourceFileDao.ResourceCache> sourceList) {
 
         // 如果把 tree.js 也加进来：
         // 每次浏览器打开页面少发一个请求
@@ -199,9 +149,9 @@ public class StaticService {
     }
 
     private boolean refreshCssCache() {
-        List<ResourceLoader.ResourceCache> sourceList = Stream.of("/css/lib/normalize.css", "/css/style.css")
+        List<ResourceFileDao.ResourceCache> sourceList = Stream.of("/css/lib/normalize.css", "/css/style.css")
                 .map(this::getStaticResourceCache).collect(Collectors.toList());
-        List<Long> sourceTimeList = sourceList.stream().map(ResourceLoader.ResourceCache::getLastModified).collect(Collectors.toList());
+        List<Long> sourceTimeList = sourceList.stream().map(ResourceFileDao.ResourceCache::getLastModified).collect(Collectors.toList());
         if (cssCache != null && !checkChanged(sourceTimeList, cssCache)) {
             return false;
         }
@@ -219,7 +169,7 @@ public class StaticService {
     }
 
     private boolean refreshHelpCache() {
-        ResourceLoader.ResourceCache resourceCache = getStaticResourceCache("/help.adoc");
+        ResourceFileDao.ResourceCache resourceCache = getStaticResourceCache("/help.adoc");
         if (resourceCache == null) {
             return false;
         }
@@ -239,7 +189,7 @@ public class StaticService {
         }
 
         StringBuilder stringBuilder = new StringBuilder(7000);
-        ResourceLoader.ResourceCache resourceCache = getStaticResourceCache("/js/lib/highlightjs-line-numbers.js");
+        ResourceFileDao.ResourceCache resourceCache = getStaticResourceCache("/js/lib/highlightjs-line-numbers.js");
         // 不依赖 highlight.js
         stringBuilder.append("if(!window.hljs) window.hljs = {};\n")
                 .append(resourceCache.getContentString()).append("\n")
@@ -255,12 +205,12 @@ public class StaticService {
             return codeBlockHighlightJs;
         }
 
-        String hljsContent = resourceLoader.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/highlight.js");
+        String hljsContent = resourceFileDao.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/highlight.js");
 
         StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
         stringBuilder.append(hljsContent).append("\n");
         highlightLanguages.forEach(language -> {
-            String text = resourceLoader.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/languages/" + language + ".js");
+            String text = resourceFileDao.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/languages/" + language + ".js");
             String js = text.substring(text.indexOf("function"));
             // hljs.registerLanguage('language', function(hljs){...});
             stringBuilder.append("hljs.registerLanguage('").append(language).append("', ").append(js).append(");\n");
@@ -295,11 +245,11 @@ public class StaticService {
             return (codeBlockHighlightCss = "");
         }
 
-        String text = resourceLoader.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/styles/" + codeBlockHighlightStyle + ".css");
+        String text = resourceFileDao.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/styles/" + codeBlockHighlightStyle + ".css");
         return codeBlockHighlightCss = text;
     }
 
-    void addStaticChangedListener(ResourceLoader.StaticChangedListener listener) {
+    void addStaticChangedListener(ResourceFileDao.StaticChangedListener listener) {
         this.staticChangedListeners.add(listener);
     }
 
