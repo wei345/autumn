@@ -11,14 +11,16 @@ import lombok.Setter;
 @Setter
 public class ContentHtml {
     private String title;
-    private String toc;
-    private String content;
+    private String titleHtml;
+    private String tocHtml;
+    private String contentHtml;
     private long time;
 
-    public ContentHtml(String title, String toc, String content) {
-        this.toc = toc;
+    public ContentHtml(String title, String titleHtml, String tocHtml, String contentHtml) {
         this.title = title;
-        this.content = content;
+        this.tocHtml = tocHtml;
+        this.titleHtml = titleHtml;
+        this.contentHtml = contentHtml;
         this.time = System.currentTimeMillis();
     }
 }

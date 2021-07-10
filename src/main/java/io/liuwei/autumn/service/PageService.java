@@ -77,9 +77,9 @@ public class PageService {
                     logger.info("Building cache path={}", page.getPath());
                     ContentHtml pageHtml = getPageHtml(page, WebUtil.getInternalPath(request));
                     model.put(PAGE_TITLE, htmlEscape(page.getTitle()));
-                    model.put(PAGE_TITLE_H1, pageHtml.getTitle());
-                    model.put(TOC, pageHtml.getToc());
-                    model.put(PAGE_CONTENT, pageHtml.getContent());
+                    model.put(PAGE_TITLE_H1, pageHtml.getTitleHtml());
+                    model.put(TOC, pageHtml.getTocHtml());
+                    model.put(PAGE_CONTENT, pageHtml.getContentHtml());
                     addPageMetaProperties(model, page);
                     byte[] content = templateService.merge(model, view).getBytes(StandardCharsets.UTF_8);
                     String md5 = DigestUtils.md5DigestAsHex(content);
@@ -103,9 +103,9 @@ public class PageService {
                                              String view,
                                              HttpServletRequest request) {
         ContentHtml pageHtml = getPageHtml(page, WebUtil.getInternalPath(request));
-        String toc = searchService.highlightSearchStr(pageHtml.getToc(), searchStrList);
-        String content = searchService.highlightSearchStr(pageHtml.getContent(), searchStrList);
-        String title = searchService.highlightSearchStr(pageHtml.getTitle(), searchStrList);
+        String toc = searchService.highlightSearchStr(pageHtml.getTocHtml(), searchStrList);
+        String content = searchService.highlightSearchStr(pageHtml.getContentHtml(), searchStrList);
+        String title = searchService.highlightSearchStr(pageHtml.getTitleHtml(), searchStrList);
 
         model.put(PAGE_TITLE, htmlEscape(page.getTitle()));
         model.put(PAGE_TITLE_H1, title);
@@ -150,9 +150,9 @@ public class PageService {
                 if (page.getPageHtml() == null || page.getPageHtml().getTime() < dataLoader.getMediaLastChanged()) {
                     ContentHtml pageHtml = getPageConverter(page.getSourceFormat())
                             .convert(page.getTitle(), page.getBody());
-                    pageHtml.setToc(HtmlUtil.makeNumberedToc(pageHtml.getToc()));
-                    pageHtml.setContent(HtmlUtil
-                            .rewriteImgSrcAppendVersionParam(pageHtml.getContent(), path, mediaRevisionResolver));
+                    pageHtml.setTocHtml(HtmlUtil.makeNumberedToc(pageHtml.getTocHtml()));
+                    pageHtml.setContentHtml(HtmlUtil
+                            .rewriteImgSrcAppendVersionParam(pageHtml.getContentHtml(), path, mediaRevisionResolver));
                     page.setPageHtml(pageHtml);
                 }
             }

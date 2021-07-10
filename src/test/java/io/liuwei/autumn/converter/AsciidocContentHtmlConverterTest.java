@@ -25,7 +25,7 @@ public class AsciidocContentHtmlConverterTest {
 
         ContentHtml pageHtml = convert("title", adoc, "/example.adoc");
 
-        System.out.println(pageHtml.getContent());
+        System.out.println(pageHtml.getContentHtml());
     }
 
     public ContentHtml convert(String title, String body, String path) {
@@ -37,7 +37,7 @@ public class AsciidocContentHtmlConverterTest {
 
         Document document = Jsoup.parse(bodyHtml);
         bodyHtml = document.body().html(); // pretty print HTML
-        return new ContentHtml(null, null, bodyHtml);
+        return new ContentHtml(title, null, null, bodyHtml);
     }
 
 }

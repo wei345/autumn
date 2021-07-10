@@ -70,6 +70,6 @@ public class AsciidocContentHtmlConverter implements ContentHtmlConverter {
             tocHtml = tocEl.outerHtml();
         }
 
-        return new ContentHtml(titleHtml, tocHtml, contentHtml);
+        return new ContentHtml(title, titleHtml, tocHtml, contentHtml);
     }
 }

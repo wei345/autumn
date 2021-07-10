@@ -104,9 +104,7 @@ public class ArticleController {
 
     @GetMapping("/help")
     public String help(Model model) {
-        ContentHtml contentHtml = staticService.getHelpCache();
-        model.addAttribute("pageTitle", "Help");
-        model.addAttribute("contentHtml", contentHtml);
+        model.addAttribute("contentHtml", staticService.getHelpCache());
         return "content";
     }
 

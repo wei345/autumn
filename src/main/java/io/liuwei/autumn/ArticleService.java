@@ -116,9 +116,9 @@ public class ArticleService {
     @Cacheable(value = CacheConstants.ARTICLE_VO, key = "#article.path")
     public ArticleVO toVO(Article article) {
         ContentHtml contentHtml = contentHtmlConverter.convert(article.getTitle(), article.getContent());
-        contentHtml.setToc(HtmlUtil.makeNumberedToc(contentHtml.getToc()));
-        contentHtml.setContent(HtmlUtil
-                .rewriteImgSrcAppendVersionParam(contentHtml.getContent(), article.getPath(), mediaRevisionResolver));
+        contentHtml.setTocHtml(HtmlUtil.makeNumberedToc(contentHtml.getTocHtml()));
+        contentHtml.setContentHtml(HtmlUtil
+                .rewriteImgSrcAppendVersionParam(contentHtml.getContentHtml(), article.getPath(), mediaRevisionResolver));
 
         ArticleVO vo = new ArticleVO();
         vo.setTitle(article.getTitle());
@@ -131,9 +131,9 @@ public class ArticleService {
         vo.setContent(article.getContent());
         vo.setSource(article.getSource());
         vo.setSourceMd5(article.getSourceMd5());
-        vo.setTitleHtml(contentHtml.getTitle());
-        vo.setContentHtml(contentHtml.getContent());
-        vo.setTocHtml(contentHtml.getToc());
+        vo.setTitleHtml(contentHtml.getTitleHtml());
+        vo.setContentHtml(contentHtml.getContentHtml());
+        vo.setTocHtml(contentHtml.getTocHtml());
         return vo;
     }
 }
