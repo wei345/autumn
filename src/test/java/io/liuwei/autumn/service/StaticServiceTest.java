@@ -16,7 +16,7 @@ public class StaticServiceTest {
     @Test
     public void getTemplateLastModified() {
         String templateLoaderPath = "/templates/";
-        String name = "page.ftl";
+        String name = "article.html";
 
         URL url = getClass().getResource(templateLoaderPath + name);
         assertThat(url).isNotNull();
