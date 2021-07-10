@@ -13,11 +13,17 @@ import org.springframework.web.context.request.ServletWebRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * 检查 ETag，如果没有变化则返回 304。
+ *
+ * @author liuwei
+ * @since 2021-07-08
+ */
 @Component
 @Aspect
 public class CheckModifiedAspect {
-    @Around("@annotation(checkEtag)")
-    public Object doAround(ProceedingJoinPoint joinPoint, CheckModified checkEtag) throws Throwable {
+    @Around("@annotation(checkModified)")
+    public Object doAround(ProceedingJoinPoint joinPoint, CheckModified checkModified) throws Throwable {
         ServletRequestAttributes sra = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes());
         HttpServletRequest request = sra.getRequest();
         HttpServletResponse response = sra.getResponse();

@@ -1,13 +1,12 @@
 package io.liuwei.autumn.controller;
 
-import io.liuwei.autumn.service.ArticleService;
-import io.liuwei.autumn.constant.Constants;
-import io.liuwei.autumn.annotation.AccessLevel;
 import io.liuwei.autumn.annotation.CheckModified;
+import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.ArticleVO;
 import io.liuwei.autumn.model.Media;
+import io.liuwei.autumn.service.ArticleService;
 import io.liuwei.autumn.service.SearchService;
 import io.liuwei.autumn.service.StaticService;
 import io.liuwei.autumn.util.MimeTypeUtil;
@@ -53,7 +52,7 @@ public class ArticleController {
     private boolean isBreadcrumbEnabled;
 
     @GetMapping("")
-    public String home(@AccessLevel AccessLevelEnum accessLevel, Model model) {
+    public String home(AccessLevelEnum accessLevel, Model model) {
         List<Article> list = articleService.listArticles(accessLevel);
         list.sort((o1, o2) -> {
             // 一定要分出先后，也就是不能返回 0，否则每次搜索结果顺序可能不完全一样
@@ -94,12 +93,12 @@ public class ArticleController {
     @GetMapping(value = Constants.TREE_JSON_PATH, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     @CheckModified
-    public Object getTreeJson(@AccessLevel AccessLevelEnum accessLevel) {
+    public Object getTreeJson(AccessLevelEnum accessLevel) {
         return articleService.getTreeJson(accessLevel);
     }
 
     @GetMapping("/sitemap")
-    public String sitemap(@AccessLevel AccessLevelEnum accessLevel, Model model) {
+    public String sitemap(AccessLevelEnum accessLevel, Model model) {
         String treeHtml = articleService.getTreeHtml(accessLevel);
         model.addAttribute("treeHtml", treeHtml);
         return "sitemap";
@@ -114,7 +113,7 @@ public class ArticleController {
     @GetMapping(value = "/**/*.*")
     @ResponseBody
     public void getMedia(HttpServletRequest request, HttpServletResponse response, WebRequest webRequest,
-                         @AccessLevel AccessLevelEnum accessLevel) throws IOException {
+                         AccessLevelEnum accessLevel) throws IOException {
         String path = WebUtil.getInternalPath(request);
         Media media = articleService.getMedia(path);
 
@@ -140,7 +139,7 @@ public class ArticleController {
     public String getArticle(String[] h, // h=a&h=b..
                              HttpServletRequest request,
                              HttpServletResponse response,
-                             @AccessLevel AccessLevelEnum accessLevel,
+                             AccessLevelEnum accessLevel,
                              Map<String, Object> model) throws IOException {
         String path = WebUtil.getInternalPath(request);
         Article article = articleService.getArticle(path);

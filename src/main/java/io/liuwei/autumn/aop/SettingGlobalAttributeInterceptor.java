@@ -15,6 +15,10 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * @author liuwei
+ * @since 2018-12-19
+ */
 public class SettingGlobalAttributeInterceptor implements HandlerInterceptor {
 
     private static final String ALREADY_HANDLED_ATTRIBUTE_NAME = SettingGlobalAttributeInterceptor.class.getName() + ".handled";

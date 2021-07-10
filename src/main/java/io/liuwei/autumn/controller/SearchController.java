@@ -1,8 +1,7 @@
 package io.liuwei.autumn.controller;
 
-import io.liuwei.autumn.annotation.AccessLevel;
-import io.liuwei.autumn.model.Pagination;
 import io.liuwei.autumn.enums.AccessLevelEnum;
+import io.liuwei.autumn.model.Pagination;
 import io.liuwei.autumn.search.model.SearchResult;
 import io.liuwei.autumn.service.RateLimitService;
 import io.liuwei.autumn.service.SearchService;
@@ -44,7 +43,7 @@ public class SearchController {
     @GetMapping("/search")
     public Object search(String s,
                          Integer offset,
-                         @AccessLevel AccessLevelEnum accessLevel,
+                         AccessLevelEnum accessLevel,
                          Map<String, Object> model,
                          HttpServletRequest request,
                          HttpServletResponse response) throws IOException {
