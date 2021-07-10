@@ -4,7 +4,9 @@ import com.google.common.collect.Maps;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.model.Article;
+import io.liuwei.autumn.model.DataInfo;
 import io.liuwei.autumn.model.Media;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,10 +40,16 @@ public class ArticleManager {
     @Autowired
     private DataFileDao dataFileDao;
 
+    /**
+     * 包含数据目录下所有文件，包括文章
+     */
     // file path -> File. file path 以 "/" 开头，"/" 表示数据目录
     private volatile Map<String, Media> mediaMap;
 
     private volatile Map<String, Article> articleMap;
+
+    @Getter
+    private volatile DataInfo dataInfo;
 
     @PostConstruct
     public void init() throws IOException {
@@ -56,9 +64,10 @@ public class ArticleManager {
             @CacheEvict(value = CacheConstants.ARTICLE_VO),
             @CacheEvict(value = CacheConstants.ARTICLE_BREADCRUMB),
     })
-    public synchronized void reload() throws IOException {
-        Map<String, File> allFileMap = dataFileDao.getAllFileMap();
+    public synchronized DataInfo reload() throws IOException {
+        long startTime = System.currentTimeMillis();
 
+        Map<String, File> allFileMap = dataFileDao.getAllFileMap();
         Map<String, Media> mediaMap = Maps.newHashMapWithExpectedSize(allFileMap.size());
         Map<String, Article> articleMap = Maps.newHashMapWithExpectedSize(allFileMap.size());
         for (Map.Entry<String, File> fileEntry : allFileMap.entrySet()) {
@@ -71,11 +80,15 @@ public class ArticleManager {
                 media.setAccessLevel(article.getAccessLevel());
             }
         }
-        log.info("found {} article", articleMap.size());
+
+        long costMills = System.currentTimeMillis() - startTime;
+        DataInfo dataInfo = toDataInfo(mediaMap, articleMap, costMills);
         this.mediaMap = mediaMap;
         this.articleMap = articleMap;
+        this.dataInfo = dataInfo;
+        log.info("reload done. {}", dataInfo);
+        return dataInfo;
     }
-
 
     public Media getMedia(String path) {
         return mediaMap.get(path);
@@ -101,7 +114,7 @@ public class ArticleManager {
         Media media = new Media();
         media.setPath(path);
         media.setFile(file);
-        media.setAccessLevel(AccessLevelEnum.PUBLIC);
+        media.setAccessLevel(AccessLevelEnum.ANON);
         return media;
     }
 
@@ -131,6 +144,27 @@ public class ArticleManager {
         }
         article.setFile(file);
         return article;
+    }
+
+    private DataInfo toDataInfo(Map<String, Media> mediaMap, Map<String, Article> articleMap, Long costMills) {
+        DataInfo dataInfo = new DataInfo();
+        dataInfo.setTime(new Date());
+        dataInfo.setTimeCostInMills(costMills);
+        dataInfo.setFileCount(mediaMap.size());
+        dataInfo.setArticleCount(articleMap.size());
+        dataInfo.setUserAccessibleArticleCount(
+                (int) articleMap
+                        .values()
+                        .stream()
+                        .filter(o -> o.getAccessLevel().allow(AccessLevelEnum.USER))
+                        .count());
+        dataInfo.setAnonAccessibleArticleCount(
+                (int) articleMap
+                        .values()
+                        .stream()
+                        .filter(o -> o.getAccessLevel().allow(AccessLevelEnum.ANON))
+                        .count());
+        return dataInfo;
     }
 
 }
