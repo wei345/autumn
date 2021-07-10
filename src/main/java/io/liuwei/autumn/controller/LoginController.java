@@ -1,15 +1,18 @@
 package io.liuwei.autumn.controller;
 
-import io.liuwei.autumn.service.RateLimitService;
+import io.liuwei.autumn.constant.CacheConstants;
 import io.liuwei.autumn.service.UserService;
+import io.liuwei.autumn.util.RateLimiter;
 import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
@@ -26,8 +29,15 @@ public class LoginController {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private RateLimitService rateLimitService;
+    @Autowired(required = false)
+    private StringRedisTemplate stringRedisTemplate;
+
+    private RateLimiter rateLimiter;
+
+    @PostConstruct
+    public void init() {
+        this.rateLimiter = new RateLimiter(3, 86400, stringRedisTemplate);
+    }
 
     @GetMapping("/login")
     public String login() {
@@ -42,8 +52,8 @@ public class LoginController {
                               HttpServletRequest request,
                               HttpServletResponse response) {
 
-        String clientIp = WebUtil.getClientIpAddress(request);
-        if (!rateLimitService.acquireLogin(clientIp)) {
+        String rateKey = CacheConstants.RATE_LIMIT_LOGIN + WebUtil.getClientIpAddress(request);
+        if (!rateLimiter.acquire(rateKey)) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             model.put("message", "稍后再试");
             model.put("username", htmlEscape(username));

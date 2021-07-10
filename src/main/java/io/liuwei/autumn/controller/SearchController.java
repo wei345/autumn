@@ -1,19 +1,22 @@
 package io.liuwei.autumn.controller;
 
+import io.liuwei.autumn.constant.CacheConstants;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Pagination;
 import io.liuwei.autumn.search.model.SearchResult;
-import io.liuwei.autumn.service.RateLimitService;
 import io.liuwei.autumn.service.SearchService;
+import io.liuwei.autumn.util.RateLimiter;
 import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -31,14 +34,20 @@ public class SearchController {
     @Autowired
     private SearchService searchService;
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private int maxSearchStrLength = 120;
+    @Autowired(required = false)
+    private StringRedisTemplate stringRedisTemplate;
 
-    @Autowired
-    private RateLimitService rateLimitService;
+    private RateLimiter rateLimiter;
 
     @Value("${autumn.search.page-size}")
     private int pageSize;
+
+    private int maxSearchStrLength = 120;
+
+    @PostConstruct
+    public void init() {
+        this.rateLimiter = new RateLimiter(100, 600, stringRedisTemplate);
+    }
 
     @GetMapping("/search")
     public Object search(String s,
@@ -59,7 +68,8 @@ public class SearchController {
             s = s.substring(0, maxSearchStrLength);
         }
 
-        if (rateLimitService.acquireSearch(WebUtil.getClientIpAddress(request))) {
+        String rateKey = CacheConstants.RATE_LIMIT_SEARCH + WebUtil.getClientIpAddress(request);
+        if (rateLimiter.acquire(rateKey)) {
             String q = s;
             SearchResult sr = searchService.search(s, accessLevel, offset, pageSize);
             model.put("s", htmlEscape(s));
