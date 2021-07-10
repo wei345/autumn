@@ -1,15 +1,10 @@
 package io.liuwei.autumn;
 
 import com.google.common.collect.Maps;
-import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.model.Article;
-import io.liuwei.autumn.model.ArticleTreeNode;
 import io.liuwei.autumn.model.Media;
-import io.liuwei.autumn.model.RevisionContent;
-import io.liuwei.autumn.util.RevisionContentUtil;
-import io.liuwei.autumn.util.TreeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,12 +32,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ArticleManager {
 
-    private final AsciidocArticleParser asciidocArticleParser = new AsciidocArticleParser();
     @Autowired
-    private DataFileDao dataFileDao;
+    private AsciidocArticleParser asciidocArticleParser;
 
     @Autowired
-    private MediaRevisionResolver mediaRevisionResolver;
+    private DataFileDao dataFileDao;
 
     // file path -> File. file path 以 "/" 开头，"/" 表示数据目录
     private volatile Map<String, Media> mediaMap;
@@ -55,9 +49,12 @@ public class ArticleManager {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = CacheConstants.ARTICLES),
-            @CacheEvict(value = CacheConstants.TREE_JSON),
+            @CacheEvict(value = CacheConstants.ARTICLE_LIST),
+            @CacheEvict(value = CacheConstants.ARTICLE_TREE_JSON),
+            @CacheEvict(value = CacheConstants.ARTICLE_TREE_HTML),
+            @CacheEvict(value = CacheConstants.ARTICLE_TREE_ROOT),
             @CacheEvict(value = CacheConstants.ARTICLE_VO),
+            @CacheEvict(value = CacheConstants.ARTICLE_BREADCRUMB),
     })
     public synchronized void reload() throws IOException {
         Map<String, File> allFileMap = dataFileDao.getAllFileMap();
@@ -88,7 +85,7 @@ public class ArticleManager {
         return articleMap.get(path);
     }
 
-    @Cacheable(value = CacheConstants.ARTICLES)
+    @Cacheable(value = CacheConstants.ARTICLE_LIST)
     public List<Article> listArticles(AccessLevelEnum accessLevel) {
         if (accessLevel == AccessLevelEnum.OWNER) {
             return new ArrayList<>(articleMap.values());

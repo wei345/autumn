@@ -10,6 +10,10 @@
     <groupId>io.liuwei.autumn</groupId>
     <artifactId>autumn</artifactId>
     <version>2.0.1-SNAPSHOT</version>
+    <properties>
+        <highlightjs.version>9.8.0</highlightjs.version>
+        <skipTests>true</skipTests>
+    </properties>
     <scm>
         <developerConnection>scm:git:git@github.com:wei345/autumn.git</developerConnection>
         <tag>HEAD</tag>
@@ -20,12 +24,6 @@
             <url>https://maven.aliyun.com/repository/public</url>
         </repository>
     </repositories>
-    <properties>
-        <java.version>1.8</java.version>
-        <skipTests>true</skipTests>
-        <flexmark.version>0.34.48</flexmark.version>
-        <highlightjs.version>9.8.0</highlightjs.version>
-    </properties>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -49,10 +47,6 @@
             <groupId>nz.net.ultraq.thymeleaf</groupId>
             <artifactId>thymeleaf-layout-dialect</artifactId>
         </dependency>
-        <!--<dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-freemarker</artifactId>
-        </dependency>-->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

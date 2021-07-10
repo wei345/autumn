@@ -32,8 +32,8 @@
                     <li><span class="sitemap_toggle action_toggle">Sitemap</span></li> */-->
                     <li><a th:href="@{/sitemap} + '#' + ${#request.getAttribute('path')}">Sitemap</a></li>
                     <li><a th:href="@{/help}">Help</a></li>
-                    <li th:if="${logged}"><a class="header__row_1__right__logout" th:href="@{/logout}">Logout</a></li>
-                    <li th:if="not ${logged}"><a class="header__row_1__right__logout" th:href="@{/login}">Login</a></li>
+                    <li th:if="${user} != null"><a class="header__row_1__right__logout" th:href="@{/logout}">Logout</a></li>
+                    <li th:if="${user} == null"><a class="header__row_1__right__logout" th:href="@{/login}">Login</a></li>
                 </ul>
             </div>
         </div>

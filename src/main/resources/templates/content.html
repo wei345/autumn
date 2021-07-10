@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="~{content_layout}">
+<body>
+<div layout:fragment="content_layout_fragment" class="center_position">
+    <div th:utext="${contentHtml.toc}"></div>
+    <div th:utext="${contentHtml.content}"></div>
+</div>
+</body>
+</html>

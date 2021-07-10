@@ -9,28 +9,21 @@ import io.liuwei.autumn.model.RevisionContent;
 import io.liuwei.autumn.model.User;
 import io.liuwei.autumn.service.StaticService;
 import io.liuwei.autumn.service.UserService;
-import io.liuwei.autumn.util.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
-import static java.nio.charset.StandardCharsets.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Component
 public class ContextInterceptor implements HandlerInterceptor {
 
     private static final String ALREADY_HANDLED_ATTRIBUTE_NAME = ContextInterceptor.class.getName() + ".handled";
-
-    @Autowired
-    private WebApplicationContext applicationContext;
 
     @Autowired
     private UserService userService;
@@ -44,12 +37,11 @@ public class ContextInterceptor implements HandlerInterceptor {
     @Autowired
     private MediaRevisionResolver mediaRevisionResolver;
 
-    // 同 org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController
-    @Value("${server.error.path:${error.path:/error}}")
-    private String errorPath;
-
     @Value("${autumn.site-title}")
     private String siteTitle;
+
+    @Value("${server.servlet.context-path:}")
+    private String contextPath;
 
     /**
      * cookie key 和 localStorage key 前缀
@@ -66,9 +58,8 @@ public class ContextInterceptor implements HandlerInterceptor {
         // 可以简单省事直接在配置文件里加一条配置，指定最终用户访问的 port。
         // 但我不需要区分 port，所以这里只考虑 contextPath。
         // 我设置 Autumn contextPath 和最终用户（经反向代理）访问的 contextPath 是相同的。
-        String contextPath = applicationContext.getServletContext().getContextPath();
         if (contextPath.length() > 0) {
-            prefix += BaseEncoding.base64Url().omitPadding().encode(contextPath.getBytes(UTF_8)) + ".";
+            prefix = prefix + BaseEncoding.base64Url().omitPadding().encode(contextPath.getBytes(UTF_8)) + ".";
         }
         this.prefix = prefix;
     }
@@ -90,16 +81,6 @@ public class ContextInterceptor implements HandlerInterceptor {
             request.setAttribute("treeJsonUrl", toRevisionUrl(Constants.TREE_JSON_PATH, articleService.getTreeJson(accessLevel)));
             request.setAttribute("prefix", prefix);
             request.setAttribute("user", user);
-
-            // 直接访问错误页面响应 404
-            if (errorPath.equals(WebUtil.getInternalPath(request))
-                    && request.getAttribute("javax.servlet.error.status_code") == null) {
-                try {
-                    response.sendError(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND.getReasonPhrase());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
         }
         return true;
     }

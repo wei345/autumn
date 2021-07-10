@@ -7,6 +7,7 @@ import io.liuwei.autumn.annotation.CheckModified;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.ArticleVO;
+import io.liuwei.autumn.model.ContentHtml;
 import io.liuwei.autumn.model.Media;
 import io.liuwei.autumn.service.SearchService;
 import io.liuwei.autumn.service.StaticService;
@@ -49,7 +50,7 @@ public class ArticleController {
     private SearchService searchService;
 
     @GetMapping("")
-    public String index(@AccessLevel AccessLevelEnum accessLevel, Model model) {
+    public String home(@AccessLevel AccessLevelEnum accessLevel, Model model) {
         List<Article> list = articleService.listArticles(accessLevel);
         list.sort((o1, o2) -> {
             // 一定要分出先后，也就是不能返回 0，否则每次搜索结果顺序可能不完全一样
@@ -70,7 +71,7 @@ public class ArticleController {
         }
 
         model.addAttribute("articles", list);
-        return "index";
+        return "home";
     }
 
     @GetMapping(value = Constants.ALL_JS_PATH, produces = MimeTypeUtil.TEXT_JAVASCRIPT_UTF8)
@@ -99,6 +100,14 @@ public class ArticleController {
         String treeHtml = articleService.getTreeHtml(accessLevel);
         model.addAttribute("treeHtml", treeHtml);
         return "sitemap";
+    }
+
+    @GetMapping("/help")
+    public String help(Model model) {
+        ContentHtml contentHtml = staticService.getHelpCache();
+        model.addAttribute("pageTitle", "Help");
+        model.addAttribute("contentHtml", contentHtml);
+        return "content";
     }
 
     @GetMapping(value = "/**/*.*")

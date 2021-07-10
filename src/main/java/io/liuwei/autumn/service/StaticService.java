@@ -3,13 +3,16 @@ package io.liuwei.autumn.service;
 import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import io.liuwei.autumn.MediaRevisionResolver;
+import io.liuwei.autumn.converter.ContentHtmlConverter;
 import io.liuwei.autumn.data.ResourceLoader;
 import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.model.ContentHtml;
 import io.liuwei.autumn.model.RevisionContent;
 import io.liuwei.autumn.reader.PageReaders;
 import io.liuwei.autumn.util.JsCompressor;
 import io.liuwei.autumn.util.RevisionContentUtil;
 import io.liuwei.autumn.util.WebUtil;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +31,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.liuwei.autumn.data.ResourceLoader.*;
+import static io.liuwei.autumn.data.ResourceLoader.ResourceCache;
+import static io.liuwei.autumn.data.ResourceLoader.STATIC_ROOT;
 
 /**
  * @author liuwei
@@ -39,8 +43,12 @@ public class StaticService {
     private static final Logger logger = LoggerFactory.getLogger(StaticService.class);
     private static final StringBuilderHolder STRING_BUILDER_HOLDER = new StringBuilderHolder(1024);
     private final List<ResourceLoader.StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
+    @Getter
     private volatile RevisionContent jsCache;
+    @Getter
     private volatile RevisionContent cssCache;
+    @Getter
+    private volatile ContentHtml helpCache;
     private volatile Page helpPage;
     private String codeBlockLineNumberJs;
     private String codeBlockHighlightJs;
@@ -70,18 +78,20 @@ public class StaticService {
     private ResourceLoader resourceLoader;
 
     @Autowired
-    private JsCssCompressor jsCssCompressor;
+    private MediaRevisionResolver mediaRevisionResolver;
 
     @Autowired
-    private MediaRevisionResolver mediaRevisionResolver;
+    private ContentHtmlConverter contentHtmlConverter;
 
     @PostConstruct
     private void init() {
         refreshJsCache();
         refreshCssCache();
+        refreshHelpCache();
         refreshHelpPage();
 
         resourceLoader.addStaticChangedListener(() -> {
+            refreshHelpCache();
             refreshHelpPage();
             if (refreshJsCache() || refreshCssCache()) {
                 staticChangedListeners.forEach(ResourceLoader.StaticChangedListener::onChanged);
@@ -110,14 +120,6 @@ public class StaticService {
 
     public ResourceLoader.ResourceCache getStaticResourceCache(String path) {
         return resourceLoader.getResourceCache(STATIC_ROOT + path);
-    }
-
-    public RevisionContent getJsCache() {
-        return jsCache;
-    }
-
-    public RevisionContent getCssCache() {
-        return cssCache;
     }
 
     Page getHelpPage() {
@@ -216,6 +218,21 @@ public class StaticService {
         return true;
     }
 
+    private boolean refreshHelpCache() {
+        ResourceLoader.ResourceCache resourceCache = getStaticResourceCache("/help.adoc");
+        if (resourceCache == null) {
+            return false;
+        }
+
+        if (helpCache != null && helpCache.getTime() >= resourceCache.getLastModified()) {
+            return false;
+        }
+
+        this.helpCache = contentHtmlConverter.convert("Help", resourceCache.getContentString());
+        logger.info("helpCache updated");
+        return true;
+    }
+
     private String getCodeBlockLineNumberJs() {
         if (codeBlockLineNumberJs != null) {
             return codeBlockLineNumberJs;
@@ -291,38 +308,4 @@ public class StaticService {
         return optionalLong.isPresent() && optionalLong.get() > revisionContent.getTimestamp();
     }
 
-    public static class WebPageReferenceData {
-        private String versionKeyValue;
-        private byte[] content;
-        private String etag;
-        private long time;
-
-        WebPageReferenceData() {
-            time = System.currentTimeMillis();
-        }
-
-        String getVersionKeyValue() {
-            return versionKeyValue;
-        }
-
-        void setVersionKeyValue(String versionKeyValue) {
-            this.versionKeyValue = versionKeyValue;
-        }
-
-        public byte[] getContent() {
-            return content;
-        }
-
-        public void setContent(byte[] content) {
-            this.content = content;
-        }
-
-        public String getEtag() {
-            return etag;
-        }
-
-        void setEtag(String etag) {
-            this.etag = etag;
-        }
-    }
 }

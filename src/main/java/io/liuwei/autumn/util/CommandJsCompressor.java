@@ -1,15 +1,11 @@
-package io.liuwei.autumn.service;
+package io.liuwei.autumn.util;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.vip.vjtools.vjkit.io.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import io.liuwei.autumn.util.CommandExecutor;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,19 +14,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 以命令行的方式调用 Closure Compiler jar 压缩 JS。
+ *
  * @author liuwei
  * Created by liuwei on 2018/12/29.
  */
+@Deprecated // Use JsCompressor
 @SuppressWarnings("SameParameterValue")
-@Component
-public class JsCssCompressor {
-    private static final Logger logger = LoggerFactory.getLogger(JsCssCompressor.class);
+public class CommandJsCompressor {
+    private static final Logger logger = LoggerFactory.getLogger(CommandJsCompressor.class);
 
-    @Value("${autumn.closure-compiler-jar-full-path}")
     private String closureJarFullPath;
 
-    @Value("${autumn.compressor.javascript.enabled}")
-    private boolean compressJs;
+    private boolean enabled;
+
+    public CommandJsCompressor(String closureJarFullPath) {
+        this.closureJarFullPath = closureJarFullPath;
+    }
 
     // https://developers.google.com/closure/compiler/docs/gettingstarted_app
     @SuppressWarnings("ConstantConditions")
@@ -101,7 +101,7 @@ public class JsCssCompressor {
 
     @SuppressWarnings("WeakerAccess")
     public String compressJs(String input) {
-        if (!compressJs) {
+        if (!enabled) {
             return input;
         }
         try {
@@ -121,8 +121,8 @@ public class JsCssCompressor {
     }
 
     @VisibleForTesting
-    void setCompressJs(boolean compressJs) {
-        this.compressJs = compressJs;
+    void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
 }

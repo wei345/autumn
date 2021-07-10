@@ -1,8 +1,8 @@
 package io.liuwei.autumn.converter;
 
 import com.vip.vjtools.vjkit.text.EscapeUtil;
-import io.liuwei.autumn.model.ArticleHtml;
-import io.liuwei.autumn.util.Asciidoctors;
+import io.liuwei.autumn.model.ContentHtml;
+import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.AttributesBuilder;
 import org.asciidoctor.OptionsBuilder;
 import org.jsoup.Jsoup;
@@ -15,21 +15,27 @@ import org.springframework.stereotype.Component;
  * @since 2020-06-01 18:45
  */
 @Component
-public class AsciidocPageConverter implements PageConverter {
+public class AsciidocContentHtmlConverter implements ContentHtmlConverter {
 
     private final OptionsBuilder optionsBuilder = OptionsBuilder.options()
             .attributes(AttributesBuilder.attributes()
                     .showTitle(true)
                     .tableOfContents(true));
 
+    private Asciidoctor asciidoctor;
+
+    public AsciidocContentHtmlConverter(Asciidoctor asciidoctor) {
+        this.asciidoctor = asciidoctor;
+    }
+
     @Override
-    public ArticleHtml convert(String title, String body) {
+    public ContentHtml convert(String title, String body) {
         // title html
         String titleId = "articletitle";
         String titleHtml = "<h1 id=\"" + titleId + "\">" + EscapeUtil.escapeHtml(title) + "</h1>";
 
         // content html
-        String contentHtml = Asciidoctors.getAsciidoctor().convert(body, optionsBuilder);
+        String contentHtml = asciidoctor.convert(body, optionsBuilder);
 
         // toc html
         String tocHtml = null;
@@ -64,6 +70,6 @@ public class AsciidocPageConverter implements PageConverter {
             tocHtml = tocEl.outerHtml();
         }
 
-        return new ArticleHtml(titleHtml, tocHtml, contentHtml);
+        return new ContentHtml(titleHtml, tocHtml, contentHtml);
     }
 }

@@ -1,12 +1,12 @@
 package io.liuwei.autumn.service;
 
 import io.liuwei.autumn.MediaRevisionResolver;
-import io.liuwei.autumn.converter.AsciidocPageConverter;
-import io.liuwei.autumn.converter.PageConverter;
+import io.liuwei.autumn.converter.AsciidocContentHtmlConverter;
+import io.liuwei.autumn.converter.ContentHtmlConverter;
 import io.liuwei.autumn.data.DataLoader;
 import io.liuwei.autumn.domain.Page;
 import io.liuwei.autumn.enums.SourceFormatEnum;
-import io.liuwei.autumn.model.ArticleHtml;
+import io.liuwei.autumn.model.ContentHtml;
 import io.liuwei.autumn.util.HtmlUtil;
 import io.liuwei.autumn.util.WebUtil;
 import org.slf4j.Logger;
@@ -44,7 +44,7 @@ public class PageService {
     private DataService dataService;
 
     @Autowired
-    private AsciidocPageConverter asciidocPageConverter;
+    private AsciidocContentHtmlConverter asciidocHtmlConverter;
 
     @Autowired
     private TemplateService templateService;
@@ -75,7 +75,7 @@ public class PageService {
                 viewCache = dataService.getViewCache(page);
                 if (viewCache == null || viewCache.getTime() < templateLastModified) {
                     logger.info("Building cache path={}", page.getPath());
-                    ArticleHtml pageHtml = getPageHtml(page, WebUtil.getInternalPath(request));
+                    ContentHtml pageHtml = getPageHtml(page, WebUtil.getInternalPath(request));
                     model.put(PAGE_TITLE, htmlEscape(page.getTitle()));
                     model.put(PAGE_TITLE_H1, pageHtml.getTitle());
                     model.put(TOC, pageHtml.getToc());
@@ -102,7 +102,7 @@ public class PageService {
                                              Map<String, Object> model,
                                              String view,
                                              HttpServletRequest request) {
-        ArticleHtml pageHtml = getPageHtml(page, WebUtil.getInternalPath(request));
+        ContentHtml pageHtml = getPageHtml(page, WebUtil.getInternalPath(request));
         String toc = searchService.highlightSearchStr(pageHtml.getToc(), searchStrList);
         String content = searchService.highlightSearchStr(pageHtml.getContent(), searchStrList);
         String title = searchService.highlightSearchStr(pageHtml.getTitle(), searchStrList);
@@ -143,12 +143,12 @@ public class PageService {
         return page.getSource();
     }
 
-    private ArticleHtml getPageHtml(Page page, String path) {
+    private ContentHtml getPageHtml(Page page, String path) {
         if (page.getPageHtml() == null || page.getPageHtml().getTime() < dataLoader.getMediaLastChanged()) {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (page) {
                 if (page.getPageHtml() == null || page.getPageHtml().getTime() < dataLoader.getMediaLastChanged()) {
-                    ArticleHtml pageHtml = getPageConverter(page.getSourceFormat())
+                    ContentHtml pageHtml = getPageConverter(page.getSourceFormat())
                             .convert(page.getTitle(), page.getBody());
                     pageHtml.setToc(HtmlUtil.makeNumberedToc(pageHtml.getToc()));
                     pageHtml.setContent(HtmlUtil
@@ -160,15 +160,15 @@ public class PageService {
         return page.getPageHtml();
     }
 
-    private PageConverter getPageConverter(SourceFormatEnum sourceFormat) {
+    private ContentHtmlConverter getPageConverter(SourceFormatEnum sourceFormat) {
         Objects.requireNonNull(sourceFormat, "sourceFormat must not be null");
         switch (sourceFormat) {
             case ASCIIDOC:
-                return asciidocPageConverter;
+                return asciidocHtmlConverter;
             case MARKDOWN:
                 throw new RuntimeException("不支持 Markdown");
             default:
-                throw new RuntimeException("没有合适的 PageConverter. sourceFormat=" + sourceFormat);
+                throw new RuntimeException("没有合适的 ContentHtmlConverter. sourceFormat=" + sourceFormat);
         }
     }
 

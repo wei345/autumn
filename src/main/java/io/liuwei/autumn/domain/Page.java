@@ -1,7 +1,7 @@
 package io.liuwei.autumn.domain;
 
 import io.liuwei.autumn.enums.SourceFormatEnum;
-import io.liuwei.autumn.model.ArticleHtml;
+import io.liuwei.autumn.model.ContentHtml;
 import io.liuwei.autumn.search.PageHit;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,7 +29,7 @@ public class Page {
     private String name; // path 最后一个斜线之后的部分
     private String title;
     private String body;
-    private volatile ArticleHtml pageHtml;
+    private volatile ContentHtml pageHtml;
     private String source; // file content
     private SourceFormatEnum sourceFormat;
     private long fileLastModified;

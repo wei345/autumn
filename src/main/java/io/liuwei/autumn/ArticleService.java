@@ -1,7 +1,7 @@
 package io.liuwei.autumn;
 
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
-import io.liuwei.autumn.converter.PageConverter;
+import io.liuwei.autumn.converter.ContentHtmlConverter;
 import io.liuwei.autumn.domain.Link;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.*;
@@ -28,7 +28,7 @@ public class ArticleService {
     private ArticleManager articleManager;
 
     @Autowired
-    private PageConverter pageConverter;
+    private ContentHtmlConverter contentHtmlConverter;
 
     @Autowired
     private MediaRevisionResolver mediaRevisionResolver;
@@ -51,14 +51,14 @@ public class ArticleService {
         return articleManager.listArticles(accessLevel);
     }
 
-    @Cacheable(value = CacheConstants.TREE_JSON)
+    @Cacheable(CacheConstants.ARTICLE_TREE_JSON)
     public RevisionContent getTreeJson(AccessLevelEnum accessLevel) {
         ArticleTreeNode root = getTreeRoot(accessLevel);
         String json = jsonMapper.toJson(root);
         return RevisionContentUtil.newRevisionContent(json, mediaRevisionResolver);
     }
 
-    @Cacheable(value = CacheConstants.TREE_HTML)
+    @Cacheable(CacheConstants.ARTICLE_TREE_HTML)
     public String getTreeHtml(AccessLevelEnum accessLevel) {
         ArticleTreeNode root = getTreeRoot(accessLevel);
         StringBuilder stringBuilder = new StringBuilder(10240);
@@ -66,12 +66,13 @@ public class ArticleService {
         return stringBuilder.toString();
     }
 
-    @Cacheable(value = CacheConstants.TREE_ROOT)
+    @Cacheable(CacheConstants.ARTICLE_TREE_ROOT)
     public ArticleTreeNode getTreeRoot(AccessLevelEnum accessLevel) {
         List<Article> articles = listArticles(accessLevel);
         return TreeUtil.toArticleTree(articles);
     }
 
+    @Cacheable(CacheConstants.ARTICLE_BREADCRUMB)
     public List<Link> getBreadcrumbLinks(Article article, AccessLevelEnum accessLevel) {
         LinkedList<Link> links = new LinkedList<>();
         int lastSlash;
@@ -114,10 +115,10 @@ public class ArticleService {
 
     @Cacheable(value = CacheConstants.ARTICLE_VO, key = "#article.path")
     public ArticleVO toVO(Article article) {
-        ArticleHtml articleHtml = pageConverter.convert(article.getTitle(), article.getContent());
-        articleHtml.setToc(HtmlUtil.makeNumberedToc(articleHtml.getToc()));
-        articleHtml.setContent(HtmlUtil
-                .rewriteImgSrcAppendVersionParam(articleHtml.getContent(), article.getPath(), mediaRevisionResolver));
+        ContentHtml contentHtml = contentHtmlConverter.convert(article.getTitle(), article.getContent());
+        contentHtml.setToc(HtmlUtil.makeNumberedToc(contentHtml.getToc()));
+        contentHtml.setContent(HtmlUtil
+                .rewriteImgSrcAppendVersionParam(contentHtml.getContent(), article.getPath(), mediaRevisionResolver));
 
         ArticleVO vo = new ArticleVO();
         vo.setTitle(article.getTitle());
@@ -130,9 +131,9 @@ public class ArticleService {
         vo.setContent(article.getContent());
         vo.setSource(article.getSource());
         vo.setSourceMd5(article.getSourceMd5());
-        vo.setTitleHtml(articleHtml.getTitle());
-        vo.setContentHtml(articleHtml.getContent());
-        vo.setTocHtml(articleHtml.getToc());
+        vo.setTitleHtml(contentHtml.getTitle());
+        vo.setContentHtml(contentHtml.getContent());
+        vo.setTocHtml(contentHtml.getToc());
         return vo;
     }
 }

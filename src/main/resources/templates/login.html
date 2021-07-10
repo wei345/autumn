@@ -4,7 +4,7 @@
       layout:decorator="~{basic_layout}" th:with="pageTitle='Login'">
 <body>
 <div layout:fragment="basic_layout_fragment" class="login_box">
-    <p th:text="${message}"></p>
+    <p th:text="${message}" class="error_message"></p>
     <form method="POST" action="">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" th:value="${param.username}"

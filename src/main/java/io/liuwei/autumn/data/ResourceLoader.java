@@ -6,6 +6,8 @@ import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.io.IOUtil;
 import io.liuwei.autumn.util.MimeTypeUtil;
 import io.liuwei.autumn.util.ResourceWalker;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -33,8 +35,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static java.nio.charset.StandardCharsets.*;
-import static java.nio.file.FileVisitResult.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.FileVisitResult.CONTINUE;
 
 /**
  * @author liuwei
@@ -47,13 +49,12 @@ public class ResourceLoader implements Runnable {
     private static final String WEBJARS_ROOT = "/META-INF/resources/webjars";
     private static final String TEMPLATE_ROOT = "/templates";
     private static final Logger logger = LoggerFactory.getLogger(ResourceLoader.class);
+    private final List<StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
+    private final List<TemplateLastChangedListener> templateLastChangedListeners = new ArrayList<>(1);
     private volatile long templateLastModified;
     @Value("${autumn.resource.reload-interval-seconds}")
     private long reloadIntervalSeconds;
     private volatile Map<String, ResourceLoader.ResourceCache> resourceCacheMap = Collections.emptyMap();
-    private final List<StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
-    private final List<TemplateLastChangedListener> templateLastChangedListeners = new ArrayList<>(1);
-
     private ScheduledExecutorService scheduler;
 
     private static byte[] getResourceAsBytes(String classpath) {
@@ -284,6 +285,8 @@ public class ResourceLoader implements Runnable {
         }
     }
 
+    @Getter
+    @Setter
     public static class ResourceCache {
         private byte[] content;
         private String md5; // content md5
@@ -295,44 +298,5 @@ public class ResourceLoader implements Runnable {
             return new String(content, UTF_8);
         }
 
-        public byte[] getContent() {
-            return content;
-        }
-
-        public void setContent(byte[] content) {
-            this.content = content;
-        }
-
-        public String getMd5() {
-            return md5;
-        }
-
-        void setMd5(String md5) {
-            this.md5 = md5;
-        }
-
-        public String getMimeType() {
-            return mimeType;
-        }
-
-        void setMimeType(String mimeType) {
-            this.mimeType = mimeType;
-        }
-
-        public long getLastModified() {
-            return lastModified;
-        }
-
-        void setLastModified(long lastModified) {
-            this.lastModified = lastModified;
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        public void setPath(String path) {
-            this.path = path;
-        }
     }
 }
