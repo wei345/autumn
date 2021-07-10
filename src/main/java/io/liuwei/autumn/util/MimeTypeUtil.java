@@ -51,6 +51,8 @@ public class MimeTypeUtil {
 
     private static void setMimeTypes() {
         Map<String, String> mimeTypeMap = parseMimeTypes();
+        mimeTypeMap.put("adoc", "text/asciidoc");
+        mimeTypeMap.put("asciidoc", "text/asciidoc");
         mimeTypeMap.put("pl", "text/plain");
         mimeTypeMap.put("sh", "text/x-script.sh");
         fileExtensionToMimeType = mimeTypeMap;

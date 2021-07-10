@@ -7,7 +7,6 @@ import io.liuwei.autumn.annotation.CheckModified;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.ArticleVO;
-import io.liuwei.autumn.model.ContentHtml;
 import io.liuwei.autumn.model.Media;
 import io.liuwei.autumn.service.SearchService;
 import io.liuwei.autumn.service.StaticService;
@@ -15,6 +14,7 @@ import io.liuwei.autumn.util.MimeTypeUtil;
 import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -48,6 +48,9 @@ public class ArticleController {
 
     @Autowired
     private SearchService searchService;
+
+    @Value("${autumn.breadcrumb.enabled:false}")
+    private boolean isBreadcrumbEnabled;
 
     @GetMapping("")
     public String home(@AccessLevel AccessLevelEnum accessLevel, Model model) {
@@ -163,7 +166,9 @@ public class ArticleController {
             articleVO.setTitleHtml(searchService.highlightSearchStr(articleVO.getTitleHtml(), searchStrList));
         }
 
-        model.put("breadcrumb", articleService.getBreadcrumbLinks(article, accessLevel));
+        if (isBreadcrumbEnabled) {
+            model.put("breadcrumb", articleService.getBreadcrumbLinks(article, accessLevel));
+        }
         model.put("article", articleVO);
         return "article";
     }

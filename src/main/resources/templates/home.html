@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="~{article_layout}" th:with="pageTitle='Home'">
-<div layout:fragment="article_layout_fragment" class="page">
+      layout:decorator="~{content_layout}" th:with="pageTitle='Home'">
+<div layout:fragment="content_layout_fragment" class="page">
     <div class="page_content">
         <h1 id="home">Home</h1>
         <p th:if="${#lists.isEmpty(articles)}">Welcome</p>
