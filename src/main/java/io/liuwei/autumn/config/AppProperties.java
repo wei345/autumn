@@ -1,6 +1,8 @@
 package io.liuwei.autumn.config;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -11,11 +13,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "autumn")
 public class AppProperties {
 
-    private String siteTitle;
+    private String siteTitle = "Autumn";
 
     private CodeBlock codeBlock = new CodeBlock();
 
-    @Data
+    @Getter
+    @Setter
     public static class CodeBlock {
         private boolean highlightingEnabled = true;
 
@@ -31,4 +34,5 @@ public class AppProperties {
         private boolean lineNumberEnabled = false;
 
     }
+
 }
