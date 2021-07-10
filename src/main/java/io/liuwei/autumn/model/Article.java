@@ -1,7 +1,7 @@
 package io.liuwei.autumn.model;
 
 import io.liuwei.autumn.enums.AccessLevelEnum;
-import io.liuwei.autumn.search.PageHit;
+import io.liuwei.autumn.search.model.PageHit;
 import lombok.Data;
 
 import javax.annotation.Nullable;

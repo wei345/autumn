@@ -1,14 +1,14 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.operator;
 
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
-abstract class AbstractOperator implements Operator {
+public abstract class AbstractOperator implements Operator {
 
     protected String expression;
 
-    AbstractOperator(String expression) {
+    public AbstractOperator(String expression) {
         this.expression = expression;
     }
 

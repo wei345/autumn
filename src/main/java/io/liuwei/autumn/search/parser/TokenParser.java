@@ -1,4 +1,6 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.parser;
+
+import io.liuwei.autumn.search.Token;
 
 /**
  * @author liuwei

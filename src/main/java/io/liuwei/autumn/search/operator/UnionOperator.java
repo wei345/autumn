@@ -1,6 +1,9 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.operator;
 
 import com.google.common.collect.Sets;
+import io.liuwei.autumn.search.parser.AbstractTokenParser;
+import io.liuwei.autumn.search.model.SearchingPage;
+import io.liuwei.autumn.search.matcher.*;
 
 import java.util.Set;
 
@@ -10,7 +13,7 @@ import java.util.Set;
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
-class UnionOperator extends AbstractOperator {
+public class UnionOperator extends AbstractOperator {
 
     private UnionOperator(String expression) {
         super(expression);
@@ -44,7 +47,7 @@ class UnionOperator extends AbstractOperator {
     }
 
     // "a OR b"
-    static class Parser extends AbstractTokenParser {
+    public static class Parser extends AbstractTokenParser {
 
         private static final String OR = "OR";
 

@@ -1,5 +1,6 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.matcher;
 
+import io.liuwei.autumn.search.model.SearchingPage;
 import org.apache.commons.lang3.Validate;
 
 import javax.validation.constraints.NotNull;
@@ -10,7 +11,7 @@ import java.util.stream.Collectors;
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
-abstract class AbstractMatcher implements Matcher {
+public abstract class AbstractMatcher implements Matcher {
 
     private String expression;
 

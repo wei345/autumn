@@ -1,6 +1,9 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.matcher;
 
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
+import io.liuwei.autumn.search.parser.AbstractTokenParser;
+import io.liuwei.autumn.search.model.Hit;
+import io.liuwei.autumn.search.model.SearchingPage;
 
 import java.util.List;
 
@@ -8,7 +11,7 @@ import java.util.List;
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
-class QuoteExactMatcher extends AbstractPageHitMatcher {
+public class QuoteExactMatcher extends AbstractPageHitMatcher {
 
     private String searchStr;
 
@@ -23,16 +26,16 @@ class QuoteExactMatcher extends AbstractPageHitMatcher {
     }
 
     @Override
-    List<Hit> getHitList(String source) {
+    public List<Hit> getHitList(String source) {
         return ExactMatcher.findHitList(source, searchStr);
     }
 
     @Override
-    String getPageHitCacheKey() {
+    public String getPageHitCacheKey() {
         return searchStr;
     }
 
-    static class Parser extends AbstractTokenParser {
+    public static class Parser extends AbstractTokenParser {
         private static StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(64);
 
         public boolean accept(String input, int start) {

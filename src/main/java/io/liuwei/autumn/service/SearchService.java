@@ -5,7 +5,7 @@ import io.liuwei.autumn.manager.ArticleManager;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.search.Highlighter;
-import io.liuwei.autumn.search.SearchResult;
+import io.liuwei.autumn.search.model.SearchResult;
 import io.liuwei.autumn.search.Searcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

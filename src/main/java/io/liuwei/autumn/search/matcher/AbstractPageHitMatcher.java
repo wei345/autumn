@@ -1,6 +1,9 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.matcher;
 
 import io.liuwei.autumn.model.Article;
+import io.liuwei.autumn.search.model.Hit;
+import io.liuwei.autumn.search.model.PageHit;
+import io.liuwei.autumn.search.model.SearchingPage;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,10 +17,10 @@ import java.util.function.Function;
  * @author liuwei
  * Created by liuwei on 2018/12/13.
  */
-abstract class AbstractPageHitMatcher extends AbstractMatcher {
+public abstract class AbstractPageHitMatcher extends AbstractMatcher {
     private static Logger logger = LoggerFactory.getLogger(AbstractPageHitMatcher.class);
 
-    AbstractPageHitMatcher(@NotNull String expression) {
+    public AbstractPageHitMatcher(@NotNull String expression) {
         super(expression);
     }
 
@@ -63,12 +66,12 @@ abstract class AbstractPageHitMatcher extends AbstractMatcher {
         return pageHit;
     }
 
-    PageHit getPageHit(SearchingPage searchingPage) {
+    public PageHit getPageHit(SearchingPage searchingPage) {
         return cacheableFindPageHit(searchingPage, getExpression(), getPageHitCacheKey(), this::getHitList);
     }
 
-    abstract List<Hit> getHitList(String source);
+    public abstract List<Hit> getHitList(String source);
 
-    abstract String getPageHitCacheKey();
+    public abstract String getPageHitCacheKey();
 
 }

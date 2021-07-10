@@ -3,6 +3,10 @@ package io.liuwei.autumn.search;
 import com.google.common.collect.Sets;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import io.liuwei.autumn.model.Article;
+import io.liuwei.autumn.search.matcher.ExactMatcher;
+import io.liuwei.autumn.search.model.Hit;
+import io.liuwei.autumn.search.model.PageHit;
+import io.liuwei.autumn.search.model.SearchingPage;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jsoup.Jsoup;
@@ -47,7 +51,7 @@ public class Highlighter {
     private StringBuilderHolder stringBuilderHolder2 = new StringBuilderHolder(64);
 
 
-    void highlightSearchingPage(Collection<SearchingPage> searchingPages) {
+    public void highlightSearchingPage(Collection<SearchingPage> searchingPages) {
         searchingPages.forEach(this::highlightSearchingPage);
     }
 

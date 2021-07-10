@@ -1,5 +1,6 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.matcher;
 
+import io.liuwei.autumn.search.model.Hit;
 import org.junit.Test;
 
 import java.util.List;

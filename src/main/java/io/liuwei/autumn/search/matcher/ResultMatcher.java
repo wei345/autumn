@@ -1,6 +1,7 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.matcher;
 
 import com.google.common.collect.Sets;
+import io.liuwei.autumn.search.model.SearchingPage;
 
 import java.util.Set;
 
@@ -10,10 +11,10 @@ import java.util.Set;
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
-class ResultMatcher implements Matcher {
+public class ResultMatcher implements Matcher {
     private Set<SearchingPage> result;
 
-    ResultMatcher(Set<SearchingPage> result) {
+    public ResultMatcher(Set<SearchingPage> result) {
         this.result = result;
     }
 

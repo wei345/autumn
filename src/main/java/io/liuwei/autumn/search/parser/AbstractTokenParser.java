@@ -1,9 +1,11 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.parser;
 
-abstract class AbstractTokenParser implements TokenParser {
+import io.liuwei.autumn.search.Token;
+
+public abstract class AbstractTokenParser implements TokenParser {
 
     protected Token token;
-    int nextStart;
+    protected int nextStart;
 
     public abstract boolean accept(String input, int start);
 

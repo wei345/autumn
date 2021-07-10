@@ -1,4 +1,8 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.operator;
+
+import io.liuwei.autumn.search.parser.AbstractTokenParser;
+import io.liuwei.autumn.search.matcher.Matcher;
+import io.liuwei.autumn.search.matcher.ResultMatcher;
 
 /**
  * 交集操作符。
@@ -6,7 +10,7 @@ package io.liuwei.autumn.search;
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
-class IntersectionOperator extends AbstractOperator {
+public class IntersectionOperator extends AbstractOperator {
 
     private IntersectionOperator(String expression) {
         super(expression);
@@ -27,7 +31,7 @@ class IntersectionOperator extends AbstractOperator {
                 new ResultMatcher(m1.search(m2.search()));
     }
 
-    static class Parser extends AbstractTokenParser {
+    public static class Parser extends AbstractTokenParser {
 
         @Override
         public boolean accept(String input, int start) {

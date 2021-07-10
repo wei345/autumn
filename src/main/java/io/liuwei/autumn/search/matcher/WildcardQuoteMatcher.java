@@ -1,7 +1,10 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.matcher;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
+import io.liuwei.autumn.search.parser.AbstractTokenParser;
+import io.liuwei.autumn.search.model.Hit;
+import io.liuwei.autumn.search.model.SearchingPage;
 import io.liuwei.autumn.util.Kmp;
 import org.springframework.lang.Nullable;
 
@@ -16,7 +19,7 @@ import java.util.List;
  * @author liuwei
  * Created by liuwei on 2018/12/12.
  */
-class WildcardQuoteMatcher extends AbstractPageHitMatcher {
+public class WildcardQuoteMatcher extends AbstractPageHitMatcher {
 
     private String[] searches;
 
@@ -25,7 +28,7 @@ class WildcardQuoteMatcher extends AbstractPageHitMatcher {
         this.searches = searches;
     }
 
-    static List<Hit> findHitList(@Nullable String source, @Nullable String[] searches) {
+    public static List<Hit> findHitList(@Nullable String source, @Nullable String[] searches) {
         if (source == null || searches == null || searches.length == 0) {
             return Collections.emptyList();
         }
@@ -96,16 +99,16 @@ class WildcardQuoteMatcher extends AbstractPageHitMatcher {
     }
 
     @Override
-    List<Hit> getHitList(String source) {
+    public List<Hit> getHitList(String source) {
         return findHitList(source, searches);
     }
 
     @Override
-    String getPageHitCacheKey() {
+    public String getPageHitCacheKey() {
         return getExpression();
     }
 
-    static class Parser extends AbstractTokenParser {
+    public static class Parser extends AbstractTokenParser {
 
         private static StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(64);
 

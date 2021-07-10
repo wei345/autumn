@@ -1,4 +1,4 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.model;
 
 import com.google.common.collect.Maps;
 import io.liuwei.autumn.model.Article;
@@ -41,11 +41,11 @@ public class SearchingPage {
         this.hitMap = Maps.newHashMapWithExpectedSize(3);
     }
 
-    PageHit getPageHit(String expression) {
+    public PageHit getPageHit(String expression) {
         return hitMap.get(expression);
     }
 
-    void putPageHit(String expression, PageHit pageHit) {
+    public void putPageHit(String expression, PageHit pageHit) {
         hitMap.put(expression, pageHit);
         // 即使 expression 重复也要累加 hit，排序更准
         updateHitCount(pageHit);
@@ -65,7 +65,7 @@ public class SearchingPage {
         hitCount = pathHitCount + titleHitCount + bodyHitCount;
     }
 
-    Map<String, PageHit> getUnmodifiableHitMap() {
+    public Map<String, PageHit> getUnmodifiableHitMap() {
         return Collections.unmodifiableMap(hitMap);
     }
 

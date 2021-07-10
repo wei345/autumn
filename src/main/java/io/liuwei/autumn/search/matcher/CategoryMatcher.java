@@ -1,11 +1,15 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.matcher;
+
+import io.liuwei.autumn.search.parser.AbstractPrefixMatcherParser;
+import io.liuwei.autumn.search.model.SearchingPage;
+import io.liuwei.autumn.search.Token;
 
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
 // category:abc
-class CategoryMatcher extends AbstractMatcher {
+public class CategoryMatcher extends AbstractMatcher {
 
     private String searchStr;
 
@@ -19,7 +23,7 @@ class CategoryMatcher extends AbstractMatcher {
         return searchStr.equals(searchingPage.getArticle().getCategory());
     }
 
-    static class Parser extends AbstractPrefixMatcherParser {
+    public static class Parser extends AbstractPrefixMatcherParser {
 
         @Override
         protected String getPrefix() {

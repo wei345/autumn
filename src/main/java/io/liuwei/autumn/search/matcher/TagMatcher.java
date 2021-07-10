@@ -1,4 +1,8 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.matcher;
+
+import io.liuwei.autumn.search.parser.AbstractPrefixMatcherParser;
+import io.liuwei.autumn.search.model.SearchingPage;
+import io.liuwei.autumn.search.Token;
 
 import java.util.Set;
 
@@ -7,7 +11,7 @@ import java.util.Set;
  * Created by liuwei on 2018/11/27.
  */
 // tag:abc
-class TagMatcher extends AbstractMatcher {
+public class TagMatcher extends AbstractMatcher {
 
     private String searchStr;
 
@@ -22,7 +26,7 @@ class TagMatcher extends AbstractMatcher {
         return tags != null && tags.contains(searchStr);
     }
 
-    static class Parser extends AbstractPrefixMatcherParser {
+    public static class Parser extends AbstractPrefixMatcherParser {
 
         @Override
         protected String getPrefix() {

@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import io.liuwei.autumn.Application;
-import io.liuwei.autumn.search.SearchResult;
+import io.liuwei.autumn.search.model.SearchResult;
 
 /**
  * @author liuwei

@@ -1,5 +1,6 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.parser;
 
+import io.liuwei.autumn.search.Token;
 import org.apache.commons.lang3.Validate;
 
 /**
@@ -8,7 +9,7 @@ import org.apache.commons.lang3.Validate;
  * @author liuwei
  * Created by liuwei on 2018/11/27.
  */
-abstract class AbstractPrefixMatcherParser extends AbstractTokenParser {
+public abstract class AbstractPrefixMatcherParser extends AbstractTokenParser {
 
     @Override
     public boolean accept(String input, int start) {

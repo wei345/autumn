@@ -1,4 +1,9 @@
-package io.liuwei.autumn.search;
+package io.liuwei.autumn.search.matcher;
+
+import io.liuwei.autumn.search.parser.AbstractPrefixMatcherParser;
+import io.liuwei.autumn.search.model.Hit;
+import io.liuwei.autumn.search.model.SearchingPage;
+import io.liuwei.autumn.search.Token;
 
 import java.util.List;
 
@@ -7,7 +12,7 @@ import java.util.List;
  * Created by liuwei on 2018/11/27.
  */
 // -abc
-class ExcludeMatcher extends AbstractPageHitMatcher {
+public class ExcludeMatcher extends AbstractPageHitMatcher {
 
     private String searchStr;
 
@@ -22,16 +27,16 @@ class ExcludeMatcher extends AbstractPageHitMatcher {
     }
 
     @Override
-    List<Hit> getHitList(String source) {
+    public List<Hit> getHitList(String source) {
         return ExactMatcher.findHitList(source, searchStr);
     }
 
     @Override
-    String getPageHitCacheKey() {
+    public String getPageHitCacheKey() {
         return searchStr;
     }
 
-    static class Parser extends AbstractPrefixMatcherParser {
+    public static class Parser extends AbstractPrefixMatcherParser {
         @Override
         protected String getPrefix() {
             return "-";
