@@ -345,7 +345,7 @@ input.header__row_1__search_input {
 .tree_box ul {
     list-style-type: none;
     margin: 0;
-    padding: 0 0 0 2em;
+    padding: 0 0 0 1em;
 }
 
 .tree_box > ul {
@@ -366,10 +366,12 @@ input.header__row_1__search_input {
 
 .tree_node_folded > .tree_node_header .tree_node_header_icon:before {
     content: '▶︎';
+    font-size: 0.5em;
 }
 
 .tree_node_unfolded > .tree_node_header .tree_node_header_icon:before {
     content: '▼';
+    font-size: 0.5em;
 }
 
 .tree_node_leaf > .tree_node_header .tree_node_header_icon {
@@ -534,6 +536,15 @@ input.header__row_1__search_input {
 .login_box input[type=submit] {
     width: 100%;
     margin-top: 1em;
+}
+
+.login_box .error_message {
+    padding: .75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid #f5c6cb;
+    border-radius: .25rem;
+    color: #721c24;
+    background-color: #f8d7da;
 }
 
 .recently_modified i {

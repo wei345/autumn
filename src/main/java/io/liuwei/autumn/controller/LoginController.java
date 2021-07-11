@@ -1,16 +1,18 @@
 package io.liuwei.autumn.controller;
 
-import io.liuwei.autumn.service.RateLimitService;
-import io.liuwei.autumn.service.TemplateService;
+import io.liuwei.autumn.constant.CacheConstants;
+import io.liuwei.autumn.service.UserService;
+import io.liuwei.autumn.util.RateLimiter;
+import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import io.liuwei.autumn.service.UserService;
-import io.liuwei.autumn.util.WebUtil;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
@@ -27,29 +29,31 @@ public class LoginController {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private RateLimitService rateLimitService;
+    @Autowired(required = false)
+    private StringRedisTemplate stringRedisTemplate;
 
-    @Autowired
-    private TemplateService templateService;
+    private RateLimiter rateLimiter;
 
-    @RequestMapping(value = "/login", method = RequestMethod.GET)
-    public String login(Map<String, Object> model) {
-        templateService.setCtx(model);
+    @PostConstruct
+    public void init() {
+        this.rateLimiter = new RateLimiter(3, 86400, stringRedisTemplate);
+    }
+
+    @GetMapping("/login")
+    public String login() {
         return "login";
     }
 
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    @PostMapping("/login")
     public String loginSubmit(String username,
                               String password,
-                              String ret,
+                              String returnUrl,
                               Map<String, Object> model,
                               HttpServletRequest request,
                               HttpServletResponse response) {
-        templateService.setCtx(model);
 
-        String clientIp = WebUtil.getClientIpAddress(request);
-        if (!rateLimitService.acquireLogin(clientIp)) {
+        String rateKey = CacheConstants.RATE_LIMIT_LOGIN + WebUtil.getClientIpAddress(request);
+        if (!rateLimiter.acquire(rateKey)) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             model.put("message", "稍后再试");
             model.put("username", htmlEscape(username));
@@ -63,7 +67,7 @@ public class LoginController {
 
             if (userService.login(username, password, request, response)) {
                 // 登录成功
-                return (ret != null && ret.startsWith("/")) ? "redirect:" + ret : "redirect:/";
+                return (returnUrl != null && returnUrl.startsWith("/")) ? "redirect:" + returnUrl : "redirect:/";
             }
         }
 
@@ -74,7 +78,7 @@ public class LoginController {
         return "login";
     }
 
-    @RequestMapping(value = "/logout", method = RequestMethod.GET)
+    @GetMapping("/logout")
     public String logout(HttpServletRequest request, HttpServletResponse response) {
         userService.logout(request, response);
         return "redirect:/";

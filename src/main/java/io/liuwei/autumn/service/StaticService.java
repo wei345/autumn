@@ -1,263 +1,183 @@
 package io.liuwei.autumn.service;
 
-import com.vip.vjtools.vjkit.io.FileUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
-import io.liuwei.autumn.data.ResourceLoader;
-import io.liuwei.autumn.domain.Page;
-import io.liuwei.autumn.reader.PageReaders;
+import io.liuwei.autumn.component.MediaRevisionResolver;
+import io.liuwei.autumn.config.AppProperties;
+import io.liuwei.autumn.constant.CacheConstants;
+import io.liuwei.autumn.constant.Constants;
+import io.liuwei.autumn.converter.ContentHtmlConverter;
+import io.liuwei.autumn.manager.ResourceFileManager;
+import io.liuwei.autumn.model.ContentHtml;
+import io.liuwei.autumn.model.ResourceFile;
+import io.liuwei.autumn.model.RevisionContent;
+import io.liuwei.autumn.util.IOUtil;
 import io.liuwei.autumn.util.JsCompressor;
-import io.liuwei.autumn.util.WebUtil;
+import io.liuwei.autumn.util.RevisionContentUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
-import org.springframework.util.DigestUtils;
-import org.springframework.web.context.request.WebRequest;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.liuwei.autumn.data.ResourceLoader.*;
-import static java.nio.charset.StandardCharsets.*;
 
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/19.
  */
+@SuppressWarnings("UnusedReturnValue")
 @Component
+@Slf4j
 public class StaticService {
-    private static final Logger logger = LoggerFactory.getLogger(StaticService.class);
     private static final StringBuilderHolder STRING_BUILDER_HOLDER = new StringBuilderHolder(1024);
-    private final List<ResourceLoader.StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
-    private volatile WebPageReferenceData jsCache;
-    private volatile WebPageReferenceData cssCache;
-    private volatile Page helpPage;
-    private String codeBlockLineNumberJs;
-    private String codeBlockHighlightJs;
-    private String codeBlockHighlightCss;
-    @Value("${autumn.code-block-line-number.enabled}")
-    private boolean codeBlockLineNumberEnabled;
 
-    @Value("${autumn.code-block-highlighting.enabled}")
-    private boolean codeBlockHighlightEnabled;
+    @Autowired
+    private ResourceFileManager resourceFileManager;
 
-    @Value("${autumn.highlightjs-version}")
-    private String highlightjsVersion;
+    @Autowired
+    private MediaRevisionResolver mediaRevisionResolver;
+
+    @Autowired
+    private ContentHtmlConverter contentHtmlConverter;
+
+    private AppProperties.CodeBlock codeBlock;
 
     @Value("${autumn.google-analytics-id}")
     private String googleAnalyticsId;
-
-    @Value("${autumn.code-block-highlighting.languages}")
-    private List<String> highlightLanguages;
-
-    @Value("${autumn.code-block-highlighting.style}")
-    private String codeBlockHighlightStyle;
 
     @Value("${autumn.compressor.javascript.enabled}")
     private boolean jsCompressEnabled;
 
     @Autowired
-    private ResourceLoader resourceLoader;
-
-    @Autowired
-    private JsCssCompressor jsCssCompressor;
-
-    @PostConstruct
-    private void init() {
-        refreshJsCache();
-        refreshCssCache();
-        refreshHelpPage();
-
-        resourceLoader.addStaticChangedListener(() -> {
-            refreshHelpPage();
-            if (refreshJsCache() || refreshCssCache()) {
-                staticChangedListeners.forEach(ResourceLoader.StaticChangedListener::onChanged);
-            }
-        });
+    private void setAppProperties(AppProperties appProperties) {
+        this.codeBlock = appProperties.getCodeBlock();
     }
 
-    public Object handleRequest(@NotNull ResourceLoader.ResourceCache resourceCache,
-                                WebRequest webRequest,
-                                HttpServletRequest request,
-                                HttpServletResponse response) {
-        String etag = WebUtil.getEtag(resourceCache.getMd5());
-        if (WebUtil.checkNotModified(webRequest, etag)) {
-            return null;
-        }
+    @Cacheable(value = CacheConstants.STATIC, key = "'" + Constants.JS_ALL_DOT_JS + "'")
+    public RevisionContent getAllJs() {
+        log.info("building {}", Constants.JS_ALL_DOT_JS);
 
-        return MediaService.handleRequest(
-                resourceCache.getContent(),
-                etag,
-                FileUtil.getFileName(resourceCache.getPath()),
-                resourceCache.getMimeType(),
-                webRequest,
-                request
-        );
-    }
+        List<ResourceFile> jsList = Stream
+                .of("/js/script.js", "/js/quick_search.js", "/js/util.js")
+                .map(this::getStaticResourceFile)
+                .collect(Collectors.toList());
 
-    public ResourceLoader.ResourceCache getStaticResourceCache(String path) {
-        return resourceLoader.getResourceCache(STATIC_ROOT + path);
-    }
+        StringBuilder sb = STRING_BUILDER_HOLDER.get();
 
-    public WebPageReferenceData getJsCache() {
-        return jsCache;
-    }
-
-    public WebPageReferenceData getCssCache() {
-        return cssCache;
-    }
-
-    Page getHelpPage() {
-        return helpPage;
-    }
-
-    private void refreshHelpPage() {
-        ResourceLoader.ResourceCache data = getStaticResourceCache("/help.adoc");
-        if (helpPage != null && helpPage.getFileLastModified() >= data.getLastModified()) {
-            return;
-        }
-
-        Page page = newPage(data, "/help");
-        helpPage = page;
-        logger.info("Updated {}", page.getPath());
-    }
-
-    private Page newPage(ResourceCache resourceCache, String path) {
-        String content = resourceCache.getContentString();
-        return PageReaders.getPageReader(resourceCache.getPath()).toPage(content, path, resourceCache.getLastModified());
-    }
-
-    private boolean refreshJsCache() {
-        boolean changed = false;
-
-        List<ResourceLoader.ResourceCache> sourceList = Stream.of(
-                "/js/script.js", "/js/quick_search.js", "/js/util.js")
-                .map(this::getStaticResourceCache).collect(Collectors.toList());
-
-        List<Long> sourceTimeList = sourceList.stream()
-                .map(ResourceLoader.ResourceCache::getLastModified).collect(Collectors.toList());
-
-        if (jsCache == null || jsCache.checkChanged(sourceTimeList)) {
-            jsCache = createJsCache(sourceList);
-            logger.info("jsCache updated");
-            changed = true;
-        }
-        return changed;
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private WebPageReferenceData createJsCache(List<ResourceLoader.ResourceCache> sourceList) {
-
-        // 如果把 tree.js 也加进来：
-        // 每次浏览器打开页面少发一个请求
-        // 如果 tree.js 更新，那么其余 js 也跟着重新加载。tree.js 更新相对频繁
-
-        StringBuilder stringBuilder = STRING_BUILDER_HOLDER.get();
-        stringBuilder.append("\"use strict\";\n")
+        // 我们的 js，包到一个 function 里
+        sb
+                .append("\"use strict\";\n")
                 .append("(function () {\n");
-        sourceList.forEach(resourceCache ->
-                stringBuilder.append(
-                        resourceCache.getContentString()
-                                .replaceFirst("\"use strict\";\n", "")
-                                .trim())
+        jsList.forEach(js ->
+                sb
+                        .append(js.getContentString().replaceFirst("\"use strict\";\n", "").trim())
                         .append("\n"));
-        stringBuilder.append("})();\n");
+        sb.append("})();\n");
 
-        if (codeBlockHighlightEnabled) {
-            stringBuilder.append(getCodeBlockHighlightJs()).append("\n");
+        // 代码块高亮
+        if (codeBlock.isHighlightingEnabled()) {
+            sb
+                    .append(getHighlightJs())
+                    .append("\n");
         }
 
-        if (codeBlockLineNumberEnabled) {
-            stringBuilder.append(getCodeBlockLineNumberJs()).append("\n");
+        // 代码块行号
+        if (codeBlock.isLineNumberEnabled()) {
+            sb
+                    .append(getLineNumberJs())
+                    .append("\n");
         }
 
-        String js = stringBuilder.toString();
-        if (jsCompressEnabled) {
-            js = JsCompressor.compressJs("var autumn = {ctx: '', prefix: '', treeVersionKeyValue: ''}", js);
-        }
-
+        // Google 分析
         if (StringUtils.isNotBlank(googleAnalyticsId)) {
-            js += getGoogleAnalyticsJs();
+            sb
+                    .append(getGoogleAnalyticsJs())
+                    .append("\n");
         }
 
-        byte[] jsBytes = js.getBytes(UTF_8);
-        String md5 = DigestUtils.md5DigestAsHex(jsBytes);
-        String etag = WebUtil.getEtag(md5);
+        // 压缩
+        String content = sb.toString();
+        if (jsCompressEnabled) {
+            String depend = "var autumn = {ctx: '', prefix: '', treeVersionKeyValue: ''}";
+            content = JsCompressor.compressJs(depend, content);
+        }
 
-        WebPageReferenceData jsCache = new WebPageReferenceData();
-        jsCache.setContent(jsBytes);
-        jsCache.setEtag(etag);
-        jsCache.setVersionKeyValue(WebUtil.getVersionKeyValue(md5));
-        return jsCache;
+        return RevisionContentUtil.newRevisionContent(content, mediaRevisionResolver);
     }
 
-    private boolean refreshCssCache() {
-        List<ResourceLoader.ResourceCache> sourceList = Stream.of("/css/lib/normalize.css", "/css/style.css")
-                .map(this::getStaticResourceCache).collect(Collectors.toList());
-        List<Long> sourceTimeList = sourceList.stream().map(ResourceLoader.ResourceCache::getLastModified).collect(Collectors.toList());
-        if (cssCache != null && !cssCache.checkChanged(sourceTimeList)) {
-            return false;
-        }
+    @Cacheable(value = CacheConstants.STATIC, key = "'" + Constants.CSS_ALL_DOT_CSS + "'")
+    public RevisionContent getAllCss() {
+        log.info("building {}", Constants.CSS_ALL_DOT_CSS);
+
+        List<ResourceFile> cssList = Stream
+                .of("/css/lib/normalize.css", "/css/style.css")
+                .map(this::getStaticResourceFile)
+                .collect(Collectors.toList());
 
         StringBuilder stringBuilder = STRING_BUILDER_HOLDER.get();
-        sourceList.forEach(resourceCache ->
-                stringBuilder.append(resourceCache.getContentString()).append("\n"));
-        if (codeBlockHighlightEnabled) {
-            stringBuilder.append(getCodeBlockHighlightCss()).append("\n");
+
+        // 我们的 css
+        cssList.forEach(css ->
+                stringBuilder
+                        .append(css.getContentString())
+                        .append("\n"));
+
+        // 代码块高亮
+        if (codeBlock.isHighlightingEnabled()) {
+            stringBuilder
+                    .append(IOUtil.resourceToString(getHighlightJsCssPath()))
+                    .append("\n");
         }
 
-        WebPageReferenceData cssCache = new WebPageReferenceData();
-        cssCache.setContent(stringBuilder.toString().getBytes(UTF_8));
-        String md5 = DigestUtils.md5DigestAsHex(cssCache.getContent());
-        String etag = WebUtil.getEtag(md5);
-        cssCache.setEtag(etag);
-        cssCache.setVersionKeyValue(WebUtil.getVersionKeyValue(md5));
-        this.cssCache = cssCache;
-        logger.info("cssCache updated");
-        return true;
+        return RevisionContentUtil.newRevisionContent(stringBuilder.toString(), mediaRevisionResolver);
     }
 
-    private String getCodeBlockLineNumberJs() {
-        if (codeBlockLineNumberJs != null) {
-            return codeBlockLineNumberJs;
-        }
+    @Cacheable(value = CacheConstants.STATIC, key = "'" + Constants.HELP + "'")
+    public ContentHtml getHelpContent() {
+        log.info("building {}", Constants.HELP);
+        ResourceFile help = getStaticResourceFile("/help.adoc");
+        return contentHtmlConverter.convert("Help", help.getContentString());
+    }
 
+    private String getLineNumberJs() {
         StringBuilder stringBuilder = new StringBuilder(7000);
-        ResourceLoader.ResourceCache resourceCache = getStaticResourceCache("/js/lib/highlightjs-line-numbers.js");
+        ResourceFile js = getStaticResourceFile("/js/lib/highlightjs-line-numbers.js");
         // 不依赖 highlight.js
-        stringBuilder.append("if(!window.hljs) window.hljs = {};\n")
-                .append(resourceCache.getContentString()).append("\n")
+        return stringBuilder.append("if(!window.hljs) window.hljs = {};\n")
+                .append(js.getContentString()).append("\n")
                 .append("window.addEventListener('load', function () {\n")
                 .append("    Array.prototype.map.call(document.querySelectorAll('pre code'), el => el)\n")
                 .append("        .forEach(block => hljs.lineNumbersBlock(block));\n")
-                .append("});\n");
-        return codeBlockLineNumberJs = stringBuilder.toString();
+                .append("});\n")
+                .toString();
     }
 
-    private String getCodeBlockHighlightJs() {
-        if (codeBlockHighlightJs != null) {
-            return codeBlockHighlightJs;
-        }
-
-        String hljsContent = resourceLoader.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/highlight.js");
-
+    private String getHighlightJs() {
         StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
-        stringBuilder.append(hljsContent).append("\n");
-        highlightLanguages.forEach(language -> {
-            String text = resourceLoader.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/languages/" + language + ".js");
-            String js = text.substring(text.indexOf("function"));
-            // hljs.registerLanguage('language', function(hljs){...});
-            stringBuilder.append("hljs.registerLanguage('").append(language).append("', ").append(js).append(");\n");
-        });
+
+        stringBuilder
+                .append(IOUtil.resourceToString(getHighlightJsPath()))
+                .append("\n");
+
+        codeBlock
+                .getHighlightingLanguages()
+                .forEach(language -> {
+                    String content = IOUtil.resourceToString(getHighlightJsLanguagePath(language));
+                    String function = content.substring(content.indexOf("function"));
+
+                    // hljs.registerLanguage('language', function(hljs){...});
+                    stringBuilder
+                            .append("hljs.registerLanguage('")
+                            .append(language)
+                            .append("', ")
+                            .append(function)
+                            .append(");\n");
+                });
+
         stringBuilder
                 .append("window.addEventListener('load', function () {\n")
                 .append("    Array.prototype.map.call(document.querySelectorAll('pre code'), el => el)\n")
@@ -269,70 +189,34 @@ public class StaticService {
                 .append("        });\n")
                 .append("});\n");
 
-        return (codeBlockHighlightJs = stringBuilder.toString());
+        return stringBuilder.toString();
+    }
+
+    private String getHighlightJsPath() {
+        return getHighlightJsBasePath() + "/highlight.js";
+    }
+
+    private String getHighlightJsLanguagePath(String language) {
+        return getHighlightJsBasePath() + "/languages/" + language + ".js";
+    }
+
+    private String getHighlightJsCssPath() {
+        return getHighlightJsBasePath() + "/styles/" + codeBlock.getHighlightingStyle() + ".css";
+    }
+
+    private String getHighlightJsBasePath() {
+        return "/META-INF/resources/webjars/highlightjs/" + codeBlock.getHighlightjsVersion();
     }
 
     private String getGoogleAnalyticsJs() {
         return "window['GoogleAnalyticsObject'] = 'ga'; window.ga = {" +
                 "q: [['create', '" + googleAnalyticsId + "', 'auto'], ['send', 'pageview']], " +
                 "l: 1 * new Date()};\n" +
-                getStaticResourceCache("/js/lib/google-analytics.js").getContentString();
+                getStaticResourceFile("/js/lib/google-analytics.js").getContentString();
     }
 
-    private String getCodeBlockHighlightCss() {
-        if (codeBlockHighlightCss != null) {
-            return codeBlockHighlightCss;
-        }
-
-        if (StringUtils.isBlank(codeBlockHighlightStyle)) {
-            return (codeBlockHighlightCss = "");
-        }
-
-        String text = resourceLoader.getWebJarResourceAsString("/highlightjs/" + highlightjsVersion + "/styles/" + codeBlockHighlightStyle + ".css");
-        return codeBlockHighlightCss = text;
+    private ResourceFile getStaticResourceFile(String path) {
+        return resourceFileManager.getResourceFile(resourceFileManager.getStaticRoot() + path);
     }
 
-    void addStaticChangedListener(ResourceLoader.StaticChangedListener listener) {
-        this.staticChangedListeners.add(listener);
-    }
-
-    public static class WebPageReferenceData {
-        private String versionKeyValue;
-        private byte[] content;
-        private String etag;
-        private long time;
-
-        WebPageReferenceData() {
-            time = System.currentTimeMillis();
-        }
-
-        boolean checkChanged(List<Long> sourceTimeList) {
-            Optional<Long> optionalLong = sourceTimeList.stream().max(Long::compareTo);
-            return optionalLong.isPresent() && optionalLong.get() > time;
-        }
-
-        String getVersionKeyValue() {
-            return versionKeyValue;
-        }
-
-        void setVersionKeyValue(String versionKeyValue) {
-            this.versionKeyValue = versionKeyValue;
-        }
-
-        public byte[] getContent() {
-            return content;
-        }
-
-        public void setContent(byte[] content) {
-            this.content = content;
-        }
-
-        public String getEtag() {
-            return etag;
-        }
-
-        void setEtag(String etag) {
-            this.etag = etag;
-        }
-    }
 }

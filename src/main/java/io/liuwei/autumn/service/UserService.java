@@ -8,21 +8,20 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 import com.vip.vjtools.vjkit.security.CryptoUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
+import io.liuwei.autumn.enums.AccessLevelEnum;
+import io.liuwei.autumn.model.User;
+import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.web.util.CookieGenerator;
-import io.liuwei.autumn.util.WebUtil;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -38,17 +37,15 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * Created by liuwei on 2018/11/22.
  */
 @SuppressWarnings({"UnstableApiUsage", "WeakerAccess"})
-@Component
 public class UserService {
 
     // 改变这个值会使所有已登录 Cookie 失效
     private static final int REMEMBER_ME_VERSION = 2;
     private static final String LOGOUT_COOKIE_NAME = "logout";
     private static final String SEPARATOR = "|";
-    private static final User USER_REMEMBER_ME_PARSE_ERROR = new User();
-    private static final User USER_NOT_EXIST_OR_PASSWORD_ERROR = new User();
+    private static final User NULL_USER = new User();
+    private static final String REQUEST_ATTRIBUTE_CURRENT_USER = UserService.class.getName() + ".current_user";
     private static Logger logger = LoggerFactory.getLogger(UserService.class);
-    private static ThreadLocal<User> userThreadLocal = new ThreadLocal<>();
     private String rememberMeCookieName;
     private byte[] aesKey;
 
@@ -57,17 +54,18 @@ public class UserService {
 
     private Map<String, User> users;
 
-    private Map<Long, User> idToUser;
+    private Map<Long, User> userMap;
 
-    @Autowired
-    private WebUtil webUtil;
-    private Cache<String, User> rememberMeToUserCache = CacheBuilder.newBuilder()
+    @Value("${autumn.access.owner-user-id}")
+    private Long ownerUserId;
+
+    private Cache<String, User> rememberMe2UserCache = CacheBuilder.newBuilder()
             .expireAfterWrite(30, TimeUnit.SECONDS)
             .maximumSize(10_000)
             .build();
 
-    public static boolean isLogged() {
-        return userThreadLocal.get() != null;
+    public UserService(String rememberMeCookieName) {
+        this.rememberMeCookieName = rememberMeCookieName;
     }
 
     @VisibleForTesting
@@ -88,22 +86,34 @@ public class UserService {
         return BaseEncoding.base64Url().omitPadding().encode(bytes);
     }
 
-    @PostConstruct
-    private void init() {
-        rememberMeCookieName = webUtil.getPrefix() + "me";
+    public User getCurrentUser(HttpServletRequest request, HttpServletResponse response) {
+        User user = (User) request.getAttribute(REQUEST_ATTRIBUTE_CURRENT_USER);
+        if (user == null) {
+            user = getRememberMeUser(request, response);
+            request.setAttribute(REQUEST_ATTRIBUTE_CURRENT_USER, user);
+        }
+        return user;
     }
 
-    public void setCurrentUser(HttpServletRequest request, HttpServletResponse response) {
-        User user = getRememberMeUser(request, response);
-        userThreadLocal.set(user);
+    public AccessLevelEnum getAccessLevel(User user) {
+        if (user == null) {
+            return AccessLevelEnum.ANON;
+        }
+        if (user.getIsOwner()) {
+            return AccessLevelEnum.OWNER;
+        }
+        return AccessLevelEnum.USER;
     }
 
     /**
      * @return 如果登录成功，则返回 true，否则返回 false
      */
     public boolean login(String username, String plainPassword, HttpServletRequest request, HttpServletResponse response) {
-        User user = checkPlainPassword(username, plainPassword);
+        User user = users.get(username);
         if (user == null) {
+            return false;
+        }
+        if (!checkPlainPassword(user, plainPassword)) {
             return false;
         }
         setRememberMe(user, plainPassword, request, response);
@@ -157,11 +167,15 @@ public class UserService {
 
         User user;
         try {
-            user = rememberMeToUserCache.get(rememberMe, () -> parseRememberMeForUser(rememberMe));
+            user = rememberMe2UserCache.get(rememberMe, () -> {
+                User user1 = parseRememberMeForUser(rememberMe);
+                return user1 == null ? NULL_USER : user1;
+            });
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }
-        if (user != null && user != USER_NOT_EXIST_OR_PASSWORD_ERROR && user != USER_REMEMBER_ME_PARSE_ERROR) {
+        if (user != null && user != NULL_USER) {
+            user.setIsOwner(user.getId().equals(ownerUserId));
             return user;
         }
 
@@ -173,25 +187,25 @@ public class UserService {
      * @param rememberMe 存在登录用户 cookie 里 AES 加密的字符串
      * @return USER_REMEMBER_ME_PARSE_ERROR 或 USER_NOT_EXIST_OR_PASSWORD_ERROR 或正常用户对象
      */
-    private @NotNull User parseRememberMeForUser(String rememberMe) {
+    private User parseRememberMeForUser(String rememberMe) {
         try {
             String decrypted = CryptoUtil.aesDecrypt(decodeBase64UrlSafe(rememberMe), aesKey);
             StringTokenizer tokenizer = new StringTokenizer(decrypted, SEPARATOR);
             int version = Integer.parseInt(tokenizer.nextToken());
             if (version != REMEMBER_ME_VERSION) {
                 logger.info("rememberMe version not match, current: '{}', cookie: '{}'", REMEMBER_ME_VERSION, version);
-                return USER_REMEMBER_ME_PARSE_ERROR;
+                return null;
             }
             long id = Long.parseLong(tokenizer.nextToken());
             String password = tokenizer.nextToken();
-            User user = checkRememberMePassword(id, decodeBase64UrlSafe(password));
-            if (user == null) {
-                return USER_NOT_EXIST_OR_PASSWORD_ERROR;
+            User user = userMap.get(id);
+            if (user == null || !checkRememberMePassword(user, decodeBase64UrlSafe(password))) {
+                return null;
             }
             return user;
         } catch (Exception e) {
             logger.debug(String.format("解析 rememberMe cookie 失败 '%s'", rememberMe), e);
-            return USER_REMEMBER_ME_PARSE_ERROR;
+            return null;
         }
     }
 
@@ -216,43 +230,22 @@ public class UserService {
     }
 
     private void addCookie(CookieGenerator cg, String value, HttpServletRequest request, HttpServletResponse response) {
-        cg.setCookiePath(webUtil.getContextPath() + "/");
+        cg.setCookiePath(request.getContextPath() + "/");
         cg.setCookieSecure(WebUtil.isSecure(request));
         cg.addCookie(response, value);
     }
 
-    /**
-     * @return 如果 username 和 password 验证通过，则返回 User 对象，否则返回 null
-     */
-    private User checkRememberMePassword(Long id, byte[] passwordDigest1) {
-        User user = idToUser.get(id);
-        if (user == null) {
-            return null;
-        }
+    private boolean checkRememberMePassword(User user, byte[] passwordDigest1) {
         return checkPasswordDigest1(user, passwordDigest1);
     }
 
-    /**
-     * @return 如果 username 和 password 验证通过，则返回 User 对象，否则返回 null
-     */
     @VisibleForTesting
-    User checkPlainPassword(String username, String plainPassword) {
-        User user = users.get(username);
-        if (user == null) {
-            return null;
-        }
+    boolean checkPlainPassword(User user, String plainPassword) {
         return checkPasswordDigest1(user, passwordDigest1(plainPassword, user.getSaltBytes()));
     }
 
-    /**
-     * @return 如果 username 和 password 验证通过，则返回 User 对象，否则返回 null
-     */
-    private User checkPasswordDigest1(User user, byte[] passwordDigest1) {
-        if (Arrays.equals(user.getPasswordBytes(), passwordDigest2(passwordDigest1, user.getSaltBytes()))) {
-            return user;
-        } else {
-            return null;
-        }
+    private boolean checkPasswordDigest1(User user, byte[] passwordDigest1) {
+        return Arrays.equals(user.getPasswordBytes(), passwordDigest2(passwordDigest1, user.getSaltBytes()));
     }
 
     @VisibleForTesting
@@ -270,7 +263,7 @@ public class UserService {
     void setUsers(String input) {
         Validate.notBlank(input, "config 'autumn.users' is blank");
         users = Maps.newHashMapWithExpectedSize(2);
-        idToUser = Maps.newHashMapWithExpectedSize(2);
+        userMap = Maps.newHashMapWithExpectedSize(2);
         for (String s : input.trim().split("\\s*;\\s*")) {
             if (StringUtils.isBlank(s)) {
                 continue;
@@ -282,71 +275,10 @@ public class UserService {
             String salt = parts[3];
             User user = new User(id, username, password, salt, decodeHex(password), decodeHex(salt));
             Validate.isTrue(users.get(username) == null, "Duplicate username '%s'", username);
-            Validate.isTrue(idToUser.get(id) == null, "Duplicate id '%s'", id);
+            Validate.isTrue(userMap.get(id) == null, "Duplicate id '%s'", id);
             users.put(username, user);
-            idToUser.put(id, user);
+            userMap.put(id, user);
         }
     }
 
-    static class User {
-        private Long id;
-        private String username;
-        private String password;
-        private String salt;
-        private byte[] passwordBytes;
-        private byte[] saltBytes;
-
-        // used by Jackson deserialize
-        public User() {
-        }
-
-        public User(long id, String username, String password, String salt, byte[] passwordBytes, byte[] saltBytes) {
-            this.id = id;
-            this.username = username;
-            this.password = password;
-            this.salt = salt;
-            this.passwordBytes = passwordBytes;
-            this.saltBytes = saltBytes;
-        }
-
-        Long getId() {
-            return id;
-        }
-
-        public void setId(Long id) {
-            this.id = id;
-        }
-
-        String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
-
-        String getSalt() {
-            return salt;
-        }
-
-        public void setSalt(String salt) {
-            this.salt = salt;
-        }
-
-        public byte[] getPasswordBytes() {
-            return passwordBytes;
-        }
-
-        public byte[] getSaltBytes() {
-            return saltBytes;
-        }
-    }
 }

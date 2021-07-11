@@ -1,6 +1,6 @@
 package io.liuwei.autumn.reader;
 
-import ch.qos.logback.classic.Level;
+/*import ch.qos.logback.classic.Level;
 import io.liuwei.autumn.domain.Page;
 import io.liuwei.autumn.util.CommandExecutor;
 import io.liuwei.autumn.util.ResourceWalker;
@@ -19,7 +19,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.text.ParseException;
 import java.util.Date;
 
-import static java.nio.file.FileVisitResult.*;
+import static java.nio.file.FileVisitResult.*;*/
 
 /**
  * @author liuwei
@@ -28,6 +28,7 @@ import static java.nio.file.FileVisitResult.*;
 @SuppressWarnings("FieldCanBeLocal")
 public class PageCreatedRepairer {
 
+    /* 一些依赖类已删除，例如 MarkdownPageReader, PageReaders
     private static final Logger logger = LoggerFactory.getLogger(PageCreatedRepairer.class);
     private static final String dataDir = "";
 
@@ -128,5 +129,5 @@ public class PageCreatedRepairer {
         int getCount() {
             return count;
         }
-    }
+    }*/
 }

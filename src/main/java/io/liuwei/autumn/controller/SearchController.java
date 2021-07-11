@@ -1,20 +1,22 @@
 package io.liuwei.autumn.controller;
 
-import io.liuwei.autumn.domain.Pagination;
+import io.liuwei.autumn.constant.CacheConstants;
+import io.liuwei.autumn.enums.AccessLevelEnum;
+import io.liuwei.autumn.model.Pagination;
+import io.liuwei.autumn.search.model.SearchResult;
 import io.liuwei.autumn.service.SearchService;
-import io.liuwei.autumn.service.TemplateService;
+import io.liuwei.autumn.util.RateLimiter;
+import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.view.RedirectView;
-import io.liuwei.autumn.search.SearchResult;
-import io.liuwei.autumn.service.RateLimitService;
-import io.liuwei.autumn.util.WebUtil;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -26,27 +28,31 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
  * @author liuwei
  * Created by liuwei on 2018/11/28.
  */
-@RestController
+@Controller
 public class SearchController {
 
     @Autowired
     private SearchService searchService;
 
-    @Autowired
-    private TemplateService templateService;
+    @Autowired(required = false)
+    private StringRedisTemplate stringRedisTemplate;
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private int maxSearchStrLength = 120;
-
-    @Autowired
-    private RateLimitService rateLimitService;
+    private RateLimiter rateLimiter;
 
     @Value("${autumn.search.page-size}")
     private int pageSize;
 
-    @RequestMapping(value = "/search", method = RequestMethod.GET)
+    private int maxSearchStrLength = 120;
+
+    @PostConstruct
+    public void init() {
+        this.rateLimiter = new RateLimiter(100, 600, stringRedisTemplate);
+    }
+
+    @GetMapping("/search")
     public Object search(String s,
                          Integer offset,
+                         AccessLevelEnum accessLevel,
                          Map<String, Object> model,
                          HttpServletRequest request,
                          HttpServletResponse response) throws IOException {
@@ -62,21 +68,23 @@ public class SearchController {
             s = s.substring(0, maxSearchStrLength);
         }
 
-        if (rateLimitService.acquireSearch(WebUtil.getClientIpAddress(request))) {
-            String q = s;
-            SearchResult sr = searchService.search(s, offset, pageSize);
-            model.put("s", htmlEscape(s));
-            model.put("sr", sr);
-            model.put("pagination",
-                    new Pagination(
-                            offset,
-                            pageSize,
-                            sr.getTotal(),
-                            (pageNumber, offset1) -> "/search?s=" + q + "&offset=" + offset1));
-            return templateService.merge(model, "search_result");
+        String rateKey = CacheConstants.RATE_LIMIT_SEARCH + WebUtil.getClientIpAddress(request);
+        if (!rateLimiter.acquire(rateKey)) {
+            request.setAttribute("s", htmlEscape(s));
+            response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(), "稍后再试");
+            return null;
         }
-        request.setAttribute("s", htmlEscape(s));
-        response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(), "稍后再试");
-        return null;
+
+        String q = s;
+        SearchResult sr = searchService.search(s, accessLevel, offset, pageSize);
+        model.put("s", htmlEscape(s));
+        model.put("sr", sr);
+        model.put("pagination",
+                new Pagination(
+                        offset,
+                        pageSize,
+                        sr.getTotal(),
+                        (pageNumber, offset1) -> "/search?s=" + q + "&offset=" + offset1));
+        return "search_result";
     }
 }

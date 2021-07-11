@@ -1,5 +1,6 @@
 package io.liuwei.autumn.util;
 
+import io.liuwei.autumn.constant.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -32,8 +33,8 @@ public class ResourceWalkerTest {
 
                 if (StringUtils.containsIgnoreCase(file.getFileSystem().getClass().getSimpleName(), "zip")) {
 
-                    if (path.startsWith(ResourceWalker.SPRING_BOOT_CLASSES)) {
-                        String relativePath = path.substring(ResourceWalker.SPRING_BOOT_CLASSES.length());
+                    if (path.startsWith(Constants.BOOT_INF_CLASSES)) {
+                        String relativePath = path.substring(Constants.BOOT_INF_CLASSES.length());
                         getClass().getResourceAsStream(relativePath);
 
 

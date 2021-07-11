@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="~{basic_layout}">
+<body>
+<div layout:fragment="basic_layout_fragment">
+    <div class="header">
+        <div class="header__row_1 row">
+            <div class="header__row_1__heading column">
+                <h1>
+                    <a th:href="@{/}" th:text="${#request.getAttribute('siteTitle')}"></a>
+                </h1>
+            </div>
+            <div class="header__row_1__search_box column">
+                <form class="header__row_1__search_form" method="GET" th:action="@{/search}">
+                    <span class="search_icon btn"></span>
+                    <span class="search_box__ct_toggle btn"></span>
+                    <span class="btn_clear_search btn"></span>
+                    <input class="header__row_1__search_input" type="search" name="s" th:value="${param.s}" autocomplete="off"
+                           placeholder="Search"/>
+                    <div class="search_box__ct no_selection"></div>
+                    <div class="qsr">
+                        <span class="qsr__close btn"></span>
+                        <div class="qsr__stats"></div>
+                        <ul class="qsr__list"></ul>
+                    </div>
+                </form>
+            </div>
+            <div class="header__row_1__right column">
+                <ul class="header__row_1__tools no_selection">
+                    <!--/* sitemap 移至单独的页面
+                    <li><span class="sitemap_toggle action_toggle">Sitemap</span></li> */-->
+                    <li><a th:href="@{/sitemap} + '#' + ${#request.getAttribute('path')}">Sitemap</a></li>
+                    <li><a th:href="@{/help}">Help</a></li>
+                    <li th:if="${user} != null"><a class="header__row_1__right__logout" th:href="@{/logout}">Logout</a></li>
+                    <li th:if="${user} == null"><a class="header__row_1__right__logout" th:href="@{/login}">Login</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="header__toolbar">
+        <!--/*<span class="sidebar_toggle no_selection action_toggle">Sidebar</span>*/-->
+    </div>
+    <!--/* sitemap 移至单独的页面
+    <div class="sitemap">
+        <div class="tree_box">
+        </div>
+    </div> */-->
+    <div class="main row">
+        <div class="sidebar column"></div>
+        <div class="content column">
+            <div layout:fragment="content_layout_fragment"></div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

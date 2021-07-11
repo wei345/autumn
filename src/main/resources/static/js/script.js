@@ -2,7 +2,7 @@
 var au = util();
 var ctx = autumn.ctx;
 var prefix = autumn.prefix;
-var treeVersionKeyValue = autumn.treeVersionKeyValue;
+var treeJsonUrl = autumn.treeJsonUrl;
 var lsRecentVisitKey = prefix + 'recently_visit';
 var recentlyVisitMaxCount = 100;
 var recentlyVisitPages;
@@ -169,7 +169,7 @@ function loadSitemapTree(then) {
         selectedNodeScrollIntoViewIfTreeFirstShow();
     }
 
-    au.ajax('GET', ctx + '/tree.json?' + treeVersionKeyValue, function (text) {
+    au.ajax('GET', treeJsonUrl, function (text) {
         var root = JSON.parse(text);
 
         if (treeBox) {

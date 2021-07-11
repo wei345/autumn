@@ -1,0 +1,11 @@
+# 如果你想设置 robots.txt，可以复制这个文件放到数据目录。
+# 注意，Autumn 把所有路径都映射到数据目录，放在这个目录里是访问不到的。
+
+User-agent: *
+Disallow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Yahoo! Slurp
+Allow: /

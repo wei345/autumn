@@ -1,17 +1,18 @@
 package io.liuwei.autumn.service;
 
 
-import io.liuwei.autumn.domain.Page;
+import io.liuwei.autumn.manager.ArticleManager;
+import io.liuwei.autumn.enums.AccessLevelEnum;
+import io.liuwei.autumn.model.Article;
+import io.liuwei.autumn.search.Highlighter;
+import io.liuwei.autumn.search.model.SearchResult;
+import io.liuwei.autumn.search.Searcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import io.liuwei.autumn.search.Highlighter;
-import io.liuwei.autumn.search.SearchResult;
-import io.liuwei.autumn.search.Searcher;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author liuwei
@@ -26,18 +27,18 @@ public class SearchService {
     private Searcher searcher;
 
     @Autowired
-    private DataService dataService;
+    private ArticleManager articleManager;
 
     private Highlighter highlighter = new Highlighter();
 
-    public SearchResult search(String input, int offset, int count) {
-        Map<String, Page> pageMap = dataService.getPageMap();
-        SearchResult sr = searcher.search(input, pageMap.values(), offset, count);
+    public SearchResult search(String input, AccessLevelEnum accessLevel, int offset, int count) {
+        List<Article> articles = articleManager.listArticles(accessLevel);
+        SearchResult sr = searcher.search(input, articles, offset, count);
         logger.info("Search '{}', {} results in {} ms", input, sr.getTotal(), sr.getTimeCost());
         return sr;
     }
 
-    String highlightSearchStr(String html, List<String> searchStrList) {
+    public String highlightSearchStr(String html, List<String> searchStrList) {
         return highlighter.highlightSearchStr(html, searchStrList);
     }
 

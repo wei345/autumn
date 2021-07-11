@@ -34,15 +34,15 @@ bin/start.sh
 
 新建文件 src/main/resources/application-local.properties。
 
-最重要的几项配置是：`autumn.data-dir`，`autumn.users` 和 `autumn.remember-me.aes-key`。
+最重要的几项配置是：`autumn.data.dir`，`autumn.users` 和 `autumn.remember-me.aes-key`。
 
-=== autumn.data-dir
+=== autumn.data.dir
 
 一个包含 .adoc 或 .md 文件的目录路径。
 
-.adoc 或 .md 文件会被映射为网页。例如 `${autumn.data-dir}/a/b/c.adoc` 会被映射为网页 `+http://localhost:8601/a/b/c+`。
+.adoc 或 .md 文件会被映射为网页。例如 `${autumn.data.dir}/a/b/c.adoc` 会被映射为网页 `+http://localhost:8601/a/b/c+`。
 
-其他文件会被视为静态文件。例如 `${autumn.data-dir}/a/b/c.png` 会被映射为 `+http://localhost:8601/a/b/c.png+`。
+其他文件会被视为静态文件。例如 `${autumn.data.dir}/a/b/c.png` 会被映射为 `+http://localhost:8601/a/b/c.png+`。
 
 .adoc 文件格式示例：
 [source,asciidoc]
@@ -118,7 +118,7 @@ mvn -q -DskipTests=false -Dtest=io.liuwei.autumn.AesTest#generateKey test
 [source,properties]
 ----
 # /path/to/data
-autumn.data-dir=<your data directory>
+autumn.data.dir=<your data directory>
 autumn.data.reload-interval-seconds=0
 autumn.resource.reload-interval-seconds=0
 # id username password salt; id ...

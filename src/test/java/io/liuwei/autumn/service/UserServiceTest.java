@@ -2,6 +2,7 @@ package io.liuwei.autumn.service;
 
 import com.google.common.hash.Hashing;
 import com.vip.vjtools.vjkit.number.RandomUtil;
+import io.liuwei.autumn.model.User;
 import org.junit.Test;
 import org.springframework.util.DigestUtils;
 
@@ -38,10 +39,11 @@ public class UserServiceTest {
         System.out.println("password: " + plainPassword);
 
         // check password
-        UserService userService = new UserService();
+        UserService userService = new UserService("autumn.");
         userService.setUsers(userString);
         assertThat(userService.getUser(username)).isNotNull();
-        UserService.User user = userService.checkPlainPassword(username, plainPassword);
+        User user = userService.getUser(username);
+        userService.checkPlainPassword(user, plainPassword);
         assertThat(user.getUsername()).isEqualTo(username);
     }
 
@@ -66,17 +68,6 @@ public class UserServiceTest {
         System.out.println(name + " cost " + cost + " ms");
         System.out.println();
         return v;
-    }
-
-    @Test
-    public void testKey() {
-        String salt = RandomUtil.randomStringFixLength(16);
-        String plainPassword = RandomUtil.randomStringFixLength(16);
-        byte[] key = salt.getBytes(UTF_8);
-        assertThat(Hashing.hmacSha1(key).hashString(plainPassword, UTF_8).toString()).isNotEqualTo(Hashing.sha1().hashString(plainPassword, UTF_8).toString());
-        assertThat(Hashing.hmacSha1(key).hashString(plainPassword, UTF_8).toString()).isNotEqualTo(Hashing.sha1().hashString(plainPassword + salt, UTF_8).toString());
-        assertThat(Hashing.hmacSha256(key).hashString(plainPassword, UTF_8).toString()).isNotEqualTo(Hashing.sha256().hashString(plainPassword, UTF_8).toString());
-        assertThat(Hashing.hmacSha256(key).hashString(plainPassword, UTF_8).toString()).isNotEqualTo(Hashing.sha256().hashString(plainPassword + salt, UTF_8).toString());
     }
 
     /* 未用

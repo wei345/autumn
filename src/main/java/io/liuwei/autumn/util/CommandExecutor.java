@@ -2,6 +2,7 @@ package io.liuwei.autumn.util;
 
 import com.vip.vjtools.vjkit.io.IOUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * @author liuwei
  * Created by liuwei on 2018/12/29.
  */
+@SuppressWarnings("WeakerAccess")
 public class CommandExecutor {
 
     private static ThreadPoolExecutor executor;
@@ -126,6 +128,8 @@ public class CommandExecutor {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
+    @Getter
     public static class Result {
         private final String stdout;
         private final String stderr;
@@ -135,21 +139,6 @@ public class CommandExecutor {
             this.stdout = stdout;
             this.stderr = stderr;
             error = StringUtils.isNotEmpty(stderr);
-        }
-
-        public String getStdout() {
-            return stdout;
-        }
-
-        public String getStderr() {
-            return stderr;
-        }
-
-        /**
-         * @return true if stdout not empty
-         */
-        public boolean hasError() {
-            return error;
         }
     }
 }
