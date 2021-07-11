@@ -1,5 +1,6 @@
 package io.liuwei.autumn.component;
 
+import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.manager.ArticleManager;
 import io.liuwei.autumn.model.Media;
 import org.apache.commons.lang3.StringUtils;
@@ -46,10 +47,7 @@ public class MediaRevisionResolver {
     }
 
     public String toRevisionUrl(String path, String revision) {
-        return path + "?" + getRevisionParamName() + "=" + revision;
+        return path + "?" + Constants.REQUEST_PARAMETER_REVISION + "=" + revision;
     }
 
-    public String getRevisionParamName() {
-        return "v";
-    }
 }

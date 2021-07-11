@@ -2,6 +2,7 @@ package io.liuwei.autumn.aop;
 
 import io.liuwei.autumn.annotation.CheckModified;
 import io.liuwei.autumn.model.RevisionContent;
+import io.liuwei.autumn.util.WebUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -24,15 +25,13 @@ import javax.servlet.http.HttpServletResponse;
 public class CheckModifiedAspect {
     @Around("@annotation(checkModified)")
     public Object doAround(ProceedingJoinPoint joinPoint, CheckModified checkModified) throws Throwable {
-        ServletRequestAttributes sra = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes());
-        HttpServletRequest request = sra.getRequest();
-        HttpServletResponse response = sra.getResponse();
-        ServletWebRequest webRequest = new ServletWebRequest(request, response);
-
         Object result = joinPoint.proceed();
+
         if (result instanceof RevisionContent) {
             RevisionContent rc = (RevisionContent) result;
-            if (webRequest.checkNotModified(rc.getEtag())) {
+            ServletRequestAttributes sra = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes());
+            ServletWebRequest webRequest = new ServletWebRequest(sra.getRequest(), sra.getResponse());
+            if (WebUtil.checkNotModified(rc.getEtag(), webRequest)) {
                 return null;
             }
             return rc.getContent();

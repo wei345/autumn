@@ -1,9 +1,9 @@
 package io.liuwei.autumn.util;
 
 import com.vip.vjtools.vjkit.text.EscapeUtil;
+import io.liuwei.autumn.constant.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
@@ -42,11 +42,17 @@ public class WebUtil {
                 .substring(request.getContextPath().length());
     }
 
-    public static boolean checkNotModified(WebRequest webRequest, String etag, String requestRevisionParamName) {
+    /**
+     * 除了设置 etag 之外，还会检查请求的 {@link Constants#REQUEST_PARAMETER_REVISION} 参数，
+     * 如果跟 etag 匹配，会设置缓存时间，使用浏览器在缓存期间不再发送请求。
+     *
+     * @param etag 不带引号
+     */
+    public static boolean checkNotModified(String etag, WebRequest webRequest) {
         if (webRequest instanceof ServletWebRequest) {
             HttpServletRequest request = ((ServletRequestAttributes) webRequest).getRequest();
             HttpServletResponse response = ((ServletRequestAttributes) webRequest).getResponse();
-            setCacheTimeIfVersionMatch(request, response, requestRevisionParamName, etag, DEFAULT_EXPIRES_SECONDS);
+            setCacheTimeIfVersionMatch(request, response, etag, DEFAULT_EXPIRES_SECONDS);
         }
 
         return webRequest.checkNotModified(etag);
@@ -54,11 +60,11 @@ public class WebUtil {
 
     @SuppressWarnings("SameParameterValue")
     private static void setCacheTimeIfVersionMatch(
-            HttpServletRequest request, HttpServletResponse response, String requestRevisionParamName,
+            HttpServletRequest request, HttpServletResponse response,
             String etag, long expiresSeconds) {
 
-        String requestVersion = request.getParameter(requestRevisionParamName);
-        if (requestVersion == null || !etag.startsWith(requestVersion, 1)) {
+        String requestVersion = request.getParameter(Constants.REQUEST_PARAMETER_REVISION);
+        if (requestVersion == null || !etag.startsWith(requestVersion)) {
             return;
         }
 

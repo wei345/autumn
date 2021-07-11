@@ -2,6 +2,7 @@ package io.liuwei.autumn.util;
 
 import com.google.common.io.Files;
 import io.liuwei.autumn.component.MediaRevisionResolver;
+import io.liuwei.autumn.constant.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -109,7 +110,7 @@ public class HtmlUtil {
             return mediaUrl;
         }
 
-        String versionKeyValue = mediaRevisionResolver.getRevisionParamName() + "=" + revision;
+        String versionKeyValue = Constants.REQUEST_PARAMETER_REVISION + "=" + revision;
         if (questionMarkPos == -1) {
             return mediaUrl + "?" + versionKeyValue;
         } else {

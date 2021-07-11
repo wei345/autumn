@@ -5,6 +5,8 @@ package io.liuwei.autumn.constant;
  * @since 2021-07-09 11:05
  */
 public class Constants {
+    public static final String REQUEST_PARAMETER_REVISION = "v";
+
     /**
      * Springboot jar 里应用的 classes 路径
      */
