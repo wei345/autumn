@@ -78,14 +78,13 @@ public class WildcardQuoteMatcher extends AbstractPageHitMatcher {
 
     @SuppressWarnings("SameParameterValue")
     private static int lastIndexOf(String str, char search, int start, int end) {
-        int index = -1;
         int len = Math.min(str.length(), end);
-        for (int i = start; i < len; i++) {
+        for (int i = len - 1; i >= start; i--) {
             if (str.charAt(i) == search) {
-                index = i;
+                return i;
             }
         }
-        return index;
+        return -1;
     }
 
     @VisibleForTesting
@@ -112,6 +111,7 @@ public class WildcardQuoteMatcher extends AbstractPageHitMatcher {
 
         private static StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(64);
 
+        @Override
         public boolean accept(String input, int start) {
             if (input.charAt(start) != '"' || input.length() - start < 4) { // 最短 "x*" 4 个字符
                 return false;

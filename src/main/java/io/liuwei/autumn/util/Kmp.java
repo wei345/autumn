@@ -24,7 +24,7 @@ public class Kmp {
         }
         searchStr = searchStr.toLowerCase();
         int len = str.length();
-        int searchSeqLen = searchStr.length();
+        int searchStrLen = searchStr.length();
         int[] next = getNextArray(searchStr);
         int j = 0;
         for (int i = startPos; i < len; ++i) {
@@ -38,8 +38,8 @@ public class Kmp {
             if (isEquals) {
                 ++j;
             }
-            if (j == searchSeqLen) {
-                return i - searchSeqLen + 1;
+            if (j == searchStrLen) {
+                return i - searchStrLen + 1;
             }
         }
         return -1;

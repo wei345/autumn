@@ -88,7 +88,7 @@ public class ArticleManager {
         this.mediaMap = mediaMap;
         this.articleMap = articleMap;
         this.dataInfo = dataInfo;
-        log.info("reload done. {}", dataInfo);
+        log.info("Reloaded. {}", dataInfo);
         return dataInfo;
     }
 
@@ -151,16 +151,22 @@ public class ArticleManager {
     private DataInfo toDataInfo(Map<String, Media> mediaMap, Map<String, Article> articleMap, Long costMills) {
         DataInfo dataInfo = new DataInfo();
         dataInfo.setTime(new Date());
-        dataInfo.setTimeCostInMills(costMills);
-        dataInfo.setFileCount(mediaMap.size());
-        dataInfo.setArticleCount(articleMap.size());
-        dataInfo.setUserAccessibleArticleCount(
+        dataInfo.setCost(costMills);
+        dataInfo.setFile(mediaMap.size());
+        dataInfo.setArticle(articleMap.size());
+        dataInfo.setOwnerOnlyAccessible(
+                (int) articleMap
+                        .values()
+                        .stream()
+                        .filter(o -> o.getAccessLevel() == AccessLevelEnum.OWNER)
+                        .count());
+        dataInfo.setUserAccessible(
                 (int) articleMap
                         .values()
                         .stream()
                         .filter(o -> o.getAccessLevel().allow(AccessLevelEnum.USER))
                         .count());
-        dataInfo.setAnonAccessibleArticleCount(
+        dataInfo.setAnonAccessible(
                 (int) articleMap
                         .values()
                         .stream()

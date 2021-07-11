@@ -1,6 +1,7 @@
 package io.liuwei.autumn.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.liuwei.autumn.enums.AccessLevelEnum;
 import lombok.Data;
 
 import java.util.Date;
@@ -12,16 +13,39 @@ import java.util.Date;
 @Data
 public class DataInfo {
 
-    private Integer fileCount;
+    /**
+     * 总文件数
+     */
+    private Integer file;
 
-    private Integer articleCount;
+    /**
+     * 文章数
+     */
+    private Integer article;
 
-    private Integer userAccessibleArticleCount;
+    /**
+     * 仅 {@link AccessLevelEnum#OWNER} 级别用户可见的文章数
+     */
+    private Integer ownerOnlyAccessible;
 
-    private Integer anonAccessibleArticleCount;
+    /**
+     * {@link AccessLevelEnum#USER} 级别用户可见的文章数
+     */
+    private Integer userAccessible;
 
-    private Long timeCostInMills;
+    /**
+     * {@link AccessLevelEnum#ANON} 级别用户可见的文章数
+     */
+    private Integer anonAccessible;
 
+    /**
+     * 加载数据花费的时间，毫秒
+     */
+    private Long cost;
+
+    /**
+     * 加载数据的时间
+     */
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date time;
 

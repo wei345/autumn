@@ -70,17 +70,6 @@ public class UserServiceTest {
         return v;
     }
 
-    @Test
-    public void testKey() {
-        String salt = RandomUtil.randomStringFixLength(16);
-        String plainPassword = RandomUtil.randomStringFixLength(16);
-        byte[] key = salt.getBytes(UTF_8);
-        assertThat(Hashing.hmacSha1(key).hashString(plainPassword, UTF_8).toString()).isNotEqualTo(Hashing.sha1().hashString(plainPassword, UTF_8).toString());
-        assertThat(Hashing.hmacSha1(key).hashString(plainPassword, UTF_8).toString()).isNotEqualTo(Hashing.sha1().hashString(plainPassword + salt, UTF_8).toString());
-        assertThat(Hashing.hmacSha256(key).hashString(plainPassword, UTF_8).toString()).isNotEqualTo(Hashing.sha256().hashString(plainPassword, UTF_8).toString());
-        assertThat(Hashing.hmacSha256(key).hashString(plainPassword, UTF_8).toString()).isNotEqualTo(Hashing.sha256().hashString(plainPassword + salt, UTF_8).toString());
-    }
-
     /* 未用
     interface LoginToken {
         boolean acquire(String clientIp);

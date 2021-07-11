@@ -55,10 +55,10 @@ public class SettingGlobalAttributeInterceptor implements HandlerInterceptor {
             request.setAttribute("ctx", request.getContextPath());
             request.setAttribute("path", request.getRequestURI().substring(request.getContextPath().length()));
             request.setAttribute("siteTitle", appProperties.getSiteTitle());
-            request.setAttribute("faviconUrl", mediaRevisionResolver.getMediaRevisionUrl(Constants.FAVICON_ICO_PATH));
-            request.setAttribute("cssUrl", toRevisionUrl(Constants.ALL_CSS_PATH, staticService.getCssCache()));
-            request.setAttribute("jsUrl", toRevisionUrl(Constants.ALL_JS_PATH, staticService.getJsCache()));
-            request.setAttribute("treeJsonUrl", toRevisionUrl(Constants.TREE_JSON_PATH, articleService.getTreeJson(accessLevel)));
+            request.setAttribute("faviconUrl", mediaRevisionResolver.getMediaRevisionUrl(Constants.FAVICON_DOT_ICO));
+            request.setAttribute("cssUrl", toRevisionUrl(Constants.CSS_ALL_DOT_CSS, staticService.getCssCache()));
+            request.setAttribute("jsUrl", toRevisionUrl(Constants.JS_ALL_DOT_JS, staticService.getJsCache()));
+            request.setAttribute("treeJsonUrl", toRevisionUrl(Constants.TREE_DOT_JSON, articleService.getTreeJson(accessLevel)));
             request.setAttribute("prefix", prefix);
             request.setAttribute("user", user);
         }

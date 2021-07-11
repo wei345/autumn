@@ -8,7 +8,6 @@ import io.liuwei.autumn.model.ArticleVO;
 import io.liuwei.autumn.model.Media;
 import io.liuwei.autumn.service.ArticleService;
 import io.liuwei.autumn.service.SearchService;
-import io.liuwei.autumn.service.StaticService;
 import io.liuwei.autumn.util.MimeTypeUtil;
 import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.io.IOUtils;
@@ -20,7 +19,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.context.request.ServletWebRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,8 +41,6 @@ public class ArticleController {
     @Autowired
     private ArticleService articleService;
 
-    @Autowired
-    private StaticService staticService;
 
     @Autowired
     private SearchService searchService;
@@ -76,21 +73,7 @@ public class ArticleController {
         return "home";
     }
 
-    @GetMapping(value = Constants.ALL_JS_PATH, produces = MimeTypeUtil.TEXT_JAVASCRIPT_UTF8)
-    @ResponseBody
-    @CheckModified
-    public Object getAllJs() {
-        return staticService.getJsCache();
-    }
-
-    @GetMapping(value = Constants.ALL_CSS_PATH, produces = MimeTypeUtil.TEXT_CSS_UTF8)
-    @ResponseBody
-    @CheckModified
-    public Object getAllCss() {
-        return staticService.getCssCache();
-    }
-
-    @GetMapping(value = Constants.TREE_JSON_PATH, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = Constants.TREE_DOT_JSON, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     @CheckModified
     public Object getTreeJson(AccessLevelEnum accessLevel) {
@@ -104,17 +87,11 @@ public class ArticleController {
         return "sitemap";
     }
 
-    @GetMapping("/help")
-    public String help(Model model) {
-        model.addAttribute("contentHtml", staticService.getHelpCache());
-        return "content";
-    }
-
     @GetMapping(value = "/**/*.*")
     @ResponseBody
-    public void getMedia(HttpServletRequest request, HttpServletResponse response, WebRequest webRequest,
-                         AccessLevelEnum accessLevel) throws IOException {
-        String path = WebUtil.getInternalPath(request);
+    public void getMedia(AccessLevelEnum accessLevel, HttpServletResponse response,
+                         ServletWebRequest webRequest) throws IOException {
+        String path = WebUtil.getInternalPath(webRequest.getRequest());
         Media media = articleService.getMedia(path);
 
         if (media == null || !media.getAccessLevel().allow(accessLevel)) {
@@ -137,9 +114,9 @@ public class ArticleController {
 
     @GetMapping(value = "/**")
     public String getArticle(String[] h, // h=a&h=b..
+                             AccessLevelEnum accessLevel,
                              HttpServletRequest request,
                              HttpServletResponse response,
-                             AccessLevelEnum accessLevel,
                              Map<String, Object> model) throws IOException {
         String path = WebUtil.getInternalPath(request);
         Article article = articleService.getArticle(path);
