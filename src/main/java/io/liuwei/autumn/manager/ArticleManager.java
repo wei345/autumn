@@ -59,12 +59,12 @@ public class ArticleManager {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = CacheConstants.ARTICLE_LIST),
-            @CacheEvict(value = CacheConstants.ARTICLE_TREE_JSON),
-            @CacheEvict(value = CacheConstants.ARTICLE_TREE_HTML),
-            @CacheEvict(value = CacheConstants.ARTICLE_TREE),
-            @CacheEvict(value = CacheConstants.ARTICLE_VO),
-            @CacheEvict(value = CacheConstants.ARTICLE_BREADCRUMB),
+            @CacheEvict(value = CacheConstants.ARTICLE_LIST, allEntries = true),
+            @CacheEvict(value = CacheConstants.ARTICLE_TREE_JSON, allEntries = true),
+            @CacheEvict(value = CacheConstants.ARTICLE_TREE_HTML, allEntries = true),
+            @CacheEvict(value = CacheConstants.ARTICLE_TREE, allEntries = true),
+            @CacheEvict(value = CacheConstants.ARTICLE_VO, allEntries = true),
+            @CacheEvict(value = CacheConstants.ARTICLE_BREADCRUMB, allEntries = true),
     })
     public synchronized DataInfo reload() {
         long startTime = System.currentTimeMillis();
