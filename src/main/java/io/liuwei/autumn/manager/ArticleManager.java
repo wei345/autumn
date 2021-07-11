@@ -108,7 +108,7 @@ public class ArticleManager {
         return articleMap
                 .values()
                 .stream()
-                .filter(o -> o.getAccessLevel().getLevel() >= accessLevel.getLevel())
+                .filter(o -> o.getAccessLevel().allow(accessLevel))
                 .collect(Collectors.toList());
     }
 

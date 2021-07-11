@@ -16,8 +16,6 @@ public class ScheduledJob {
 
     private Runnable command;
 
-    private Task task;
-
     private ScheduledExecutorService scheduler;
 
     public ScheduledJob(int intervalSeconds, Runnable command, ScheduledExecutorService scheduler) {
@@ -25,45 +23,35 @@ public class ScheduledJob {
             throw new NullPointerException("command");
         }
 
-        this.scheduler = scheduler;
-
         this.intervalSeconds = intervalSeconds;
 
         this.command = command;
 
-        this.task = new Task(command);
+        this.scheduler = scheduler;
     }
 
     public void start() {
         if (intervalSeconds > 0) {
             schedule();
+            log.info("scheduled. intervalSeconds={}, command={}", intervalSeconds, command);
         } else {
-            log.info("not start. intervalSeconds={}, command={}", intervalSeconds, command);
+            log.info("will not run. intervalSeconds={}, command={}", intervalSeconds, command);
         }
     }
 
     private void schedule() {
         if (!scheduler.isShutdown()) {
-            scheduler.schedule(task, intervalSeconds, TimeUnit.SECONDS);
-        }
-    }
-
-    private class Task implements Runnable {
-
-        private Runnable command;
-
-        Task(Runnable command) {
-            this.command = command;
-        }
-
-        @Override
-        public void run() {
-            try {
-                command.run();
-                schedule();
-            } catch (Throwable t) {
-                log.error("调度任务执行失败，调度停止", t);
-            }
+            scheduler.schedule(
+                    () -> {
+                        try {
+                            command.run();
+                            schedule();
+                        } catch (Throwable t) {
+                            log.error("调度任务执行失败，调度停止. command=" + command, t);
+                        }
+                    },
+                    intervalSeconds,
+                    TimeUnit.SECONDS);
         }
     }
 }

@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -51,19 +52,9 @@ public class ArticleController {
     @GetMapping("")
     public String home(AccessLevelEnum accessLevel, Model model) {
         List<Article> list = articleService.listArticles(accessLevel);
-        list.sort((o1, o2) -> {
-            // 一定要分出先后，也就是不能返回 0，否则每次搜索结果顺序可能不完全一样
-            int v;
-
-            // 最近修改日期
-            v = Long.compare(o2.getModified().getTime(), o1.getModified().getTime());
-            if (v != 0) {
-                return v;
-            }
-
-            // 字典顺序
-            return o1.getPath().compareTo(o2.getPath());
-        });
+        list.sort(Comparator
+                .comparing(Article::getModified).reversed()
+                .thenComparing(Article::getPath));
 
         if (list.size() > 20) {
             list = list.subList(0, 20);
