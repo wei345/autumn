@@ -3,6 +3,8 @@ package io.liuwei.autumn.service;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.config.AppProperties;
+import io.liuwei.autumn.constant.CacheConstants;
+import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.converter.ContentHtmlConverter;
 import io.liuwei.autumn.manager.ResourceFileManager;
 import io.liuwei.autumn.model.ContentHtml;
@@ -11,16 +13,14 @@ import io.liuwei.autumn.model.RevisionContent;
 import io.liuwei.autumn.util.IOUtil;
 import io.liuwei.autumn.util.JsCompressor;
 import io.liuwei.autumn.util.RevisionContentUtil;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,52 +52,19 @@ public class StaticService {
     @Value("${autumn.compressor.javascript.enabled}")
     private boolean jsCompressEnabled;
 
-    @Getter
-    private volatile RevisionContent jsCache;
-
-    @Getter
-    private volatile RevisionContent cssCache;
-
-    @Getter
-    private volatile ContentHtml helpCache;
-
     @Autowired
     private void setAppProperties(AppProperties appProperties) {
         this.codeBlock = appProperties.getCodeBlock();
     }
 
-    @PostConstruct
-    private void init() {
-        refresh();
-        resourceFileManager.addStaticChangedListener(this::refresh);
-    }
+    @Cacheable(value = CacheConstants.STATIC, key = "'" + Constants.JS_ALL_DOT_JS + "'")
+    public RevisionContent getAllJs() {
+        log.info("building {}", Constants.JS_ALL_DOT_JS);
 
-    private void refresh() {
-        refreshJsCache();
-        refreshCssCache();
-        refreshHelpCache();
-    }
-
-    private boolean refreshJsCache() {
         List<ResourceFile> jsList = Stream
                 .of("/js/script.js", "/js/quick_search.js", "/js/util.js")
                 .map(this::getStaticResourceFile)
                 .collect(Collectors.toList());
-
-        List<Long> jsLastModifiedList = jsList
-                .stream()
-                .map(ResourceFile::getLastModified)
-                .collect(Collectors.toList());
-
-        if (jsCache == null || checkChanged(jsLastModifiedList, jsCache)) {
-            jsCache = createJsCache(jsList);
-            log.info("jsCache updated");
-            return true;
-        }
-        return false;
-    }
-
-    private RevisionContent createJsCache(List<ResourceFile> jsList) {
 
         StringBuilder sb = STRING_BUILDER_HOLDER.get();
 
@@ -142,53 +109,38 @@ public class StaticService {
         return RevisionContentUtil.newRevisionContent(content, mediaRevisionResolver);
     }
 
-    private boolean refreshCssCache() {
+    @Cacheable(value = CacheConstants.STATIC, key = "'" + Constants.CSS_ALL_DOT_CSS + "'")
+    public RevisionContent getAllCss() {
+        log.info("building {}", Constants.CSS_ALL_DOT_CSS);
+
         List<ResourceFile> cssList = Stream
                 .of("/css/lib/normalize.css", "/css/style.css")
                 .map(this::getStaticResourceFile)
                 .collect(Collectors.toList());
 
-        List<Long> cssLastModifiedList = cssList
-                .stream()
-                .map(ResourceFile::getLastModified)
-                .collect(Collectors.toList());
+        StringBuilder stringBuilder = STRING_BUILDER_HOLDER.get();
 
-        if (cssCache == null || checkChanged(cssLastModifiedList, cssCache)) {
-            StringBuilder stringBuilder = STRING_BUILDER_HOLDER.get();
-
-            // 我们的 css
-            cssList.forEach(css ->
-                    stringBuilder
-                            .append(css.getContentString())
-                            .append("\n"));
-
-            // 代码块高亮
-            if (codeBlock.isHighlightingEnabled()) {
+        // 我们的 css
+        cssList.forEach(css ->
                 stringBuilder
-                        .append(IOUtil.resourceToString(getHighlightJsCssPath()))
-                        .append("\n");
-            }
+                        .append(css.getContentString())
+                        .append("\n"));
 
-            this.cssCache = RevisionContentUtil.newRevisionContent(stringBuilder.toString(), mediaRevisionResolver);
-            log.info("cssCache updated");
-            return true;
+        // 代码块高亮
+        if (codeBlock.isHighlightingEnabled()) {
+            stringBuilder
+                    .append(IOUtil.resourceToString(getHighlightJsCssPath()))
+                    .append("\n");
         }
 
-        return false;
+        return RevisionContentUtil.newRevisionContent(stringBuilder.toString(), mediaRevisionResolver);
     }
 
-    private boolean refreshHelpCache() {
+    @Cacheable(value = CacheConstants.STATIC, key = "'" + Constants.HELP + "'")
+    public ContentHtml getHelpContent() {
+        log.info("building {}", Constants.HELP);
         ResourceFile help = getStaticResourceFile("/help.adoc");
-        if (help == null) {
-            return false;
-        }
-
-        if (helpCache == null || helpCache.getTime() < help.getLastModified()) {
-            this.helpCache = contentHtmlConverter.convert("Help", help.getContentString());
-            log.info("helpCache updated");
-            return true;
-        }
-        return false;
+        return contentHtmlConverter.convert("Help", help.getContentString());
     }
 
     private String getLineNumberJs() {
@@ -261,11 +213,6 @@ public class StaticService {
                 "q: [['create', '" + googleAnalyticsId + "', 'auto'], ['send', 'pageview']], " +
                 "l: 1 * new Date()};\n" +
                 getStaticResourceFile("/js/lib/google-analytics.js").getContentString();
-    }
-
-    boolean checkChanged(List<Long> lastModifiedList, RevisionContent revisionContent) {
-        Optional<Long> optionalLong = lastModifiedList.stream().max(Long::compareTo);
-        return optionalLong.isPresent() && optionalLong.get() > revisionContent.getTimestamp();
     }
 
     private ResourceFile getStaticResourceFile(String path) {

@@ -24,19 +24,19 @@ public class StaticController {
     @ResponseBody
     @CheckModified
     public Object getAllJs() {
-        return staticService.getJsCache();
+        return staticService.getAllJs();
     }
 
     @GetMapping(value = Constants.CSS_ALL_DOT_CSS, produces = MimeTypeUtil.TEXT_CSS_UTF8)
     @ResponseBody
     @CheckModified
     public Object getAllCss() {
-        return staticService.getCssCache();
+        return staticService.getAllCss();
     }
 
-    @GetMapping("/help")
+    @GetMapping(Constants.HELP)
     public String help(Model model) {
-        model.addAttribute("contentHtml", staticService.getHelpCache());
+        model.addAttribute("contentHtml", staticService.getHelpContent());
         return "content";
     }
 }

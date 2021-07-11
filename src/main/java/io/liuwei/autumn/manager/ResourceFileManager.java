@@ -1,6 +1,7 @@
 package io.liuwei.autumn.manager;
 
 import com.google.common.collect.Maps;
+import io.liuwei.autumn.constant.CacheConstants;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.model.ResourceFile;
 import io.liuwei.autumn.util.IOUtil;
@@ -10,6 +11,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 
@@ -19,9 +22,7 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
@@ -30,18 +31,18 @@ import static java.nio.file.FileVisitResult.CONTINUE;
  * @author liuwei
  * Created by liuwei on 2018/12/11.
  */
+@SuppressWarnings("FieldCanBeLocal")
 @Component
 @Slf4j
 public class ResourceFileManager {
+
+    @Autowired
+    private ResourceFileManager proxy;
 
     @Getter
     private String staticRoot = "/static";
 
     private String templateRoot = "/templates";
-
-    private List<StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
-
-    private List<TemplateLastChangedListener> templateLastChangedListeners = new ArrayList<>(1);
 
     private volatile Map<String, ResourceFile> resourceFileMap = Collections.emptyMap();
 
@@ -64,8 +65,13 @@ public class ResourceFileManager {
         ResourceWalker.walk(staticRoot, visitor);
         if (visitor.isChanged()) {
             resourceFileMap = visitor.getResourceFileMap();
-            staticChangedListeners.forEach(StaticChangedListener::onChanged);
+            proxy.clearStaticCache();
         }
+    }
+
+    @CacheEvict(value = CacheConstants.STATIC, allEntries = true)
+    public void clearStaticCache() {
+        log.info("clearStaticCache");
     }
 
     private void refreshTemplateLastModified() {
@@ -74,7 +80,6 @@ public class ResourceFileManager {
         if (visitor.getLastModified() > templateLastModified) {
             templateLastModified = visitor.getLastModified();
             log.info("Updated templateLastModified {}", templateLastModified);
-            templateLastChangedListeners.forEach(TemplateLastChangedListener::onChanged);
         }
     }
 
@@ -83,22 +88,6 @@ public class ResourceFileManager {
      */
     public ResourceFile getResourceFile(String path) {
         return resourceFileMap.get(path);
-    }
-
-    public void addStaticChangedListener(StaticChangedListener listener) {
-        this.staticChangedListeners.add(listener);
-    }
-
-    public void addTemplateLastChangedListener(TemplateLastChangedListener listener) {
-        this.templateLastChangedListeners.add(listener);
-    }
-
-    public interface StaticChangedListener {
-        void onChanged();
-    }
-
-    public interface TemplateLastChangedListener {
-        void onChanged();
     }
 
     private static boolean isHidden(Path file) {
