@@ -52,7 +52,7 @@ public class AsciidocArticleParser {
         return article;
     }
 
-    protected void parseHeader(LineReader lineReader, Article article) {
+    private void parseHeader(LineReader lineReader, Article article) {
         DocumentHeader dh = asciidoctor.readDocumentHeader(lineReader.getText());
 
         Map<String, Object> attributes = dh.getAttributes();
@@ -83,7 +83,7 @@ public class AsciidocArticleParser {
         }
     }
 
-    protected String parseTitle(LineReader lineReader) {
+    private String parseTitle(LineReader lineReader) {
         for (String line : lineReader) {
             if (StringUtils.isBlank(line)) {
                 continue;

@@ -85,7 +85,7 @@ public class CommandJsCompressor {
             Files.delete(outputFile);
         }
 
-        if (result.hasError()) {
+        if (result.isError()) {
             logger.warn("Closure Compiler stderr: {}", result.getStderr());
             if (StringUtils.isBlank(resultJs)) {
                 logger.warn("Closure Compiler output js is blank, return raw input");
