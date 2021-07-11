@@ -14,15 +14,13 @@ public class ScheduledJob {
 
     private int intervalSeconds;
 
+    private Runnable command;
+
     private Task task;
 
     private ScheduledExecutorService scheduler;
 
     public ScheduledJob(int intervalSeconds, Runnable command, ScheduledExecutorService scheduler) {
-        if (intervalSeconds <= 0) {
-            throw new IllegalArgumentException("intervalSeconds");
-        }
-
         if (command == null) {
             throw new NullPointerException("command");
         }
@@ -31,11 +29,17 @@ public class ScheduledJob {
 
         this.intervalSeconds = intervalSeconds;
 
+        this.command = command;
+
         this.task = new Task(command);
     }
 
     public void start() {
-        schedule();
+        if (intervalSeconds > 0) {
+            schedule();
+        } else {
+            log.info("not start. intervalSeconds={}, command={}", intervalSeconds, command);
+        }
     }
 
     private void schedule() {
@@ -48,7 +52,7 @@ public class ScheduledJob {
 
         private Runnable command;
 
-        public Task(Runnable command) {
+        Task(Runnable command) {
             this.command = command;
         }
 
