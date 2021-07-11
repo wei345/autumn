@@ -4,55 +4,39 @@ import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.converter.ContentHtmlConverter;
-import io.liuwei.autumn.dao.ResourceFileDao;
+import io.liuwei.autumn.manager.ResourceFileManager;
 import io.liuwei.autumn.model.ContentHtml;
+import io.liuwei.autumn.model.ResourceFile;
 import io.liuwei.autumn.model.RevisionContent;
+import io.liuwei.autumn.util.IOUtil;
 import io.liuwei.autumn.util.JsCompressor;
 import io.liuwei.autumn.util.RevisionContentUtil;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.liuwei.autumn.dao.ResourceFileDao.STATIC_ROOT;
 
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/19.
  */
+@SuppressWarnings("UnusedReturnValue")
 @Component
+@Slf4j
 public class StaticService {
-    private static final Logger logger = LoggerFactory.getLogger(StaticService.class);
     private static final StringBuilderHolder STRING_BUILDER_HOLDER = new StringBuilderHolder(1024);
-    private final List<ResourceFileDao.StaticChangedListener> staticChangedListeners = new ArrayList<>(1);
-    @Getter
-    private volatile RevisionContent jsCache;
-    @Getter
-    private volatile RevisionContent cssCache;
-    @Getter
-    private volatile ContentHtml helpCache;
-    private String codeBlockLineNumberJs;
-    private String codeBlockHighlightJs;
-    private String codeBlockHighlightCss;
-
-    @Value("${autumn.google-analytics-id}")
-    private String googleAnalyticsId;
-
-    @Value("${autumn.compressor.javascript.enabled}")
-    private boolean jsCompressEnabled;
 
     @Autowired
-    private ResourceFileDao resourceFileDao;
+    private ResourceFileManager resourceFileManager;
 
     @Autowired
     private MediaRevisionResolver mediaRevisionResolver;
@@ -62,6 +46,21 @@ public class StaticService {
 
     private AppProperties.CodeBlock codeBlock;
 
+    @Value("${autumn.google-analytics-id}")
+    private String googleAnalyticsId;
+
+    @Value("${autumn.compressor.javascript.enabled}")
+    private boolean jsCompressEnabled;
+
+    @Getter
+    private volatile RevisionContent jsCache;
+
+    @Getter
+    private volatile RevisionContent cssCache;
+
+    @Getter
+    private volatile ContentHtml helpCache;
+
     @Autowired
     private void setAppProperties(AppProperties appProperties) {
         this.codeBlock = appProperties.getCodeBlock();
@@ -69,148 +68,164 @@ public class StaticService {
 
     @PostConstruct
     private void init() {
+        refresh();
+        resourceFileManager.addStaticChangedListener(this::refresh);
+    }
+
+    private void refresh() {
         refreshJsCache();
         refreshCssCache();
         refreshHelpCache();
-
-        resourceFileDao.addStaticChangedListener(() -> {
-            refreshHelpCache();
-            if (refreshJsCache() || refreshCssCache()) {
-                staticChangedListeners.forEach(ResourceFileDao.StaticChangedListener::onChanged);
-            }
-        });
     }
-
-    public ResourceFileDao.ResourceCache getStaticResourceCache(String path) {
-        return resourceFileDao.getResourceCache(STATIC_ROOT + path);
-    }
-
 
     private boolean refreshJsCache() {
-        boolean changed = false;
+        List<ResourceFile> jsList = Stream
+                .of("/js/script.js", "/js/quick_search.js", "/js/util.js")
+                .map(this::getStaticResourceFile)
+                .collect(Collectors.toList());
 
-        List<ResourceFileDao.ResourceCache> sourceList = Stream.of(
-                "/js/script.js", "/js/quick_search.js", "/js/util.js")
-                .map(this::getStaticResourceCache).collect(Collectors.toList());
+        List<Long> jsLastModifiedList = jsList
+                .stream()
+                .map(ResourceFile::getLastModified)
+                .collect(Collectors.toList());
 
-        List<Long> sourceTimeList = sourceList.stream()
-                .map(ResourceFileDao.ResourceCache::getLastModified).collect(Collectors.toList());
-
-        if (jsCache == null || checkChanged(sourceTimeList, jsCache)) {
-            jsCache = createJsCache(sourceList);
-            logger.info("jsCache updated");
-            changed = true;
+        if (jsCache == null || checkChanged(jsLastModifiedList, jsCache)) {
+            jsCache = createJsCache(jsList);
+            log.info("jsCache updated");
+            return true;
         }
-        return changed;
+        return false;
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private RevisionContent createJsCache(List<ResourceFileDao.ResourceCache> sourceList) {
+    private RevisionContent createJsCache(List<ResourceFile> jsList) {
 
-        // 如果把 tree.js 也加进来：
-        // 每次浏览器打开页面少发一个请求
-        // 如果 tree.js 更新，那么其余 js 也跟着重新加载。tree.js 更新相对频繁
+        StringBuilder sb = STRING_BUILDER_HOLDER.get();
 
-        StringBuilder stringBuilder = STRING_BUILDER_HOLDER.get();
-        stringBuilder.append("\"use strict\";\n")
+        // 我们的 js，包到一个 function 里
+        sb
+                .append("\"use strict\";\n")
                 .append("(function () {\n");
-        sourceList.forEach(resourceCache ->
-                stringBuilder.append(
-                        resourceCache.getContentString()
-                                .replaceFirst("\"use strict\";\n", "")
-                                .trim())
+        jsList.forEach(js ->
+                sb
+                        .append(js.getContentString().replaceFirst("\"use strict\";\n", "").trim())
                         .append("\n"));
-        stringBuilder.append("})();\n");
+        sb.append("})();\n");
 
+        // 代码块高亮
         if (codeBlock.isHighlightingEnabled()) {
-            stringBuilder.append(getCodeBlockHighlightJs()).append("\n");
+            sb
+                    .append(getHighlightJs())
+                    .append("\n");
         }
 
+        // 代码块行号
         if (codeBlock.isLineNumberEnabled()) {
-            stringBuilder.append(getCodeBlockLineNumberJs()).append("\n");
+            sb
+                    .append(getLineNumberJs())
+                    .append("\n");
         }
 
-        String js = stringBuilder.toString();
-        if (jsCompressEnabled) {
-            js = JsCompressor.compressJs("var autumn = {ctx: '', prefix: '', treeVersionKeyValue: ''}", js);
-        }
-
+        // Google 分析
         if (StringUtils.isNotBlank(googleAnalyticsId)) {
-            js += getGoogleAnalyticsJs();
+            sb
+                    .append(getGoogleAnalyticsJs())
+                    .append("\n");
         }
 
-        return RevisionContentUtil.newRevisionContent(js, mediaRevisionResolver);
+        // 压缩
+        String content = sb.toString();
+        if (jsCompressEnabled) {
+            String depend = "var autumn = {ctx: '', prefix: '', treeVersionKeyValue: ''}";
+            content = JsCompressor.compressJs(depend, content);
+        }
+
+        return RevisionContentUtil.newRevisionContent(content, mediaRevisionResolver);
     }
 
     private boolean refreshCssCache() {
-        List<ResourceFileDao.ResourceCache> sourceList = Stream.of("/css/lib/normalize.css", "/css/style.css")
-                .map(this::getStaticResourceCache).collect(Collectors.toList());
-        List<Long> sourceTimeList = sourceList.stream().map(ResourceFileDao.ResourceCache::getLastModified).collect(Collectors.toList());
-        if (cssCache != null && !checkChanged(sourceTimeList, cssCache)) {
-            return false;
+        List<ResourceFile> cssList = Stream
+                .of("/css/lib/normalize.css", "/css/style.css")
+                .map(this::getStaticResourceFile)
+                .collect(Collectors.toList());
+
+        List<Long> cssLastModifiedList = cssList
+                .stream()
+                .map(ResourceFile::getLastModified)
+                .collect(Collectors.toList());
+
+        if (cssCache == null || checkChanged(cssLastModifiedList, cssCache)) {
+            StringBuilder stringBuilder = STRING_BUILDER_HOLDER.get();
+
+            // 我们的 css
+            cssList.forEach(css ->
+                    stringBuilder
+                            .append(css.getContentString())
+                            .append("\n"));
+
+            // 代码块高亮
+            if (codeBlock.isHighlightingEnabled()) {
+                stringBuilder
+                        .append(IOUtil.resourceToString(getHighlightJsCssPath()))
+                        .append("\n");
+            }
+
+            this.cssCache = RevisionContentUtil.newRevisionContent(stringBuilder.toString(), mediaRevisionResolver);
+            log.info("cssCache updated");
+            return true;
         }
 
-        StringBuilder stringBuilder = STRING_BUILDER_HOLDER.get();
-        sourceList.forEach(resourceCache ->
-                stringBuilder.append(resourceCache.getContentString()).append("\n"));
-        if (codeBlock.isHighlightingEnabled()) {
-            stringBuilder.append(getCodeBlockHighlightCss()).append("\n");
-        }
-
-        this.cssCache = RevisionContentUtil.newRevisionContent(stringBuilder.toString(), mediaRevisionResolver);
-        logger.info("cssCache updated");
-        return true;
+        return false;
     }
 
     private boolean refreshHelpCache() {
-        ResourceFileDao.ResourceCache resourceCache = getStaticResourceCache("/help.adoc");
-        if (resourceCache == null) {
+        ResourceFile help = getStaticResourceFile("/help.adoc");
+        if (help == null) {
             return false;
         }
 
-        if (helpCache != null && helpCache.getTime() >= resourceCache.getLastModified()) {
-            return false;
+        if (helpCache == null || helpCache.getTime() < help.getLastModified()) {
+            this.helpCache = contentHtmlConverter.convert("Help", help.getContentString());
+            log.info("helpCache updated");
+            return true;
         }
-
-        this.helpCache = contentHtmlConverter.convert("Help", resourceCache.getContentString());
-        logger.info("helpCache updated");
-        return true;
+        return false;
     }
 
-    private String getCodeBlockLineNumberJs() {
-        if (codeBlockLineNumberJs != null) {
-            return codeBlockLineNumberJs;
-        }
-
+    private String getLineNumberJs() {
         StringBuilder stringBuilder = new StringBuilder(7000);
-        ResourceFileDao.ResourceCache resourceCache = getStaticResourceCache("/js/lib/highlightjs-line-numbers.js");
+        ResourceFile js = getStaticResourceFile("/js/lib/highlightjs-line-numbers.js");
         // 不依赖 highlight.js
-        stringBuilder.append("if(!window.hljs) window.hljs = {};\n")
-                .append(resourceCache.getContentString()).append("\n")
+        return stringBuilder.append("if(!window.hljs) window.hljs = {};\n")
+                .append(js.getContentString()).append("\n")
                 .append("window.addEventListener('load', function () {\n")
                 .append("    Array.prototype.map.call(document.querySelectorAll('pre code'), el => el)\n")
                 .append("        .forEach(block => hljs.lineNumbersBlock(block));\n")
-                .append("});\n");
-        return codeBlockLineNumberJs = stringBuilder.toString();
+                .append("});\n")
+                .toString();
     }
 
-    private String getCodeBlockHighlightJs() {
-        if (codeBlockHighlightJs != null) {
-            return codeBlockHighlightJs;
-        }
-
-        String hljsContent = resourceFileDao.getWebJarResourceAsString(
-                "/highlightjs/" + codeBlock.getHighlightjsVersion() + "/highlight.js");
-
+    private String getHighlightJs() {
         StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
-        stringBuilder.append(hljsContent).append("\n");
-        codeBlock.getHighlightingLanguages().forEach(language -> {
-            String text = resourceFileDao.getWebJarResourceAsString(
-                    "/highlightjs/" + codeBlock.getHighlightjsVersion() + "/languages/" + language + ".js");
-            String js = text.substring(text.indexOf("function"));
-            // hljs.registerLanguage('language', function(hljs){...});
-            stringBuilder.append("hljs.registerLanguage('").append(language).append("', ").append(js).append(");\n");
-        });
+
+        stringBuilder
+                .append(IOUtil.resourceToString(getHighlightJsPath()))
+                .append("\n");
+
+        codeBlock
+                .getHighlightingLanguages()
+                .forEach(language -> {
+                    String content = IOUtil.resourceToString(getHighlightJsLanguagePath(language));
+                    String function = content.substring(content.indexOf("function"));
+
+                    // hljs.registerLanguage('language', function(hljs){...});
+                    stringBuilder
+                            .append("hljs.registerLanguage('")
+                            .append(language)
+                            .append("', ")
+                            .append(function)
+                            .append(");\n");
+                });
+
         stringBuilder
                 .append("window.addEventListener('load', function () {\n")
                 .append("    Array.prototype.map.call(document.querySelectorAll('pre code'), el => el)\n")
@@ -222,39 +237,39 @@ public class StaticService {
                 .append("        });\n")
                 .append("});\n");
 
-        return (codeBlockHighlightJs = stringBuilder.toString());
+        return stringBuilder.toString();
+    }
+
+    private String getHighlightJsPath() {
+        return getHighlightJsBasePath() + "/highlight.js";
+    }
+
+    private String getHighlightJsLanguagePath(String language) {
+        return getHighlightJsBasePath() + "/languages/" + language + ".js";
+    }
+
+    private String getHighlightJsCssPath() {
+        return getHighlightJsBasePath() + "/styles/" + codeBlock.getHighlightingStyle() + ".css";
+    }
+
+    private String getHighlightJsBasePath() {
+        return "/META-INF/resources/webjars/highlightjs/" + codeBlock.getHighlightjsVersion();
     }
 
     private String getGoogleAnalyticsJs() {
         return "window['GoogleAnalyticsObject'] = 'ga'; window.ga = {" +
                 "q: [['create', '" + googleAnalyticsId + "', 'auto'], ['send', 'pageview']], " +
                 "l: 1 * new Date()};\n" +
-                getStaticResourceCache("/js/lib/google-analytics.js").getContentString();
+                getStaticResourceFile("/js/lib/google-analytics.js").getContentString();
     }
 
-    private String getCodeBlockHighlightCss() {
-        if (codeBlockHighlightCss != null) {
-            return codeBlockHighlightCss;
-        }
-
-        if (StringUtils.isBlank(codeBlock.getHighlightingStyle())) {
-            return (codeBlockHighlightCss = "");
-        }
-
-        String text = resourceFileDao.getWebJarResourceAsString(
-                "/highlightjs/" + codeBlock.getHighlightjsVersion() +
-                        "/styles/" + codeBlock.getHighlightingStyle() + ".css");
-
-        return codeBlockHighlightCss = text;
-    }
-
-    void addStaticChangedListener(ResourceFileDao.StaticChangedListener listener) {
-        this.staticChangedListeners.add(listener);
-    }
-
-    boolean checkChanged(List<Long> sourceTimeList, RevisionContent revisionContent) {
-        Optional<Long> optionalLong = sourceTimeList.stream().max(Long::compareTo);
+    boolean checkChanged(List<Long> lastModifiedList, RevisionContent revisionContent) {
+        Optional<Long> optionalLong = lastModifiedList.stream().max(Long::compareTo);
         return optionalLong.isPresent() && optionalLong.get() > revisionContent.getTimestamp();
+    }
+
+    private ResourceFile getStaticResourceFile(String path) {
+        return resourceFileManager.getResourceFile(resourceFileManager.getStaticRoot() + path);
     }
 
 }

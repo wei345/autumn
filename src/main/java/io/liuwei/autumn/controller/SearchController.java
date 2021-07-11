@@ -69,21 +69,22 @@ public class SearchController {
         }
 
         String rateKey = CacheConstants.RATE_LIMIT_SEARCH + WebUtil.getClientIpAddress(request);
-        if (rateLimiter.acquire(rateKey)) {
-            String q = s;
-            SearchResult sr = searchService.search(s, accessLevel, offset, pageSize);
-            model.put("s", htmlEscape(s));
-            model.put("sr", sr);
-            model.put("pagination",
-                    new Pagination(
-                            offset,
-                            pageSize,
-                            sr.getTotal(),
-                            (pageNumber, offset1) -> "/search?s=" + q + "&offset=" + offset1));
-            return "search_result";
+        if (!rateLimiter.acquire(rateKey)) {
+            request.setAttribute("s", htmlEscape(s));
+            response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(), "稍后再试");
+            return null;
         }
-        request.setAttribute("s", htmlEscape(s));
-        response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(), "稍后再试");
-        return null;
+
+        String q = s;
+        SearchResult sr = searchService.search(s, accessLevel, offset, pageSize);
+        model.put("s", htmlEscape(s));
+        model.put("sr", sr);
+        model.put("pagination",
+                new Pagination(
+                        offset,
+                        pageSize,
+                        sr.getTotal(),
+                        (pageNumber, offset1) -> "/search?s=" + q + "&offset=" + offset1));
+        return "search_result";
     }
 }

@@ -29,13 +29,13 @@ public class AsciidocContentHtmlConverter implements ContentHtmlConverter {
     }
 
     @Override
-    public ContentHtml convert(String title, String body) {
+    public ContentHtml convert(String title, String content) {
         // title html
         String titleId = "articletitle";
         String titleHtml = "<h1 id=\"" + titleId + "\">" + EscapeUtil.escapeHtml(title) + "</h1>";
 
         // content html
-        String contentHtml = asciidoctor.convert(body, optionsBuilder);
+        String contentHtml = asciidoctor.convert(content, optionsBuilder);
 
         // toc html
         String tocHtml = null;

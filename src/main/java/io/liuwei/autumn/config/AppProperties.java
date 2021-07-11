@@ -28,8 +28,7 @@ public class AppProperties {
         private String highlightingStyle = "default";
 
         private List<String> highlightingLanguages = Arrays.asList(
-                "bash,clojure,css,java,javascript,json,lisp,lua,nginx,php,python,ruby,sql,xml,yaml"
-                        .split(","));
+                "bash,clojure,css,java,javascript,json,lisp,lua,nginx,php,python,ruby,sql,xml,yaml".split(","));
 
         /**
          * Maven org.webjars:highlightjs version

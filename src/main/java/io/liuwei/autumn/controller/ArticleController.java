@@ -87,6 +87,7 @@ public class ArticleController {
         return "sitemap";
     }
 
+    // 带扩展名，访问文件
     @GetMapping(value = "/**/*.*")
     @ResponseBody
     public void getMedia(AccessLevelEnum accessLevel, HttpServletResponse response,
@@ -112,6 +113,7 @@ public class ArticleController {
         out.flush();
     }
 
+    // 不带扩展名，访问文章
     @GetMapping(value = "/**")
     public String getArticle(String[] h, // h=a&h=b..
                              AccessLevelEnum accessLevel,

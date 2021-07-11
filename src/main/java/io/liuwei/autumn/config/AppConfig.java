@@ -1,6 +1,7 @@
 package io.liuwei.autumn.config;
 
 import com.google.common.io.BaseEncoding;
+import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import io.liuwei.autumn.aop.SettingGlobalAttributeInterceptor;
 import io.liuwei.autumn.service.UserService;
@@ -12,6 +13,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -69,5 +72,12 @@ public class AppConfig {
     @Bean
     public Asciidoctor asciidoctor() {
         return new JRubyAsciidoctor();
+    }
+
+    @Bean
+    public ScheduledExecutorService scheduledExecutorService() {
+        return Executors.newScheduledThreadPool(
+                1,
+                ThreadPoolUtil.buildThreadFactory("scheduledLoadingFile", true));
     }
 }

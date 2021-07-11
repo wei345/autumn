@@ -5,6 +5,11 @@ package io.liuwei.autumn.constant;
  * @since 2021-07-09 11:05
  */
 public class Constants {
+    /**
+     * Springboot jar 里应用的 classes 路径
+     */
+    public static final String BOOT_INF_CLASSES = "/BOOT-INF/classes";
+
     public static final String JS_ALL_DOT_JS = "/js/all.js";
 
     public static final String CSS_ALL_DOT_CSS = "/css/all.css";
