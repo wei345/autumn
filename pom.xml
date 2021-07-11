@@ -9,7 +9,7 @@
     </parent>
     <groupId>io.liuwei.autumn</groupId>
     <artifactId>autumn</artifactId>
-    <version>2.0.1-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <properties>
         <highlightjs.version>9.8.0</highlightjs.version>
         <skipTests>true</skipTests>
@@ -47,7 +47,7 @@
             <groupId>nz.net.ultraq.thymeleaf</groupId>
             <artifactId>thymeleaf-layout-dialect</artifactId>
         </dependency>
-
+        <!-- Spring AOP -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
@@ -91,11 +91,7 @@
             <artifactId>highlightjs</artifactId>
             <version>${highlightjs.version}</version>
         </dependency>
-        <!-- Other -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
+        <!-- JS Compress -->
         <dependency>
             <groupId>com.google.javascript</groupId>
             <artifactId>closure-compiler</artifactId>
@@ -106,6 +102,11 @@
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!-- Other -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
