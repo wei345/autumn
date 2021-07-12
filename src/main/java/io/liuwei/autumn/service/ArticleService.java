@@ -38,6 +38,9 @@ public class ArticleService {
     @Autowired
     private JsonMapper jsonMapper;
 
+    @Autowired
+    private ArticleService aopProxy;
+
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
@@ -126,7 +129,7 @@ public class ArticleService {
     }
 
     public ArticleVO toVO(Article article) {
-        ContentHtml contentHtml = getContentHtml(article);
+        ContentHtml contentHtml = aopProxy.getContentHtml(article);
         ArticleVO vo = new ArticleVO();
         vo.setPath(article.getPath());
         vo.setTitle(article.getTitle());

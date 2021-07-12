@@ -42,7 +42,6 @@ public class ArticleController {
     @Autowired
     private ArticleService articleService;
 
-
     @Autowired
     private SearchService searchService;
 
