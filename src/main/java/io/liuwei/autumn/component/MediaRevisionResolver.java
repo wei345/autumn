@@ -2,6 +2,7 @@ package io.liuwei.autumn.component;
 
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.manager.ArticleManager;
+import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.Media;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
  * @author liuwei
  * @since 2021-07-08 13:02
  */
+@SuppressWarnings("FieldMayBeFinal")
 @Component
 public class MediaRevisionResolver {
     // 修改 etag version 会导致所有客户端页面缓存失效。某些情况下你可能想修改这个值，例如修改了 response CharacterEncoding
@@ -18,6 +20,10 @@ public class MediaRevisionResolver {
 
     @Autowired
     private ArticleManager articleManager;
+
+    public static String getSnapshotId(Article article) {
+        return article.getPath() + ":" + article.getSourceMd5().substring(0, 7);
+    }
 
     /**
      * @param messageDigest 消息摘要结果，如 md5

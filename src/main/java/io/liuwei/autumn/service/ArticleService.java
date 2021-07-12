@@ -1,12 +1,11 @@
 package io.liuwei.autumn.service;
 
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
-import io.liuwei.autumn.constant.CacheConstants;
 import io.liuwei.autumn.component.MediaRevisionResolver;
+import io.liuwei.autumn.constant.CacheConstants;
 import io.liuwei.autumn.converter.ContentHtmlConverter;
-import io.liuwei.autumn.manager.ArticleManager;
-import io.liuwei.autumn.model.Link;
 import io.liuwei.autumn.enums.AccessLevelEnum;
+import io.liuwei.autumn.manager.ArticleManager;
 import io.liuwei.autumn.model.*;
 import io.liuwei.autumn.util.HtmlUtil;
 import io.liuwei.autumn.util.RevisionContentUtil;
@@ -69,12 +68,11 @@ public class ArticleService {
         return stringBuilder.toString();
     }
 
-    @Cacheable(CacheConstants.ARTICLE_TREE)
     public ArticleTreeNode getTree(AccessLevelEnum accessLevel) {
         return TreeUtil.toArticleTree(listArticles(accessLevel));
     }
 
-    @Cacheable(CacheConstants.ARTICLE_BREADCRUMB)
+    @Cacheable(value = CacheConstants.ARTICLE_BREADCRUMB, keyGenerator = "cacheKeyGenerator")
     public List<Link> getBreadcrumbLinks(Article article, AccessLevelEnum accessLevel) {
         LinkedList<Link> links = new LinkedList<>();
         int lastSlash;
@@ -115,14 +113,22 @@ public class ArticleService {
         }
     }
 
-    @Cacheable(value = CacheConstants.ARTICLE_VO, key = "#article.path")
-    public ArticleVO toVO(Article article) {
+    @Cacheable(value = CacheConstants.ARTICLE_HTML, keyGenerator = "cacheKeyGenerator")
+    public ContentHtml getContentHtml(Article article) {
         ContentHtml contentHtml = contentHtmlConverter.convert(article.getTitle(), article.getContent());
         contentHtml.setTocHtml(HtmlUtil.makeNumberedToc(contentHtml.getTocHtml()));
         contentHtml.setContentHtml(HtmlUtil
-                .rewriteImgSrcAppendVersionParam(contentHtml.getContentHtml(), article.getPath(), mediaRevisionResolver));
+                .rewriteImgSrcAppendVersionParam(
+                        contentHtml.getContentHtml(),
+                        article.getPath(),
+                        imagePath -> mediaRevisionResolver.getRevisionByMediaPath(imagePath)));
+        return contentHtml;
+    }
 
+    public ArticleVO toVO(Article article) {
+        ContentHtml contentHtml = getContentHtml(article);
         ArticleVO vo = new ArticleVO();
+        vo.setPath(article.getPath());
         vo.setTitle(article.getTitle());
         vo.setName(article.getName());
         vo.setCreated(article.getCreated());

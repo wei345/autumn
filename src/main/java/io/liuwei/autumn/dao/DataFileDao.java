@@ -2,6 +2,7 @@ package io.liuwei.autumn.dao;
 
 import com.google.common.base.Functions;
 import com.google.common.io.Files;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DataFileDao {
 
+    @Getter
     private final String dataDir;
 
     private final Set<String> excludes;

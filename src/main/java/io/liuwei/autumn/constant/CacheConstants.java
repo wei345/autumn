@@ -6,11 +6,12 @@ package io.liuwei.autumn.constant;
  */
 public class CacheConstants {
     public static final String ARTICLE_LIST = "autumn:article:list";
-    public static final String ARTICLE_TREE = "autumn:article:tree";
     public static final String ARTICLE_TREE_JSON = "autumn:article:tree:json";
     public static final String ARTICLE_TREE_HTML = "autumn:article:tree:html";
-    public static final String ARTICLE_VO = "autumn:article:vo";
+
+    public static final String ARTICLE_HTML = "autumn:article:html";
     public static final String ARTICLE_BREADCRUMB = "autumn:article:breadcrumb";
+    public static final String ARTICLE_HIT_CACHE = "autumn:article:hit_cache";
 
     public static final String STATIC = "autumn:static";
 

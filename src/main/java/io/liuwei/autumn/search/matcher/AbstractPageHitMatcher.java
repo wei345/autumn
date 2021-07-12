@@ -31,22 +31,10 @@ public abstract class AbstractPageHitMatcher extends AbstractMatcher {
         Validate.notNull(searchingPage);
         Validate.notNull(expression);
         Validate.notNull(cacheKey);
-        // 本次查询缓存
         PageHit pageHit = searchingPage.getPageHit(cacheKey);
         if (pageHit == null) {
             Article page = searchingPage.getArticle();
-            // Page 里的缓存
-            ConcurrentHashMap<String, PageHit> searchStrToPageHit = page.getSearchHitCache();
-            if (searchStrToPageHit == null) {
-                //noinspection SynchronizationOnLocalVariableOrMethodParameter
-                synchronized (page) {
-                    if (page.getSearchHitCache() == null) {
-                        page.setSearchHitCache(new ConcurrentHashMap<>(4));
-                    }
-                }
-                searchStrToPageHit = page.getSearchHitCache();
-            }
-            pageHit = searchStrToPageHit.computeIfAbsent(cacheKey, s -> {
+            pageHit = searchingPage.getHitCache().computeIfAbsent(cacheKey, s -> {
                 logger.debug("Searching page '{}' for expression '{}'", page.getPath(), expression);
                 List<Hit> n = find.apply(page.getName());
                 List<Hit> p = find.apply(page.getPath());

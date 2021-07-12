@@ -62,9 +62,6 @@ public class ArticleManager {
             @CacheEvict(value = CacheConstants.ARTICLE_LIST, allEntries = true),
             @CacheEvict(value = CacheConstants.ARTICLE_TREE_JSON, allEntries = true),
             @CacheEvict(value = CacheConstants.ARTICLE_TREE_HTML, allEntries = true),
-            @CacheEvict(value = CacheConstants.ARTICLE_TREE, allEntries = true),
-            @CacheEvict(value = CacheConstants.ARTICLE_VO, allEntries = true),
-            @CacheEvict(value = CacheConstants.ARTICLE_BREADCRUMB, allEntries = true),
     })
     public synchronized DataInfo reload() {
         long startTime = System.currentTimeMillis();
@@ -84,7 +81,7 @@ public class ArticleManager {
         }
 
         long costMills = System.currentTimeMillis() - startTime;
-        DataInfo dataInfo = toDataInfo(mediaMap, articleMap, costMills);
+        DataInfo dataInfo = toDataInfo(dataFileDao.getDataDir(), mediaMap, articleMap, costMills);
         this.mediaMap = mediaMap;
         this.articleMap = articleMap;
         this.dataInfo = dataInfo;
@@ -144,12 +141,17 @@ public class ArticleManager {
         if (article.getModified() == null) {
             article.setModified(new Date(file.lastModified()));
         }
+        article.setLastModified(file.lastModified());
         article.setFile(file);
         return article;
     }
 
-    private DataInfo toDataInfo(Map<String, Media> mediaMap, Map<String, Article> articleMap, Long costMills) {
+    private DataInfo toDataInfo(String dataDir,
+                                Map<String, Media> mediaMap,
+                                Map<String, Article> articleMap,
+                                Long costMills) {
         DataInfo dataInfo = new DataInfo();
+        dataInfo.setDataDir(dataDir);
         dataInfo.setTime(new Date());
         dataInfo.setCost(costMills);
         dataInfo.setFile(mediaMap.size());

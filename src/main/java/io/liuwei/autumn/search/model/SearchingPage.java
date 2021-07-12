@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author liuwei
@@ -17,6 +18,7 @@ import java.util.Map;
 public class SearchingPage {
 
     private Article article;
+    private ConcurrentHashMap<String, PageHit> hitCache;
 
     // Matcher expression -> PageHit
     private Map<String, PageHit> hitMap;
@@ -36,8 +38,9 @@ public class SearchingPage {
     // h=a&h=b
     private String highlightString;
 
-    public SearchingPage(Article article) {
+    public SearchingPage(Article article, ConcurrentHashMap<String, PageHit> hitCache) {
         this.article = article;
+        this.hitCache = hitCache;
         this.hitMap = Maps.newHashMapWithExpectedSize(3);
     }
 

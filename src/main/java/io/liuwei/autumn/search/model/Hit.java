@@ -1,8 +1,10 @@
 package io.liuwei.autumn.search.model;
 
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
+@ToString
 public class Hit {
     private int start;
     private int end;

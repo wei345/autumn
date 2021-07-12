@@ -1,14 +1,13 @@
 package io.liuwei.autumn.model;
 
+import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.enums.AccessLevelEnum;
-import io.liuwei.autumn.search.model.PageHit;
 import lombok.Data;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Date;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author liuwei
@@ -16,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Data
 public class Article {
+
     /**
      * 路径，唯一
      */
@@ -41,19 +41,28 @@ public class Article {
     private String content;
 
     /**
-     * 源内容，如果 file 不为 null 就是 file 里的内容
+     * 源内容，如果 {@link #file} 不为 null 就是 {@link #file} 文件内容
      */
     private String source;
 
     private String sourceMd5;
 
     /**
+     * 快照 ID
+     * <p>
+     * @see MediaRevisionResolver#getSnapshotId(Article)
+     */
+    private String snapshotId;
+
+    /**
+     * 如果 {@link #file} 不为 null 就是 {@link #file} 的 lastModified
+     */
+    private Long lastModified;
+
+    /**
      * 对应的文件
      */
     @Nullable
     private File file;
-
-    // lazy init
-    private volatile ConcurrentHashMap<String, PageHit> searchHitCache;
 
 }

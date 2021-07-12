@@ -1,10 +1,12 @@
 package io.liuwei.autumn.config;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.io.BaseEncoding;
 import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import io.liuwei.autumn.aop.SettingGlobalAttributeInterceptor;
 import io.liuwei.autumn.service.UserService;
+import io.liuwei.autumn.component.CacheKeyGenerator;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.jruby.internal.JRubyAsciidoctor;
 import org.springframework.beans.factory.annotation.Value;
@@ -80,4 +82,18 @@ public class AppConfig {
                 1,
                 ThreadPoolUtil.buildThreadFactory("scheduledLoadingFile", true));
     }
+
+    @Bean
+    public Caffeine<?,?> caffeineConfig() {
+        return Caffeine
+                .newBuilder()
+                .softValues() // JVM 缺内存时，可回收
+                .maximumSize(10000);
+    }
+
+    @Bean
+    public CacheKeyGenerator cacheKeyGenerator(){
+        return new CacheKeyGenerator();
+    }
+
 }

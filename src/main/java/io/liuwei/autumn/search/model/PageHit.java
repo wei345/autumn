@@ -1,6 +1,7 @@
 package io.liuwei.autumn.search.model;
 
 import lombok.Getter;
+import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.List;
  * Created by liuwei on 2018/11/27.
  */
 @Getter
+@ToString
 public class PageHit {
 
     private boolean nameEqual;
@@ -33,10 +35,5 @@ public class PageHit {
         this.titleHitList = titleHitList;
         this.bodyHitList = bodyHitList;
         this.hitCount = pathHitList.size() + titleHitList.size() + bodyHitList.size();
-    }
-
-    @Override
-    public String toString() {
-        return hitCount + "|" + pathHitList.size() + "|" + titleHitList.size() + "|" + bodyHitList.size();
     }
 }

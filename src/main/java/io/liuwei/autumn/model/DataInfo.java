@@ -12,6 +12,10 @@ import java.util.Date;
  */
 @Data
 public class DataInfo {
+    /**
+     * 数据目录
+     */
+    private String dataDir;
 
     /**
      * 总文件数

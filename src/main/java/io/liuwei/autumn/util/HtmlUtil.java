@@ -1,7 +1,6 @@
 package io.liuwei.autumn.util;
 
 import com.google.common.io.Files;
-import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.constant.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -9,10 +8,13 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.util.function.Function;
+
 /**
  * @author liuwei
  * Created by liuwei on 2018/12/1.
  */
+@SuppressWarnings("UnstableApiUsage")
 public class HtmlUtil {
 
     /**
@@ -77,21 +79,24 @@ public class HtmlUtil {
         return -1;
     }
 
+    /**
+     * @param imageRevisionResolver 参数: 图片路径，返回值: 图片 revision
+     */
     public static String rewriteImgSrcAppendVersionParam(
-            String html, String path, MediaRevisionResolver mediaRevisionResolver) {
+            String html, String path, Function<String, String> imageRevisionResolver) {
         Document document = Jsoup.parse(html);
         for (Element img : document.select("img")) {
             img.attr("src",
-                    appendVersionQueryParam(
+                    appendRevisionParameter(
                             img.attr("src"),
                             path,
-                            mediaRevisionResolver));
+                            imageRevisionResolver));
         }
         return document.body().html();
     }
 
-    private static String appendVersionQueryParam(
-            String mediaUrl, String refererPath, MediaRevisionResolver mediaRevisionResolver) {
+    private static String appendRevisionParameter(
+            String mediaUrl, String refererPath, Function<String, String> imageRevisionResolver) {
 
         // 以 http://, https://, file:/, ftp:/ ... 等等开头的都不处理
         if (mediaUrl.contains(":/")) {
@@ -105,7 +110,7 @@ public class HtmlUtil {
             // 转为绝对路径
             mediaPath = Files.simplifyPath(getDirPath(refererPath) + mediaPath);
         }
-        String revision = mediaRevisionResolver.getRevisionByMediaPath(mediaPath);
+        String revision = imageRevisionResolver.apply(mediaPath);
         if (StringUtils.isBlank(revision)) {
             return mediaUrl;
         }

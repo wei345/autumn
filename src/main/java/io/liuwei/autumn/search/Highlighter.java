@@ -251,7 +251,7 @@ public class Highlighter {
                 highlight(textNode, searchStrList);
             }
         }
-        return document.html();
+        return document.body().html();
     }
 
     private void highlight(TextNode textNode, List<String> searchStrList) {

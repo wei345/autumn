@@ -1,5 +1,6 @@
 package io.liuwei.autumn.manager;
 
+import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.util.LineReader;
@@ -19,9 +20,11 @@ import java.util.*;
  * @author liuwei
  * @since 2021-07-07 17:21
  */
+@SuppressWarnings("FieldCanBeLocal")
 @Component
 public class AsciidocArticleParser {
     private static final FastDateFormat DATE_PARSER_ON_SECOND = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
+    private final String attrPrefix = ":";
     private final String attrCreated = "created";
     private final String attrModified = "modified";
     private final String attrCategory = "category";
@@ -29,7 +32,6 @@ public class AsciidocArticleParser {
     private final String attrAccessLevel = "access";
     private final String titlePrefix = "= ";
     private final Asciidoctor asciidoctor;
-    private final String ASCIIDOC_HEADER_PREFIX = ":";
 
     @Autowired
     public AsciidocArticleParser(Asciidoctor asciidoctor) {
@@ -48,6 +50,7 @@ public class AsciidocArticleParser {
         article.setSource(text);
         article.setSourceMd5(DigestUtils.md5DigestAsHex(text.getBytes(StandardCharsets.UTF_8)));
         article.setPath(path);
+        article.setSnapshotId(MediaRevisionResolver.getSnapshotId(article));
         article.setName(StringUtils.substringAfterLast(path, "/"));
         return article;
     }
@@ -101,7 +104,7 @@ public class AsciidocArticleParser {
 
     private String parseContent(LineReader lineReader){
         for (String line : lineReader) {
-            if(StringUtils.isNotBlank(line) && !line.startsWith(ASCIIDOC_HEADER_PREFIX)){
+            if(StringUtils.isNotBlank(line) && !line.startsWith(attrPrefix)){
                 lineReader.back();
                 break;
             }
