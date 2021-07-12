@@ -91,7 +91,7 @@ public class AppConfig {
         return Caffeine
                 .newBuilder()
                 .softValues() // JVM 缺内存时，可回收
-                .maximumSize(10000);
+                .maximumSize(10_000);
     }
 
     @Bean
@@ -106,7 +106,7 @@ public class AppConfig {
                 Caffeine
                         .newBuilder()
                         .softValues()
-                        .maximumSize(300_000)
+                        .maximumSize(50_000) // 每篇文章约缓存 100 个词的匹配结果
                         .build());
     }
 
