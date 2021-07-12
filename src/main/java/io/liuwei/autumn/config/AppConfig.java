@@ -84,7 +84,7 @@ public class AppConfig {
     }
 
     @Bean
-    public Caffeine<?,?> caffeineConfig() {
+    public Caffeine<?,?> caffeine() {
         return Caffeine
                 .newBuilder()
                 .softValues() // JVM 缺内存时，可回收
