@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import io.liuwei.autumn.model.Article;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.cache.interceptor.SimpleKey;
 
 import java.util.Collections;
 import java.util.Map;
@@ -18,10 +19,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SearchingPage {
 
     private Article article;
-    private ConcurrentHashMap<String, PageHit> hitCache;
 
     // Matcher expression -> PageHit
-    private Map<String, PageHit> hitMap;
+    private Map<SimpleKey, PageHit> hitMap;
 
     private int hitCount; // default 0
     private int pathHitCount;
@@ -38,18 +38,17 @@ public class SearchingPage {
     // h=a&h=b
     private String highlightString;
 
-    public SearchingPage(Article article, ConcurrentHashMap<String, PageHit> hitCache) {
+    public SearchingPage(Article article) {
         this.article = article;
-        this.hitCache = hitCache;
         this.hitMap = Maps.newHashMapWithExpectedSize(3);
     }
 
-    public PageHit getPageHit(String expression) {
-        return hitMap.get(expression);
+    public PageHit getPageHit(SimpleKey key) {
+        return hitMap.get(key);
     }
 
-    public void putPageHit(String expression, PageHit pageHit) {
-        hitMap.put(expression, pageHit);
+    public void putPageHit(SimpleKey key, PageHit pageHit) {
+        hitMap.put(key, pageHit);
         // 即使 expression 重复也要累加 hit，排序更准
         updateHitCount(pageHit);
     }
@@ -68,7 +67,7 @@ public class SearchingPage {
         hitCount = pathHitCount + titleHitCount + bodyHitCount;
     }
 
-    public Map<String, PageHit> getUnmodifiableHitMap() {
+    public Map<SimpleKey, PageHit> getUnmodifiableHitMap() {
         return Collections.unmodifiableMap(hitMap);
     }
 

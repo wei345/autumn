@@ -4,6 +4,7 @@ import io.liuwei.autumn.search.parser.AbstractPrefixMatcherParser;
 import io.liuwei.autumn.search.model.Hit;
 import io.liuwei.autumn.search.model.SearchingPage;
 import io.liuwei.autumn.search.Token;
+import org.springframework.cache.interceptor.SimpleKey;
 
 import java.util.List;
 
@@ -32,8 +33,8 @@ public class ExcludeMatcher extends AbstractPageHitMatcher {
     }
 
     @Override
-    public String getPageHitCacheKey() {
-        return searchStr;
+    public SimpleKey getPageHitCacheKey(SearchingPage searchingPage) {
+        return new SimpleKey(searchingPage.getArticle().getSnapshotId(), searchStr);
     }
 
     public static class Parser extends AbstractPrefixMatcherParser {

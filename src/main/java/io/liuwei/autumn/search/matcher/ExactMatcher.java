@@ -6,6 +6,7 @@ import io.liuwei.autumn.search.model.SearchingPage;
 import io.liuwei.autumn.search.Token;
 import io.liuwei.autumn.util.HtmlUtil;
 import io.liuwei.autumn.util.Kmp;
+import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.lang.Nullable;
 
 import java.util.ArrayList;
@@ -66,10 +67,10 @@ public class ExactMatcher extends AbstractPageHitMatcher {
     }
 
     @Override
-    public String getPageHitCacheKey() {
+    public SimpleKey getPageHitCacheKey(SearchingPage searchingPage) {
         // expression 和 searchStr 都可以作为 cacheKey，searchStr 命中率更高，
         // 因为结果 PageHit 由 searchStr 决定，而 xxx 和 -xxx searchStr 都是 xxx
-        return searchStr;
+        return new SimpleKey(searchingPage.getArticle().getSnapshotId(), searchStr);
     }
 
     public static class Parser extends AbstractPrefixMatcherParser {

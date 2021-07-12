@@ -4,6 +4,7 @@ import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import io.liuwei.autumn.search.parser.AbstractTokenParser;
 import io.liuwei.autumn.search.model.Hit;
 import io.liuwei.autumn.search.model.SearchingPage;
+import org.springframework.cache.interceptor.SimpleKey;
 
 import java.util.List;
 
@@ -31,8 +32,8 @@ public class QuoteExactMatcher extends AbstractPageHitMatcher {
     }
 
     @Override
-    public String getPageHitCacheKey() {
-        return searchStr;
+    public SimpleKey getPageHitCacheKey(SearchingPage searchingPage) {
+        return new SimpleKey(searchingPage.getArticle().getSnapshotId(), searchStr);
     }
 
     public static class Parser extends AbstractTokenParser {

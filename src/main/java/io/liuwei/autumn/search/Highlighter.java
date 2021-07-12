@@ -14,6 +14,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
+import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -68,7 +69,7 @@ public class Highlighter {
         TreeSet<Hit> pathHits = Sets.newTreeSet(HIT_COMPARATOR);
         TreeSet<Hit> titleHits = Sets.newTreeSet(HIT_COMPARATOR);
         TreeSet<Hit> bodyHits = Sets.newTreeSet(HIT_COMPARATOR);
-        for (Map.Entry<String, PageHit> entry : searchingPage.getUnmodifiableHitMap().entrySet()) {
+        for (Map.Entry<SimpleKey, PageHit> entry : searchingPage.getUnmodifiableHitMap().entrySet()) {
             PageHit pageHit = entry.getValue();
             pathHits.addAll(pageHit.getPathHitList());
             titleHits.addAll(pageHit.getTitleHitList());

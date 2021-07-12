@@ -6,6 +6,7 @@ import io.liuwei.autumn.search.parser.AbstractTokenParser;
 import io.liuwei.autumn.search.model.Hit;
 import io.liuwei.autumn.search.model.SearchingPage;
 import io.liuwei.autumn.util.Kmp;
+import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.lang.Nullable;
 
 import java.util.ArrayList;
@@ -103,8 +104,8 @@ public class WildcardQuoteMatcher extends AbstractPageHitMatcher {
     }
 
     @Override
-    public String getPageHitCacheKey() {
-        return getExpression();
+    public SimpleKey getPageHitCacheKey(SearchingPage searchingPage) {
+        return new SimpleKey(searchingPage.getArticle().getSnapshotId(), getClass(), getExpression());
     }
 
     public static class Parser extends AbstractTokenParser {

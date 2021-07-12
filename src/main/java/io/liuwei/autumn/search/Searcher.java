@@ -1,18 +1,17 @@
 package io.liuwei.autumn.search;
 
-import io.liuwei.autumn.constant.CacheConstants;
 import io.liuwei.autumn.model.Article;
+import io.liuwei.autumn.search.matcher.AbstractPageHitMatcher;
 import io.liuwei.autumn.search.matcher.Matcher;
-import io.liuwei.autumn.search.model.PageHit;
 import io.liuwei.autumn.search.model.SearchResult;
 import io.liuwei.autumn.search.model.SearchingPage;
 import io.liuwei.autumn.search.operator.Operator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.Cache;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -27,7 +26,8 @@ public class Searcher {
     private final Highlighter highlighter = new Highlighter();
 
     @Autowired
-    private CacheManager cacheManager;
+    @Qualifier("hitCache")
+    private Cache hitCache;
 
     public SearchResult search(String input, Collection<Article> articles, int offset, int count) {
         long startTime = System.currentTimeMillis();
@@ -53,6 +53,9 @@ public class Searcher {
         for (Token token : tokenList) {
             if (token instanceof Matcher) {
                 ((Matcher) token).setSourceData(sourceData);
+                if (token instanceof AbstractPageHitMatcher) {
+                    ((AbstractPageHitMatcher) token).setHitCache(hitCache);
+                }
                 operands.push((Matcher) token);
                 continue;
             }
@@ -89,7 +92,7 @@ public class Searcher {
     private Set<SearchingPage> toSearchingPage(Collection<Article> articles) {
         return articles
                 .stream()
-                .map(o -> new SearchingPage(o, getHitCache(o)))
+                .map(SearchingPage::new)
                 .collect(Collectors.toSet());
     }
 
@@ -105,13 +108,6 @@ public class Searcher {
                 .thenComparing(o -> o.getArticle().getModified()).reversed()
                 .thenComparing(o -> o.getArticle().getPath()));
         return list;
-    }
-
-    private ConcurrentHashMap<String, PageHit> getHitCache(Article article) {
-        //noinspection ConstantConditions
-        return cacheManager
-                .getCache(CacheConstants.ARTICLE_HIT_CACHE)
-                .get(article.getSnapshotId(), () -> new ConcurrentHashMap<>(4));
     }
 
 }

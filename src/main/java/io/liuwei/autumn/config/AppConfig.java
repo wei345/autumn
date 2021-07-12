@@ -5,12 +5,15 @@ import com.google.common.io.BaseEncoding;
 import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import io.liuwei.autumn.aop.SettingGlobalAttributeInterceptor;
-import io.liuwei.autumn.service.UserService;
 import io.liuwei.autumn.component.CacheKeyGenerator;
+import io.liuwei.autumn.constant.CacheConstants;
+import io.liuwei.autumn.service.UserService;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.jruby.internal.JRubyAsciidoctor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cache.Cache;
+import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -84,7 +87,7 @@ public class AppConfig {
     }
 
     @Bean
-    public Caffeine<?,?> caffeine() {
+    public Caffeine<?, ?> caffeine() {
         return Caffeine
                 .newBuilder()
                 .softValues() // JVM 缺内存时，可回收
@@ -92,8 +95,19 @@ public class AppConfig {
     }
 
     @Bean
-    public CacheKeyGenerator cacheKeyGenerator(){
+    public CacheKeyGenerator cacheKeyGenerator() {
         return new CacheKeyGenerator();
+    }
+
+    @Bean
+    public Cache hitCache() {
+        return new CaffeineCache(
+                CacheConstants.HIT_CACHE,
+                Caffeine
+                        .newBuilder()
+                        .softValues()
+                        .maximumSize(300_000)
+                        .build());
     }
 
 }

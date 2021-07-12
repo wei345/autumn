@@ -4,13 +4,16 @@ import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.search.model.Hit;
 import io.liuwei.autumn.search.model.PageHit;
 import io.liuwei.autumn.search.model.SearchingPage;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.Cache;
+import org.springframework.cache.interceptor.SimpleKey;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
@@ -20,21 +23,26 @@ import java.util.function.Function;
 public abstract class AbstractPageHitMatcher extends AbstractMatcher {
     private static Logger logger = LoggerFactory.getLogger(AbstractPageHitMatcher.class);
 
-    public AbstractPageHitMatcher(@NotNull String expression) {
+    @Getter
+    @Setter
+    private Cache hitCache;
+
+    AbstractPageHitMatcher(@NotNull String expression) {
         super(expression);
     }
 
-    private static PageHit cacheableFindPageHit(@NotNull SearchingPage searchingPage,
-                                                @NotNull String expression,
-                                                @NotNull String cacheKey,
-                                                Function<String, List<Hit>> find) {
+    private PageHit cacheableFindPageHit(@NotNull SearchingPage searchingPage,
+                                         @NotNull String expression,
+                                         @NotNull SimpleKey cacheKey,
+                                         Function<String, List<Hit>> find) {
         Validate.notNull(searchingPage);
         Validate.notNull(expression);
         Validate.notNull(cacheKey);
+
         PageHit pageHit = searchingPage.getPageHit(cacheKey);
         if (pageHit == null) {
-            Article page = searchingPage.getArticle();
-            pageHit = searchingPage.getHitCache().computeIfAbsent(cacheKey, s -> {
+            pageHit = hitCache.get(cacheKey, () -> {
+                Article page = searchingPage.getArticle();
                 logger.debug("Searching page '{}' for expression '{}'", page.getPath(), expression);
                 List<Hit> n = find.apply(page.getName());
                 List<Hit> p = find.apply(page.getPath());
@@ -55,11 +63,11 @@ public abstract class AbstractPageHitMatcher extends AbstractMatcher {
     }
 
     public PageHit getPageHit(SearchingPage searchingPage) {
-        return cacheableFindPageHit(searchingPage, getExpression(), getPageHitCacheKey(), this::getHitList);
+        return cacheableFindPageHit(searchingPage, getExpression(), getPageHitCacheKey(searchingPage), this::getHitList);
     }
 
     public abstract List<Hit> getHitList(String source);
 
-    public abstract String getPageHitCacheKey();
+    public abstract SimpleKey getPageHitCacheKey(SearchingPage searchingPage);
 
 }
