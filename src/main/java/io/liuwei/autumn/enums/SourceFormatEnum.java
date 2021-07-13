@@ -11,22 +11,22 @@ import java.util.*;
  */
 public enum SourceFormatEnum {
     ASCIIDOC(Arrays.asList("adoc", "asciidoc", "asc")),
-    MARKDOWN(Arrays.asList("md", "markdown")),
     OTHER(Collections.emptyList());
+
+    private static final Map<String, SourceFormatEnum> EXT_2_VALUE_MAP;
+
+    static {
+        Map<String, SourceFormatEnum> map = new HashMap<>();
+        for (SourceFormatEnum value : values()) {
+            for (String ext : value.fileExtensions) {
+                map.put(ext, value);
+            }
+        }
+        EXT_2_VALUE_MAP = map;
+    }
 
     @Getter
     private final List<String> fileExtensions;
-
-    private static final Map<String, SourceFormatEnum> FILE_EXTENSION_MAP;
-
-    static {
-        FILE_EXTENSION_MAP = new HashMap<>();
-        for (SourceFormatEnum sf : values()) {
-            for (String ext : sf.fileExtensions) {
-                FILE_EXTENSION_MAP.put(ext, sf);
-            }
-        }
-    }
 
     SourceFormatEnum(List<String> fileExtensions) {
         this.fileExtensions = fileExtensions;
@@ -37,6 +37,6 @@ public enum SourceFormatEnum {
             return null;
         }
         String ext = FilenameUtils.getExtension(fileName).toLowerCase();
-        return FILE_EXTENSION_MAP.getOrDefault(ext, OTHER);
+        return EXT_2_VALUE_MAP.getOrDefault(ext, OTHER);
     }
 }

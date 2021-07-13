@@ -80,7 +80,7 @@ public class HtmlUtil {
     }
 
     /**
-     * @param imageRevisionResolver 参数: 图片路径，返回值: 图片 revision
+     * @param imageRevisionResolver 图片路径 -> 图片 revision
      */
     public static String rewriteImgSrcAppendVersionParam(
             String html, String path, Function<String, String> imageRevisionResolver) {

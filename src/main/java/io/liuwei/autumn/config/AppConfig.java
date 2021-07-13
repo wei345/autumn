@@ -83,7 +83,7 @@ public class AppConfig {
     public ScheduledExecutorService scheduledExecutorService() {
         return Executors.newScheduledThreadPool(
                 1,
-                ThreadPoolUtil.buildThreadFactory("scheduledLoadingFile", true));
+                ThreadPoolUtil.buildThreadFactory("Scheduled-Load-File", true));
     }
 
     @Bean
@@ -106,7 +106,18 @@ public class AppConfig {
                 Caffeine
                         .newBuilder()
                         .softValues()
-                        .maximumSize(50_000) // 每篇文章约缓存 100 个词的匹配结果
+                        .maximumSize(50_000) // 约每篇文章缓存 100 个词的匹配结果
+                        .build());
+    }
+
+    @Bean
+    public Cache mediaCache() {
+        return new CaffeineCache(
+                CacheConstants.MEDIA_CACHE,
+                Caffeine
+                        .newBuilder()
+                        .softValues()
+                        .maximumSize(1000)
                         .build());
     }
 

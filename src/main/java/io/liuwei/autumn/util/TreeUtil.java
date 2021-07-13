@@ -2,7 +2,7 @@ package io.liuwei.autumn.util;
 
 import com.google.common.collect.Maps;
 import io.liuwei.autumn.model.Article;
-import io.liuwei.autumn.model.ArticleTreeNode;
+import io.liuwei.autumn.model.TreeNode;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Comparator;
@@ -16,29 +16,29 @@ import java.util.Stack;
  */
 public class TreeUtil {
 
-    public static ArticleTreeNode toArticleTree(List<Article> articleList) {
+    public static TreeNode toArticleTree(List<Article> articleList) {
         if (articleList == null) {
             return null;
         }
 
-        ArticleTreeNode root = new ArticleTreeNode("/", "Home");
+        TreeNode root = new TreeNode("/", "Home");
         if (articleList.size() == 0) {
             return root;
         }
 
-        Map<String, ArticleTreeNode> path2node = Maps.newHashMapWithExpectedSize(articleList.size());
+        Map<String, TreeNode> path2node = Maps.newHashMapWithExpectedSize(articleList.size());
         for (Article article : articleList) {
             // 创建目录节点. e.g. /a/b/c, 依次创建 /a/, /a/b/
             int slash1Pos = 0;
             int slash2Pos;
-            ArticleTreeNode parent = root;
+            TreeNode parent = root;
             String path = article.getPath();
             while ((slash2Pos = path.indexOf('/', slash1Pos + 1)) != -1) {
                 String dirPath = path.substring(0, slash2Pos + 1);
-                ArticleTreeNode dir = path2node.get(dirPath);
+                TreeNode dir = path2node.get(dirPath);
                 if (dir == null) {
                     String dirName = path.substring(slash1Pos + 1, slash2Pos);
-                    dir = new ArticleTreeNode(dirPath, dirName);
+                    dir = new TreeNode(dirPath, dirName);
                     path2node.put(dirPath, dir);
                     parent.getChildren().add(dir);
                 }
@@ -47,7 +47,7 @@ public class TreeUtil {
             }
 
             // 创建叶子节点
-            ArticleTreeNode leaf = new ArticleTreeNode(path, article.getName());
+            TreeNode leaf = new TreeNode(path, article.getName());
             leaf.setTitle(article.getTitle());
             leaf.setCategory(article.getCategory());
             leaf.setTags(article.getTags());
@@ -58,17 +58,17 @@ public class TreeUtil {
 
         sortAllChildren(root, Comparator
                 // 目录排前面
-                .comparingInt((ArticleTreeNode o) -> (o.getChildren().size() > 0 ? 0 : 1))
+                .comparingInt((TreeNode o) -> (o.getChildren().size() > 0 ? 0 : 1))
                 // 然后按字母顺序排序
-                .thenComparing(ArticleTreeNode::getPath));
+                .thenComparing(TreeNode::getPath));
         return root;
     }
 
-    private static void sortAllChildren(ArticleTreeNode root, Comparator<ArticleTreeNode> comparator) {
-        Stack<ArticleTreeNode> stack = new Stack<>();
+    private static void sortAllChildren(TreeNode root, Comparator<TreeNode> comparator) {
+        Stack<TreeNode> stack = new Stack<>();
         stack.push(root);
         while (!stack.empty()) {
-            ArticleTreeNode node = stack.pop();
+            TreeNode node = stack.pop();
             node.getChildren().sort(comparator);
             node.getChildren().forEach(o -> {
                 if (o.getChildren().size() > 0) {
@@ -78,14 +78,14 @@ public class TreeUtil {
         }
     }
 
-    public static void buildTreeHtml(List<ArticleTreeNode> nodes, String contentPath, StringBuilder stringBuilder) {
+    public static void buildTreeHtml(List<TreeNode> nodes, String contentPath, StringBuilder stringBuilder) {
         if (CollectionUtils.isEmpty(nodes)) {
             return;
         }
 
         stringBuilder.append("<ul>");
 
-        for (ArticleTreeNode node : nodes) {
+        for (TreeNode node : nodes) {
             // begin node
             stringBuilder.append("<li class=\"tree_node");
             if (!CollectionUtils.isEmpty(node.getChildren())) {

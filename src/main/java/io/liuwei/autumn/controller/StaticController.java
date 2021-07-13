@@ -3,7 +3,7 @@ package io.liuwei.autumn.controller;
 import io.liuwei.autumn.annotation.CheckModified;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.service.StaticService;
-import io.liuwei.autumn.util.MimeTypeUtil;
+import io.liuwei.autumn.util.MediaTypeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,14 +20,14 @@ public class StaticController {
     @Autowired
     private StaticService staticService;
 
-    @GetMapping(value = Constants.JS_ALL_DOT_JS, produces = MimeTypeUtil.TEXT_JAVASCRIPT_UTF8)
+    @GetMapping(value = Constants.JS_ALL_DOT_JS, produces = MediaTypeUtil.TEXT_JAVASCRIPT_UTF8_VALUE)
     @ResponseBody
     @CheckModified
     public Object getAllJs() {
         return staticService.getAllJs();
     }
 
-    @GetMapping(value = Constants.CSS_ALL_DOT_CSS, produces = MimeTypeUtil.TEXT_CSS_UTF8)
+    @GetMapping(value = Constants.CSS_ALL_DOT_CSS, produces = MediaTypeUtil.TEXT_CSS_UTF8_VALUE)
     @ResponseBody
     @CheckModified
     public Object getAllCss() {

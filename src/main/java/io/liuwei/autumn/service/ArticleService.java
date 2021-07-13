@@ -5,17 +5,20 @@ import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.constant.CacheConstants;
 import io.liuwei.autumn.converter.ContentHtmlConverter;
 import io.liuwei.autumn.enums.AccessLevelEnum;
+import io.liuwei.autumn.enums.RevisionErrorEnum;
 import io.liuwei.autumn.manager.ArticleManager;
 import io.liuwei.autumn.model.*;
 import io.liuwei.autumn.util.HtmlUtil;
-import io.liuwei.autumn.util.RevisionContentUtil;
 import io.liuwei.autumn.util.TreeUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,6 +27,7 @@ import java.util.List;
  * @since 2021-07-07 16:30
  */
 @Component
+@Slf4j
 public class ArticleService {
 
     @Autowired
@@ -58,20 +62,20 @@ public class ArticleService {
 
     @Cacheable(CacheConstants.ARTICLE_TREE_JSON)
     public RevisionContent getTreeJson(AccessLevelEnum accessLevel) {
-        ArticleTreeNode root = getTree(accessLevel);
-        String json = jsonMapper.toJson(root);
-        return RevisionContentUtil.newRevisionContent(json, mediaRevisionResolver);
+        TreeNode root = getTree(accessLevel);
+        byte[] bytes = jsonMapper.toJson(root).getBytes(StandardCharsets.UTF_8);
+        return mediaRevisionResolver.toRevisionContent(bytes, MediaType.APPLICATION_JSON_UTF8);
     }
 
     @Cacheable(CacheConstants.ARTICLE_TREE_HTML)
     public String getTreeHtml(AccessLevelEnum accessLevel) {
-        ArticleTreeNode root = getTree(accessLevel);
+        TreeNode root = getTree(accessLevel);
         StringBuilder stringBuilder = new StringBuilder(10240);
         TreeUtil.buildTreeHtml(root.getChildren(), contextPath, stringBuilder);
         return stringBuilder.toString();
     }
 
-    public ArticleTreeNode getTree(AccessLevelEnum accessLevel) {
+    private TreeNode getTree(AccessLevelEnum accessLevel) {
         return TreeUtil.toArticleTree(listArticles(accessLevel));
     }
 
@@ -124,9 +128,11 @@ public class ArticleService {
                 .rewriteImgSrcAppendVersionParam(
                         contentHtml.getContentHtml(),
                         article.getPath(),
-                        imagePath -> mediaRevisionResolver.getRevisionByMediaPath(imagePath)));
+                        mediaRevisionResolver::getMediaRevisionForUrl));
         return contentHtml;
     }
+
+
 
     public ArticleVO toVO(Article article) {
         ContentHtml contentHtml = aopProxy.getContentHtml(article);

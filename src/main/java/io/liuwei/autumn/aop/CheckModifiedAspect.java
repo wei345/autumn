@@ -11,15 +11,13 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.context.request.ServletWebRequest;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 /**
  * 检查 ETag，如果没有变化则返回 304。
  *
  * @author liuwei
  * @since 2021-07-08
  */
+@SuppressWarnings("ConstantConditions")
 @Component
 @Aspect
 public class CheckModifiedAspect {
@@ -31,10 +29,16 @@ public class CheckModifiedAspect {
             RevisionContent rc = (RevisionContent) result;
             ServletRequestAttributes sra = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes());
             ServletWebRequest webRequest = new ServletWebRequest(sra.getRequest(), sra.getResponse());
-            if (WebUtil.checkNotModified(rc.getEtag(), webRequest)) {
+            if (WebUtil.checkNotModified(rc.getRevision(), rc.getEtag(), webRequest)) {
                 return null;
             }
             return rc.getContent();
+        }
+
+        if (result == null) {
+            ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
+                    .getResponse()
+                    .sendError(404);
         }
 
         return result;

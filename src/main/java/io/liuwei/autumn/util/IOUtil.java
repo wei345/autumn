@@ -2,7 +2,10 @@ package io.liuwei.autumn.util;
 
 import org.apache.commons.io.IOUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,6 +15,14 @@ import java.nio.file.Path;
  * @since 2021-07-11 15:42
  */
 public class IOUtil {
+
+    public static byte[] toByteArray(File file) {
+        try (InputStream in = new FileInputStream(file)) {
+            return IOUtils.toByteArray(in);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static byte[] toByteArray(Path path) {
         try {

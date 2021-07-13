@@ -1,59 +1,134 @@
 package io.liuwei.autumn.component;
 
 import io.liuwei.autumn.constant.Constants;
+import io.liuwei.autumn.enums.RevisionErrorEnum;
 import io.liuwei.autumn.manager.ArticleManager;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.Media;
+import io.liuwei.autumn.model.RevisionContent;
+import io.liuwei.autumn.model.RevisionEtag;
+import io.liuwei.autumn.util.IOUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.DigestUtils;
+import org.springframework.util.unit.DataSize;
 
 /**
+ * revision 放在 url 参数里，格式:
+ * 1. {majorVersion}.{md5 前 7 位}
+ * 2. {majorVersion}.{时间戳}
+ * <p>
+ * ETag 格式：
+ * 1. {majorVersion}.{md5}
+ * 2. W/"{majorVersion}.{时间戳}"
+ *
  * @author liuwei
  * @since 2021-07-08 13:02
  */
 @SuppressWarnings("FieldMayBeFinal")
 @Component
+@Slf4j
 public class MediaRevisionResolver {
-    // 修改 etag version 会导致所有客户端页面缓存失效。某些情况下你可能想修改这个值，例如修改了 response CharacterEncoding
+    /**
+     * 修改 etag version 会导致所有客户端页面缓存失效。
+     * 某些情况下你可能想修改这个值，例如修改了 response CharacterEncoding
+     */
     private int majorVersion = 1;
 
     @Autowired
     private ArticleManager articleManager;
 
+    @Autowired
+    @Qualifier("mediaCache")
+    private Cache mediaCache;
+
+    @Value("${autumn.cache.maxMediaSize}")
+    private DataSize cacheMaxMediaSize;
+
+    /**
+     * @return RevisionEtag 对象; 或 null 如果文件不存在或发生 IO 异常
+     */
+    public RevisionEtag getRevision(Media media) {
+        if (media.getFile().length() > cacheMaxMediaSize.toBytes()) {
+            long lastModified = media.getFile().lastModified();
+            if (lastModified == 0) {
+                log.warn("media_file_not_found. media={}", media);
+                return null;
+            }
+            return new RevisionEtag(getRevision(lastModified), getEtag(lastModified));
+        }
+
+        try {
+            return new RevisionEtag(toRevisionContent(media));
+        } catch (Cache.ValueRetrievalException e) {
+            log.warn("get_revision_error. path=" + media.getPath(), e);
+            return null;
+        }
+    }
+
     public static String getSnapshotId(Article article) {
         return article.getPath() + ":" + article.getSourceMd5().substring(0, 7);
     }
 
-    /**
-     * @param messageDigest 消息摘要结果，如 md5
-     */
-    public String getRevisionByDigest(String messageDigest) {
-        return majorVersion + "." + StringUtils.substring(messageDigest, 0, 7);
+    private String getRevision(String md5) {
+        return majorVersion + "." + StringUtils.substring(md5, 0, 7);
     }
 
-    public String getRevisionByTimestamp(long messageTimestamp) {
-        return majorVersion + "." + messageTimestamp;
+    private String getRevision(long timestamp) {
+        return majorVersion + "." + timestamp;
     }
 
-    public String getRevisionByMediaPath(String path) {
-        Media media = articleManager.getMedia(path);
-        if (media == null) {
-            return "";
-        }
-        return getRevisionByTimestamp(media.getFile().lastModified());
+    private String getEtag(String md5) {
+        return majorVersion + "." + md5;
     }
 
-    public String getEtag(String messageDigest) {
-        return majorVersion + "." + messageDigest;
+    private String getEtag(long timestamp) {
+        return "W/\"" + majorVersion + "." + timestamp + "\"";
     }
 
     public String getMediaRevisionUrl(String path) {
-        return toRevisionUrl(path, getRevisionByMediaPath(path));
+        return toRevisionUrl(path, getMediaRevisionForUrl(path));
+    }
+
+    public String getMediaRevisionForUrl(String path) {
+        Media media = articleManager.getMedia(path);
+        if (media == null) {
+            return RevisionErrorEnum.MEDIA_NOT_FOUND.name();
+        }
+        RevisionEtag re = getRevision(media);
+        if (re == null) {
+            return RevisionErrorEnum.IO_EXCEPTION.name();
+        }
+        return re.getRevision();
     }
 
     public String toRevisionUrl(String path, String revision) {
         return path + "?" + Constants.REQUEST_PARAMETER_REVISION + "=" + revision;
+    }
+
+    /**
+     * @throws Cache.ValueRetrievalException 如果读取文件发生 IOException
+     */
+    private RevisionContent toRevisionContent(Media media) throws Cache.ValueRetrievalException {
+        return mediaCache.get(
+                media.getPath(),
+                () -> toRevisionContent(IOUtil.toByteArray(media.getFile()), media.getMediaType()));
+    }
+
+    public RevisionContent toRevisionContent(byte[] bytes, MediaType mediaType) {
+        String md5 = DigestUtils.md5DigestAsHex(bytes);
+        RevisionContent rc = new RevisionContent(bytes, mediaType);
+        rc.setMd5(md5);
+        rc.setEtag(getEtag(md5));
+        rc.setRevision(getRevision(md5));
+        rc.setTimestamp(System.currentTimeMillis());
+        return rc;
     }
 
 }

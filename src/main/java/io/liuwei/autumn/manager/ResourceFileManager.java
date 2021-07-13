@@ -5,7 +5,7 @@ import io.liuwei.autumn.constant.CacheConstants;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.model.ResourceFile;
 import io.liuwei.autumn.util.IOUtil;
-import io.liuwei.autumn.util.MimeTypeUtil;
+import io.liuwei.autumn.util.MediaTypeUtil;
 import io.liuwei.autumn.util.ResourceWalker;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.Map;
 
-import static java.nio.file.FileVisitResult.CONTINUE;
+import static java.nio.file.FileVisitResult.*;
 
 /**
  * @author liuwei
@@ -171,11 +171,10 @@ public class ResourceFileManager {
 
                 byte[] content = IOUtil.resourceToByteArray(fileClasspath);
                 String md5 = DigestUtils.md5DigestAsHex(content);
-                String mimeType = MimeTypeUtil.getMimeType(fileClasspath);
                 ResourceFile resourceFile = new ResourceFile();
                 resourceFile.setContent(content);
                 resourceFile.setMd5(md5);
-                resourceFile.setMimeType(mimeType);
+                resourceFile.setMediaType(MediaTypeUtil.getMediaType(fileClasspath));
                 resourceFile.setLastModified(attrs.lastModifiedTime().toMillis());
                 resourceFile.setPath(fileClasspath);
                 resourceFileMap.put(fileClasspath, resourceFile);
@@ -193,11 +192,10 @@ public class ResourceFileManager {
                 addOrModifiedCount++;
                 byte[] content = IOUtil.toByteArray(file);
                 String md5 = DigestUtils.md5DigestAsHex(content);
-                String mimeType = MimeTypeUtil.getMimeType(file.toFile().getName());
                 ResourceFile resourceFile = new ResourceFile();
                 resourceFile.setContent(content);
                 resourceFile.setMd5(md5);
-                resourceFile.setMimeType(mimeType);
+                resourceFile.setMediaType(MediaTypeUtil.getMediaType(file.toFile().getName()));
                 resourceFile.setLastModified(lastModified);
                 resourceFile.setPath(fileClasspath);
                 resourceFileMap.put(fileClasspath, resourceFile);

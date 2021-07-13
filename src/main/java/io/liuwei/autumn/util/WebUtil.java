@@ -45,33 +45,21 @@ public class WebUtil {
     /**
      * 除了设置 etag 之外，还会检查请求的 {@link Constants#REQUEST_PARAMETER_REVISION} 参数，
      * 如果跟 etag 匹配，会设置缓存时间，使用浏览器在缓存期间不再发送请求。
-     *
-     * @param etag 不带引号
      */
-    public static boolean checkNotModified(String etag, WebRequest webRequest) {
+    public static boolean checkNotModified(String revision, String etag, WebRequest webRequest) {
         if (webRequest instanceof ServletWebRequest) {
             HttpServletRequest request = ((ServletRequestAttributes) webRequest).getRequest();
             HttpServletResponse response = ((ServletRequestAttributes) webRequest).getResponse();
-            setCacheTimeIfVersionMatch(request, response, etag, DEFAULT_EXPIRES_SECONDS);
+            String reqRevision = request.getParameter(Constants.REQUEST_PARAMETER_REVISION);
+            if (revision.equals(reqRevision)) {
+                // Http 1.0 header, set a fix expires date.
+                //noinspection ConstantConditions
+                response.setDateHeader(HttpHeaders.EXPIRES, System.currentTimeMillis() + (DEFAULT_EXPIRES_SECONDS * 1000));
+                // Http 1.1 header, set a time after now.
+                response.setHeader(HttpHeaders.CACHE_CONTROL, "private, max-age=" + DEFAULT_EXPIRES_SECONDS);
+            }
         }
-
         return webRequest.checkNotModified(etag);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private static void setCacheTimeIfVersionMatch(
-            HttpServletRequest request, HttpServletResponse response,
-            String etag, long expiresSeconds) {
-
-        String requestVersion = request.getParameter(Constants.REQUEST_PARAMETER_REVISION);
-        if (requestVersion == null || !etag.startsWith(requestVersion)) {
-            return;
-        }
-
-        // Http 1.0 header, set a fix expires date.
-        response.setDateHeader(HttpHeaders.EXPIRES, System.currentTimeMillis() + (expiresSeconds * 1000));
-        // Http 1.1 header, set a time after now.
-        response.setHeader(HttpHeaders.CACHE_CONTROL, "private, max-age=" + expiresSeconds);
     }
 
     public static boolean isSecure(HttpServletRequest request) {

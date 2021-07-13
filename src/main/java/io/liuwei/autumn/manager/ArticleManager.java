@@ -8,11 +8,14 @@ import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.DataInfo;
 import io.liuwei.autumn.model.Media;
+import io.liuwei.autumn.util.MediaTypeUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -41,6 +44,10 @@ public class ArticleManager {
 
     @Autowired
     private DataFileDao dataFileDao;
+
+    @Autowired
+    @Qualifier("mediaCache")
+    private Cache mediaCache;
 
     /**
      * 包含数据目录下所有文件，包括文章
@@ -85,6 +92,7 @@ public class ArticleManager {
         this.mediaMap = mediaMap;
         this.articleMap = articleMap;
         this.dataInfo = dataInfo;
+        mediaCache.clear();
         log.info("Reloaded. {}", dataInfo);
         return dataInfo;
     }
@@ -112,18 +120,15 @@ public class ArticleManager {
     private Media toMedia(File file, String path) {
         Media media = new Media();
         media.setPath(path);
+        media.setMediaType(MediaTypeUtil.getMediaType(file.getName()));
         media.setFile(file);
+        media.setLastModified(file.lastModified());
         media.setAccessLevel(AccessLevelEnum.ANON);
         return media;
     }
 
     private Article toArticle(File file, String path) {
         if (file == null) {
-            return null;
-        }
-
-        SourceFormatEnum sourceFormat = SourceFormatEnum.getByFileName(file.getName());
-        if (sourceFormat != SourceFormatEnum.ASCIIDOC) {
             return null;
         }
 

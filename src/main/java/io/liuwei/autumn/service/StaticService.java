@@ -12,7 +12,7 @@ import io.liuwei.autumn.model.ResourceFile;
 import io.liuwei.autumn.model.RevisionContent;
 import io.liuwei.autumn.util.IOUtil;
 import io.liuwei.autumn.util.JsCompressor;
-import io.liuwei.autumn.util.RevisionContentUtil;
+import io.liuwei.autumn.util.MediaTypeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -74,7 +75,7 @@ public class StaticService {
                 .append("(function () {\n");
         jsList.forEach(js ->
                 sb
-                        .append(js.getContentString().replaceFirst("\"use strict\";\n", "").trim())
+                        .append(js.getContentAsString().replaceFirst("\"use strict\";\n", "").trim())
                         .append("\n"));
         sb.append("})();\n");
 
@@ -106,7 +107,8 @@ public class StaticService {
             content = JsCompressor.compressJs(depend, content);
         }
 
-        return RevisionContentUtil.newRevisionContent(content, mediaRevisionResolver);
+        return mediaRevisionResolver.toRevisionContent(
+                content.getBytes(StandardCharsets.UTF_8), MediaTypeUtil.TEXT_JAVASCRIPT_UTF8);
     }
 
     @Cacheable(value = CacheConstants.STATIC, key = "'" + Constants.CSS_ALL_DOT_CSS + "'")
@@ -118,29 +120,30 @@ public class StaticService {
                 .map(this::getStaticResourceFile)
                 .collect(Collectors.toList());
 
-        StringBuilder stringBuilder = STRING_BUILDER_HOLDER.get();
+        StringBuilder build = STRING_BUILDER_HOLDER.get();
 
         // 我们的 css
         cssList.forEach(css ->
-                stringBuilder
-                        .append(css.getContentString())
+                build
+                        .append(css.getContentAsString())
                         .append("\n"));
 
         // 代码块高亮
         if (codeBlock.isHighlightingEnabled()) {
-            stringBuilder
+            build
                     .append(IOUtil.resourceToString(getHighlightJsCssPath()))
                     .append("\n");
         }
 
-        return RevisionContentUtil.newRevisionContent(stringBuilder.toString(), mediaRevisionResolver);
+        byte[] bytes = build.toString().getBytes(StandardCharsets.UTF_8);
+        return mediaRevisionResolver.toRevisionContent(bytes, MediaTypeUtil.TEXT_CSS_UTF8);
     }
 
     @Cacheable(value = CacheConstants.STATIC, key = "'" + Constants.HELP + "'")
     public ContentHtml getHelpContent() {
         log.info("building {}", Constants.HELP);
         ResourceFile help = getStaticResourceFile("/help.adoc");
-        return contentHtmlConverter.convert("Help", help.getContentString());
+        return contentHtmlConverter.convert("Help", help.getContentAsString());
     }
 
     private String getLineNumberJs() {
@@ -148,7 +151,7 @@ public class StaticService {
         ResourceFile js = getStaticResourceFile("/js/lib/highlightjs-line-numbers.js");
         // 不依赖 highlight.js
         return stringBuilder.append("if(!window.hljs) window.hljs = {};\n")
-                .append(js.getContentString()).append("\n")
+                .append(js.getContentAsString()).append("\n")
                 .append("window.addEventListener('load', function () {\n")
                 .append("    Array.prototype.map.call(document.querySelectorAll('pre code'), el => el)\n")
                 .append("        .forEach(block => hljs.lineNumbersBlock(block));\n")
@@ -212,7 +215,7 @@ public class StaticService {
         return "window['GoogleAnalyticsObject'] = 'ga'; window.ga = {" +
                 "q: [['create', '" + googleAnalyticsId + "', 'auto'], ['send', 'pageview']], " +
                 "l: 1 * new Date()};\n" +
-                getStaticResourceFile("/js/lib/google-analytics.js").getContentString();
+                getStaticResourceFile("/js/lib/google-analytics.js").getContentAsString();
     }
 
     private ResourceFile getStaticResourceFile(String path) {

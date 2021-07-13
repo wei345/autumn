@@ -17,7 +17,7 @@ import java.util.Set;
 public class Article {
 
     /**
-     * 路径，唯一
+     * 在数据目录内的路径，以 / 开头，唯一
      */
     private String path;
 
@@ -38,6 +38,9 @@ public class Article {
 
     private String title;
 
+    /**
+     * 正文内容
+     */
     private String content;
 
     /**

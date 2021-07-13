@@ -1,19 +1,22 @@
 package io.liuwei.autumn.controller;
 
 import io.liuwei.autumn.annotation.CheckModified;
+import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.ArticleVO;
 import io.liuwei.autumn.model.Media;
+import io.liuwei.autumn.model.RevisionEtag;
 import io.liuwei.autumn.service.ArticleService;
 import io.liuwei.autumn.service.SearchService;
-import io.liuwei.autumn.util.MimeTypeUtil;
 import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,6 +47,9 @@ public class ArticleController {
 
     @Autowired
     private SearchService searchService;
+
+    @Autowired
+    private MediaRevisionResolver mediaRevisionResolver;
 
     @Value("${autumn.breadcrumb.enabled:false}")
     private boolean isBreadcrumbEnabled;
@@ -80,27 +86,37 @@ public class ArticleController {
     // 带扩展名，访问文件
     @GetMapping(value = "/**/*.*")
     @ResponseBody
-    public void getMedia(AccessLevelEnum accessLevel, HttpServletResponse response,
-                         ServletWebRequest webRequest) throws IOException {
+    public ResponseEntity<byte[]> getMedia(AccessLevelEnum accessLevel, HttpServletResponse response,
+                                           ServletWebRequest webRequest) throws IOException {
         String path = WebUtil.getInternalPath(webRequest.getRequest());
         Media media = articleService.getMedia(path);
+        RevisionEtag re;
 
-        if (media == null || !media.getAccessLevel().allow(accessLevel)) {
+        if (media == null
+                || !media.getAccessLevel().allow(accessLevel)
+                || (re = mediaRevisionResolver.getRevision(media)) == null) {
             response.sendError(404);
-            return;
+            return null;
         }
 
-        if (webRequest.checkNotModified(media.getFile().lastModified())) {
-            return;
+        if (WebUtil.checkNotModified(re.getRevision(), re.getEtag(), webRequest)) {
+            return null;
         }
 
-        MediaType mediaType = MimeTypeUtil.getMediaType(media.getFile().getName());
-        response.setContentType(mediaType.toString());
-        OutputStream out = response.getOutputStream();
-        try (FileInputStream in = new FileInputStream(media.getFile())) {
-            IOUtils.copy(in, out);
+        if (re.getRevisionContent() != null) {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .contentType(re.getRevisionContent().getMediaType())
+                    .body(re.getRevisionContent().getContent());
+        } else {
+            response.setContentType(media.getMediaType().toString());
+            OutputStream out = response.getOutputStream();
+            try (FileInputStream in = new FileInputStream(media.getFile())) {
+                IOUtils.copy(in, out);
+            }
+            out.flush();
+            return null;
         }
-        out.flush();
     }
 
     // 不带扩展名，访问文章

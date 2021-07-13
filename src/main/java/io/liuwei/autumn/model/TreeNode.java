@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 @Data
-public class ArticleTreeNode {
+public class TreeNode {
 
     /**
      * 以 "/" 结尾
@@ -27,9 +27,9 @@ public class ArticleTreeNode {
 
     private Date modified;
 
-    private List<ArticleTreeNode> children = new ArrayList<>();
+    private List<TreeNode> children = new ArrayList<>();
 
-    public ArticleTreeNode(String path, String name) {
+    public TreeNode(String path, String name) {
         this.name = name;
         this.path = path;
     }

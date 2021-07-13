@@ -16,14 +16,14 @@ public enum AccessLevelEnum {
         this.level = level;
     }
 
-    public static AccessLevelEnum of(String value, AccessLevelEnum defaultVal) {
-        if (value == null) {
+    public static AccessLevelEnum of(String name, AccessLevelEnum defaultVal) {
+        if (name == null) {
             return defaultVal;
         }
-        value = value.toUpperCase();
-        for (AccessLevelEnum al : values()) {
-            if (al.name().equals(value)) {
-                return al;
+        name = name.toUpperCase();
+        for (AccessLevelEnum value : values()) {
+            if (value.name().equals(name)) {
+                return value;
             }
         }
         return defaultVal;
