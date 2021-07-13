@@ -1,10 +1,10 @@
 = Autumn
 
-映射 Asciidoc/Markdown 文件目录为网站，有简单的访问控制，有好用的搜索功能。
+映射 AsciiDoc 文件目录为网站，有简单的访问控制，有好用的搜索功能。
 
-搜索功能支持单词完全匹配、句子完全匹配、通配符、排除指定词、分类、标签，还支持多条件之间与和或的逻辑。
+搜索功能支持单词完全匹配、句子完全匹配、通配符、排除指定词、分类、标签，以及多条件之间与和或的逻辑。
 
-详见 link:src/main/resources/static/help.adoc#_search[]
+详见 link:src/main/resources/static/help.adoc#search[help.adoc]
 
 == 环境需求
 
@@ -12,7 +12,7 @@
 * Maven 3.5
 * （可选）Redis 4
 
-== 快速开始
+== 快速启动
 
 [source,bash]
 ----
@@ -30,17 +30,29 @@ bin/start.sh
 
 == 配置
 
-所有配置项和默认值见 src/main/resources/application.properties。
+所有配置项和默认值见 link:src/main/resources/application.properties[application.properties]，
+你可以直接修改这个文件，也可以新建 application-local.properties 或 application-prod.properties。
 
-新建文件 src/main/resources/application-local.properties。
+[source,properties]
+----
+# /path/to/data
+autumn.data.dir=<your data directory>
+autumn.data.reload-interval-seconds=0
+autumn.resource.reload-interval-seconds=0
+# id username password salt; id ...
+autumn.users=<your users>
+autumn.remember-me.aes-key=<your aes key>
+# 启用 Redis
+spring.autoconfigure.exclude=
+----
 
 最重要的几项配置是：`autumn.data.dir`，`autumn.users` 和 `autumn.remember-me.aes-key`。
 
 === autumn.data.dir
 
-一个包含 .adoc 或 .md 文件的目录路径。
+一个包含 .adoc 文件的目录路径。
 
-.adoc 或 .md 文件会被映射为网页。例如 `${autumn.data.dir}/a/b/c.adoc` 会被映射为网页 `+http://localhost:8601/a/b/c+`。
+`.adoc` 文件会被转为 HTML，映射为网页。例如 `${autumn.data.dir}/a/b/c.adoc` 会被映射为 `+http://localhost:8601/a/b/c+`。
 
 其他文件会被视为静态文件。例如 `${autumn.data.dir}/a/b/c.png` 会被映射为 `+http://localhost:8601/a/b/c.png+`。
 
@@ -52,30 +64,14 @@ bin/start.sh
 :modified: 2018-12-03 20:18:42 +0800
 :category: at_most_one_category
 :tags: tag1, tag2, tag3
-:published: false
+:access: owner/user/anon
 
 正文内容
 ----
 
-.md 文件格式示例：
-[source,markdown]
-----
----
-created: 2018-02-20 12:59:50
-modified: 2018-12-03 20:18:42
-category: at_most_one_category
-tags: tag1, tag2, tag3
-published: false
----
+`access` 用于访问控制，owner/user/anon 分别表示 网站所有者/用户/匿名。
 
-# Title
-
-正文内容
-----
-
-published 用于访问控制，已登录用户可以看到全部页面，未登录只能看到 published 设为 true 的页面。
-
-如果不符合以上格式，系统会自动设置默认值。`created` 和 `modified` 默认值是文件修改时间，`published` 默认值是 `false`。
+如果不符合以上格式，系统会自动设置默认值。`created` 和 `modified` 默认值是文件修改时间，`access` 默认值是 `owner`。
 
 === autumn.users
 
@@ -111,31 +107,11 @@ mvn -q -DskipTests=false -Dtest=io.liuwei.autumn.AesTest#generateKey test
 2FDFCEF1DAA8E567549C52C10422BE09A81CC80B0A05BFE8CF75F223BD87DEB6
 ----
 
-== 生产环境部署
+== How it works
 
-创建配置文件 src/main/resources/application-prod.properties（也可以将其他文件 link 到这个位置），该文件应该包含以下配置：
-
-[source,properties]
-----
-# /path/to/data
-autumn.data.dir=<your data directory>
-autumn.data.reload-interval-seconds=0
-autumn.resource.reload-interval-seconds=0
-# id username password salt; id ...
-autumn.users=<your users>
-autumn.remember-me.aes-key=<your aes key>
-# 若要启用 Redis
-spring.autoconfigure.exclude=
-----
-
-其中，autumn.data.reload-interval-seconds=0 禁用周期性扫描数据目录，autumn.resource.reload-interval-seconds=0 禁用周期性扫描 resources 目录。
-
-数据目录更新时，通过 HTTP 接口触发 reload，例如：
-
-[source,bash]
-----
-curl --silent -X POST http://localhost:8601/manage/data
-----
+1. 启动时，扫描数据目录所有文件，并读取 .adoc 文件。
+2. 启动时，扫描 classpath:/resource/static，并读取 css, js, help.adoc。
+3. 用户访问页面时，把 .adoc 内容转为 html 并缓存，把 js 合并成一个 all.js 并缓存，把 css 合并成一个 all.css 并缓存，通过模版生成页面 html 返回给浏览器。
 
 == ...
 
@@ -148,6 +124,8 @@ curl --silent -X POST http://localhost:8601/manage/data
 * DokuWiki 不适合我。同上。
 * 其他，试过一些，也不适合我。
 
-我曾经改造过 DokuWiki，用 git 同步数据，自动刷新索引，把文件扩展名从 .txt 改为 .md，增加 front matter 支持，Sidebar 可折叠等。DokuWiki 有很多我不需要的功能和逻辑，对于改造来说都是负担，改造成本很高，考虑到将来要支持 category、tags、blog，还有很高的改造成本。
+我曾经改造过 DokuWiki，用 git 同步数据，自动刷新索引，把文件扩展名从 .txt 改为 .md，
+增加 front matter 支持，Sidebar 可折叠等。DokuWiki 有很多我不需要的功能和逻辑，
+对于改造来说都是负担，改造成本很高，考虑到将来要支持 category 和 tags，还有很高的改造成本。
 
 不如自己开发，比改造一个现有的东西更可控更省时间，每一处都按照自己的喜好来做，访问速度更快，用起来更顺手。
