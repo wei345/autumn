@@ -55,18 +55,18 @@ public class ViewRenderingCacheFilter extends OncePerRequestFilter {
      * @param key        command 返回的 ModelAndView 的渲染结果会被放入缓存，关联这个 key
      * @param viewCache  缓存渲染结果
      * @param webRequest 用于检查和设置 ETag
-     * @param command    正常的 controller handler 里的逻辑，期望响应 200，返回 ModelAndView 对象
+     * @param loader     Controller handler 里处理该请求的逻辑，期望响应 200，返回 ModelAndView 对象
      * @return command 返回的 ModelAndView 对象，如果没有缓存；
      * 或 null，如果有缓存且 ETag 相等；
      * 或 ResponseEntity 对象，body 里为缓存的渲染结果，如果有缓存且 ETag 不相等。
      */
     public static Object cacheable(SimpleKey key, Cache viewCache, ServletWebRequest webRequest,
-                                   Supplier<ModelAndView> command) {
+                                   Supplier<ModelAndView> loader) {
         RevisionContent rc = viewCache.get(key, RevisionContent.class);
         if (rc == null) {
             // Spring MVC 处理结束后，filter 会将渲染结果放入缓存
             enableContentCaching(webRequest.getRequest(), key);
-            return command.get();
+            return loader.get();
         } else {
             if (webRequest.checkNotModified(rc.getEtag())) {
                 return null;
