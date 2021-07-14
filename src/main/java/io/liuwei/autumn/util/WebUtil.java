@@ -7,7 +7,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.util.CookieGenerator;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.StringTokenizer;
@@ -62,7 +64,33 @@ public class WebUtil {
         return webRequest.checkNotModified(etag);
     }
 
-    public static boolean isSecure(HttpServletRequest request) {
+    @SuppressWarnings("SameParameterValue")
+    public static Cookie getCookie(String name, HttpServletRequest request) {
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals(name)) {
+                    return cookie;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static void deleteCookie(String name, HttpServletRequest request, HttpServletResponse response) {
+        CookieGenerator cg = new CookieGenerator();
+        cg.setCookieName(name);
+        cg.setCookieMaxAge(0);
+        cg.setCookieHttpOnly(true);
+        addCookie(cg, null, request, response);
+    }
+
+    public static void addCookie(CookieGenerator cg, String value, HttpServletRequest request, HttpServletResponse response) {
+        cg.setCookiePath(request.getContextPath() + "/");
+        cg.setCookieSecure(WebUtil.isSecure(request));
+        cg.addCookie(response, value);
+    }
+
+    private static boolean isSecure(HttpServletRequest request) {
         return "https".equalsIgnoreCase(getScheme(request));
     }
 

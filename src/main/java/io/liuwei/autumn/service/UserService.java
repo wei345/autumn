@@ -11,11 +11,9 @@ import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.User;
 import io.liuwei.autumn.util.WebUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.util.CookieGenerator;
 
@@ -28,15 +26,16 @@ import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static com.vip.vjtools.vjkit.security.CryptoUtil.aesEncrypt;
-import static com.vip.vjtools.vjkit.text.EncodeUtil.decodeHex;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static com.vip.vjtools.vjkit.security.CryptoUtil.*;
+import static com.vip.vjtools.vjkit.text.EncodeUtil.*;
+import static java.nio.charset.StandardCharsets.*;
 
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/22.
  */
-@SuppressWarnings({"UnstableApiUsage", "WeakerAccess"})
+@SuppressWarnings({"UnstableApiUsage", "WeakerAccess", "FieldCanBeLocal"})
+@Slf4j
 public class UserService {
 
     // 改变这个值会使所有已登录 Cookie 失效
@@ -45,21 +44,16 @@ public class UserService {
     private static final String SEPARATOR = "|";
     private static final User NULL_USER = new User();
     private static final String REQUEST_ATTRIBUTE_CURRENT_USER = UserService.class.getName() + ".current_user";
-    private static Logger logger = LoggerFactory.getLogger(UserService.class);
-    private String rememberMeCookieName;
+    private final int rememberMeSeconds = 3600 * 24 * 365;
+    private final String rememberMeCookieName;
     private byte[] aesKey;
-
-    @SuppressWarnings("FieldCanBeLocal")
-    private int rememberMeSeconds = 3600 * 24 * 365;
-
     private Map<String, User> users;
-
     private Map<Long, User> userMap;
 
     @Value("${autumn.access.owner-user-id}")
     private Long ownerUserId;
 
-    private Cache<String, User> rememberMe2UserCache = CacheBuilder.newBuilder()
+    private final Cache<String, User> rememberMe2UserCache = CacheBuilder.newBuilder()
             .expireAfterWrite(30, TimeUnit.SECONDS)
             .maximumSize(10_000)
             .build();
@@ -121,14 +115,14 @@ public class UserService {
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {
-        deleteCookie(rememberMeCookieName, request, response);
+        WebUtil.deleteCookie(rememberMeCookieName, request, response);
 
         // 设置 logout cookie，JavaScript 检查该 cookie，清理客户端用户数据，然后删除该 cookie
         String value = String.valueOf(System.currentTimeMillis());
         CookieGenerator cg = new CookieGenerator();
         cg.setCookieName(LOGOUT_COOKIE_NAME);
         cg.setCookieMaxAge(-1);
-        addCookie(cg, value, request, response);
+        WebUtil.addCookie(cg, value, request, response);
     }
 
     private void setRememberMe(User user, String plainPassword, HttpServletRequest request, HttpServletResponse response) {
@@ -147,21 +141,21 @@ public class UserService {
         cg.setCookieName(rememberMeCookieName);
         cg.setCookieMaxAge(rememberMeSeconds);
         cg.setCookieHttpOnly(true);
-        addCookie(cg, encrypted, request, response);
+        WebUtil.addCookie(cg, encrypted, request, response);
     }
 
     /**
      * @return 如果 rememberMe 验证成功，返回 User 对象，否则返回 null
      */
     private User getRememberMeUser(HttpServletRequest request, HttpServletResponse response) {
-        Cookie cookie = getCookie(rememberMeCookieName, request);
+        Cookie cookie = WebUtil.getCookie(rememberMeCookieName, request);
         if (cookie == null) {
             return null;
         }
 
         String rememberMe = cookie.getValue();
         if (StringUtils.isBlank(rememberMe)) {
-            deleteCookie(cookie.getName(), request, response);
+            WebUtil.deleteCookie(cookie.getName(), request, response);
             return null;
         }
 
@@ -179,7 +173,7 @@ public class UserService {
             return user;
         }
 
-        deleteCookie(cookie.getName(), request, response);
+        WebUtil.deleteCookie(cookie.getName(), request, response);
         return null;
     }
 
@@ -193,7 +187,7 @@ public class UserService {
             StringTokenizer tokenizer = new StringTokenizer(decrypted, SEPARATOR);
             int version = Integer.parseInt(tokenizer.nextToken());
             if (version != REMEMBER_ME_VERSION) {
-                logger.info("rememberMe version not match, current: '{}', cookie: '{}'", REMEMBER_ME_VERSION, version);
+                log.info("rememberMe version not match, current: '{}', cookie: '{}'", REMEMBER_ME_VERSION, version);
                 return null;
             }
             long id = Long.parseLong(tokenizer.nextToken());
@@ -204,35 +198,9 @@ public class UserService {
             }
             return user;
         } catch (Exception e) {
-            logger.debug(String.format("解析 rememberMe cookie 失败 '%s'", rememberMe), e);
+            log.debug(String.format("解析 rememberMe cookie 失败 '%s'", rememberMe), e);
             return null;
         }
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private Cookie getCookie(String name, HttpServletRequest request) {
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if (cookie.getName().equals(name)) {
-                    return cookie;
-                }
-            }
-        }
-        return null;
-    }
-
-    private void deleteCookie(String name, HttpServletRequest request, HttpServletResponse response) {
-        CookieGenerator cg = new CookieGenerator();
-        cg.setCookieName(name);
-        cg.setCookieMaxAge(0);
-        cg.setCookieHttpOnly(true);
-        addCookie(cg, null, request, response);
-    }
-
-    private void addCookie(CookieGenerator cg, String value, HttpServletRequest request, HttpServletResponse response) {
-        cg.setCookiePath(request.getContextPath() + "/");
-        cg.setCookieSecure(WebUtil.isSecure(request));
-        cg.addCookie(response, value);
     }
 
     private boolean checkRememberMePassword(User user, byte[] passwordDigest1) {
@@ -269,7 +237,7 @@ public class UserService {
                 continue;
             }
             String[] parts = s.split("\\s+");
-            long id = Long.valueOf(parts[0]);
+            long id = Long.parseLong(parts[0]);
             String username = parts[1];
             String password = parts[2];
             String salt = parts[3];

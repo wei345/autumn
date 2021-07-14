@@ -84,7 +84,7 @@ readonly LOG_DIR="./logs"
 readonly LOG_FILE_NAME="autumn.log"
 readonly JAR_FILE="${WORKING_DIR}/target/autumn.jar"
 readonly MAIN_CLASS="io.liuwei.autumn.Application"
-readonly APP_ARGS="--spring.profiles.include=logfile,prod"
+readonly APP_ARGS="--spring.profiles.active=logfile,prod"
 
 case "${COMMAND}" in
   start)

@@ -47,7 +47,7 @@ public class HtmlUtilTest {
                 "</li>\n" +
                 "</ul>\n" +
                 "</div>";
-        String tocHtml2 = HtmlUtil.makeNumberedToc(toHtml);
+        String tocHtml2 = HtmlUtil.toNumberedTocHtml(toHtml);
         System.out.println(tocHtml2);
     }
 }

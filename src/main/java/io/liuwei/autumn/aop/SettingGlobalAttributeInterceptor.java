@@ -50,12 +50,12 @@ public class SettingGlobalAttributeInterceptor implements HandlerInterceptor {
         if (request.getAttribute(ALREADY_HANDLED_ATTRIBUTE_NAME) == null) {
             request.setAttribute(ALREADY_HANDLED_ATTRIBUTE_NAME, Boolean.TRUE);
 
+            // todo 只有 view 页需要设置
             User user = userService.getCurrentUser(request, response);
             AccessLevelEnum accessLevel = userService.getAccessLevel(user);
             request.setAttribute("ctx", request.getContextPath());
-            request.setAttribute("path", request.getRequestURI().substring(request.getContextPath().length()));
             request.setAttribute("siteTitle", appProperties.getSiteTitle());
-            request.setAttribute("faviconUrl", mediaRevisionResolver.getMediaRevisionUrl(Constants.FAVICON_DOT_ICO));
+            request.setAttribute("faviconUrl", mediaRevisionResolver.toRevisionUrl(Constants.FAVICON_DOT_ICO));
             request.setAttribute("cssUrl", toRevisionUrl(Constants.CSS_ALL_DOT_CSS, staticService.getAllCss()));
             request.setAttribute("jsUrl", toRevisionUrl(Constants.JS_ALL_DOT_JS, staticService.getAllJs()));
             request.setAttribute("treeJsonUrl", toRevisionUrl(Constants.TREE_DOT_JSON, articleService.getTreeJson(accessLevel)));

@@ -16,8 +16,9 @@ public class CacheConstants {
     public static final String STATIC = "autumn:static";
 
     // -- 直接使用 Spring Cache 接口 --
-    public static final String HIT_CACHE = "autumn:article:hit";
-    public static final String MEDIA_CACHE = "autumn:media";
+    public static final String ARTICLE_HIT = "autumn:article:hit";
+    public static final String MEDIA_REVISION_CONTENT = "autumn:media:revision_content";
+    public static final String VIEW_HTML = "autumn:view:html";
 
     // -- 使用 Guava cache 或 StringRedisTemplate --
     public static final String RATE_LIMIT_LOGIN = "autumn:rate-limit:login:";

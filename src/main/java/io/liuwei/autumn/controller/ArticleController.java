@@ -13,7 +13,9 @@ import io.liuwei.autumn.service.SearchService;
 import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +52,10 @@ public class ArticleController {
 
     @Autowired
     private MediaRevisionResolver mediaRevisionResolver;
+
+    @Autowired
+    @Qualifier("viewCache")
+    private Cache viewCache;
 
     @Value("${autumn.breadcrumb.enabled:false}")
     private boolean isBreadcrumbEnabled;
@@ -94,7 +100,7 @@ public class ArticleController {
 
         if (media == null
                 || !media.getAccessLevel().allow(accessLevel)
-                || (re = mediaRevisionResolver.getRevision(media)) == null) {
+                || (re = mediaRevisionResolver.getRevisionEtag(media)) == null) {
             response.sendError(404);
             return null;
         }
@@ -121,7 +127,7 @@ public class ArticleController {
 
     // 不带扩展名，访问文章
     @GetMapping(value = "/**")
-    public String getArticle(String[] h, // h=a&h=b..
+    public String getArticle(String[] h,
                              AccessLevelEnum accessLevel,
                              HttpServletRequest request,
                              HttpServletResponse response,
@@ -135,8 +141,17 @@ public class ArticleController {
         }
 
         ArticleVO articleVO = articleService.toVO(article);
+        highlight(h, articleVO);
 
-        // highlight
+        if (isBreadcrumbEnabled) {
+            model.put("breadcrumb", articleService.getBreadcrumbLinks(article, accessLevel));
+        }
+        model.put("sitemapPath", path);
+        model.put("article", articleVO);
+        return "article";
+    }
+
+    private void highlight(String[] h, ArticleVO articleVO) {
         if (h != null && h.length > 0) {
             String[] strings = h;
             // 太多高亮词会影响性能，正常不会太多
@@ -149,12 +164,6 @@ public class ArticleController {
             articleVO.setContentHtml(searchService.highlightSearchStr(articleVO.getContentHtml(), searchStrList));
             articleVO.setTitleHtml(searchService.highlightSearchStr(articleVO.getTitleHtml(), searchStrList));
         }
-
-        if (isBreadcrumbEnabled) {
-            model.put("breadcrumb", articleService.getBreadcrumbLinks(article, accessLevel));
-        }
-        model.put("article", articleVO);
-        return "article";
     }
 
 }

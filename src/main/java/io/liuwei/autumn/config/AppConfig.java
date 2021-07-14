@@ -21,7 +21,7 @@ import javax.annotation.PostConstruct;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.charset.StandardCharsets.*;
 
 /**
  * @author liuwei
@@ -102,7 +102,7 @@ public class AppConfig {
     @Bean
     public Cache hitCache() {
         return new CaffeineCache(
-                CacheConstants.HIT_CACHE,
+                CacheConstants.ARTICLE_HIT,
                 Caffeine
                         .newBuilder()
                         .softValues()
@@ -113,11 +113,22 @@ public class AppConfig {
     @Bean
     public Cache mediaCache() {
         return new CaffeineCache(
-                CacheConstants.MEDIA_CACHE,
+                CacheConstants.MEDIA_REVISION_CONTENT,
                 Caffeine
                         .newBuilder()
                         .softValues()
                         .maximumSize(1000)
+                        .build());
+    }
+
+    @Bean
+    public Cache viewCache() {
+        return new CaffeineCache(
+                CacheConstants.VIEW_HTML,
+                Caffeine
+                        .newBuilder()
+                        .softValues()
+                        .maximumSize(10_000)
                         .build());
     }
 

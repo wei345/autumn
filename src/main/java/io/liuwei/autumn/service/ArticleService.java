@@ -5,7 +5,6 @@ import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.constant.CacheConstants;
 import io.liuwei.autumn.converter.ContentHtmlConverter;
 import io.liuwei.autumn.enums.AccessLevelEnum;
-import io.liuwei.autumn.enums.RevisionErrorEnum;
 import io.liuwei.autumn.manager.ArticleManager;
 import io.liuwei.autumn.model.*;
 import io.liuwei.autumn.util.HtmlUtil;
@@ -123,12 +122,12 @@ public class ArticleService {
     @Cacheable(value = CacheConstants.ARTICLE_HTML, keyGenerator = "cacheKeyGenerator")
     public ContentHtml getContentHtml(Article article) {
         ContentHtml contentHtml = contentHtmlConverter.convert(article.getTitle(), article.getContent());
-        contentHtml.setTocHtml(HtmlUtil.makeNumberedToc(contentHtml.getTocHtml()));
+        contentHtml.setTocHtml(HtmlUtil.toNumberedTocHtml(contentHtml.getTocHtml()));
         contentHtml.setContentHtml(HtmlUtil
-                .rewriteImgSrcAppendVersionParam(
+                .rewriteImgSrcToRevisionUrl(
                         contentHtml.getContentHtml(),
                         article.getPath(),
-                        mediaRevisionResolver::getMediaRevisionForUrl));
+                        mediaRevisionResolver::toRevisionUrl));
         return contentHtml;
     }
 

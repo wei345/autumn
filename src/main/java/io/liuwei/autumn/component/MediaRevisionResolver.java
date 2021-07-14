@@ -51,10 +51,15 @@ public class MediaRevisionResolver {
     @Value("${autumn.cache.maxMediaSize}")
     private DataSize cacheMaxMediaSize;
 
+    public static String getSnapshotId(Article article) {
+        return article.getPath() + ":" + article.getSourceMd5().substring(0, 7);
+    }
+
     /**
      * @return RevisionEtag 对象; 或 null 如果文件不存在或发生 IO 异常
      */
-    public RevisionEtag getRevision(Media media) {
+    public RevisionEtag getRevisionEtag(Media media) {
+        // 大文件，使用 lastModified
         if (media.getFile().length() > cacheMaxMediaSize.toBytes()) {
             long lastModified = media.getFile().lastModified();
             if (lastModified == 0) {
@@ -64,16 +69,13 @@ public class MediaRevisionResolver {
             return new RevisionEtag(getRevision(lastModified), getEtag(lastModified));
         }
 
+        // 小文件，读取内容，计算 md5
         try {
             return new RevisionEtag(toRevisionContent(media));
         } catch (Cache.ValueRetrievalException e) {
             log.warn("get_revision_error. path=" + media.getPath(), e);
             return null;
         }
-    }
-
-    public static String getSnapshotId(Article article) {
-        return article.getPath() + ":" + article.getSourceMd5().substring(0, 7);
     }
 
     private String getRevision(String md5) {
@@ -92,20 +94,16 @@ public class MediaRevisionResolver {
         return "W/\"" + majorVersion + "." + timestamp + "\"";
     }
 
-    public String getMediaRevisionUrl(String path) {
-        return toRevisionUrl(path, getMediaRevisionForUrl(path));
-    }
-
-    public String getMediaRevisionForUrl(String path) {
+    public String toRevisionUrl(String path) {
         Media media = articleManager.getMedia(path);
         if (media == null) {
-            return RevisionErrorEnum.MEDIA_NOT_FOUND.name();
+            return toRevisionUrl(path, RevisionErrorEnum.MEDIA_NOT_FOUND.name());
         }
-        RevisionEtag re = getRevision(media);
+        RevisionEtag re = getRevisionEtag(media);
         if (re == null) {
-            return RevisionErrorEnum.IO_EXCEPTION.name();
+            return toRevisionUrl(path, RevisionErrorEnum.IO_EXCEPTION.name());
         }
-        return re.getRevision();
+        return toRevisionUrl(path, re.getRevision());
     }
 
     public String toRevisionUrl(String path, String revision) {
@@ -113,6 +111,8 @@ public class MediaRevisionResolver {
     }
 
     /**
+     * 读取文件内容，构造 RevisionContent 对象。
+     *
      * @throws Cache.ValueRetrievalException 如果读取文件发生 IOException
      */
     private RevisionContent toRevisionContent(Media media) throws Cache.ValueRetrievalException {

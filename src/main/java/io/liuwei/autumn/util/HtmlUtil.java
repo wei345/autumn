@@ -1,8 +1,6 @@
 package io.liuwei.autumn.util;
 
 import com.google.common.io.Files;
-import io.liuwei.autumn.constant.Constants;
-import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -80,47 +78,35 @@ public class HtmlUtil {
     }
 
     /**
-     * @param imageRevisionResolver 图片路径 -> 图片 revision
+     * @param imageRevisionUrlResolver 图片路径 -> 图片 revision url
      */
-    public static String rewriteImgSrcAppendVersionParam(
-            String html, String path, Function<String, String> imageRevisionResolver) {
+    public static String rewriteImgSrcToRevisionUrl(
+            String html, String path, Function<String, String> imageRevisionUrlResolver) {
         Document document = Jsoup.parse(html);
         for (Element img : document.select("img")) {
             img.attr("src",
-                    appendRevisionParameter(
+                    toRevisionUrl(
                             img.attr("src"),
                             path,
-                            imageRevisionResolver));
+                            imageRevisionUrlResolver));
         }
         return document.body().html();
     }
 
-    private static String appendRevisionParameter(
-            String mediaUrl, String refererPath, Function<String, String> imageRevisionResolver) {
+    private static String toRevisionUrl(
+            String imgSrc, String refererPath, Function<String, String> imageRevisionUrlResolver) {
 
         // 以 http://, https://, file:/, ftp:/ ... 等等开头的都不处理
-        if (mediaUrl.contains(":/")) {
-            return mediaUrl;
+        if (imgSrc.contains(":/")) {
+            return imgSrc;
         }
 
-        int questionMarkPos = mediaUrl.indexOf('?');
+        String mediaPath = imgSrc.startsWith("/") ?
+                imgSrc :
+                // 转为绝对路径
+                Files.simplifyPath(getDirPath(refererPath) + imgSrc);
 
-        String mediaPath = questionMarkPos == -1 ? mediaUrl : mediaUrl.substring(0, questionMarkPos);
-        if (!mediaPath.startsWith("/")) {
-            // 转为绝对路径
-            mediaPath = Files.simplifyPath(getDirPath(refererPath) + mediaPath);
-        }
-        String revision = imageRevisionResolver.apply(mediaPath);
-        if (StringUtils.isBlank(revision)) {
-            return mediaUrl;
-        }
-
-        String versionKeyValue = Constants.REQUEST_PARAMETER_REVISION + "=" + revision;
-        if (questionMarkPos == -1) {
-            return mediaUrl + "?" + versionKeyValue;
-        } else {
-            return mediaUrl + "&" + versionKeyValue;
-        }
+        return imageRevisionUrlResolver.apply(mediaPath);
     }
 
     /**
@@ -134,7 +120,7 @@ public class HtmlUtil {
         return path.substring(0, lastSlash + 1);
     }
 
-    public static String makeNumberedToc(String tocHtml) {
+    public static String toNumberedTocHtml(String tocHtml) {
         if (tocHtml == null) {
             return null;
         }
@@ -159,11 +145,11 @@ public class HtmlUtil {
             return tocHtml;
         }
 
-        makeNumberedLis(startLis, "");
+        toNumberedLis(startLis, "");
         return document.select("div").outerHtml();
     }
 
-    private static void makeNumberedLis(Elements lis, String prefix) {
+    private static void toNumberedLis(Elements lis, String prefix) {
         if (lis == null || lis.size() == 0) {
             return;
         }
@@ -182,7 +168,7 @@ public class HtmlUtil {
             // 递归子节点
             Elements uls = li.select("ul");
             if (uls != null && uls.size() > 0) {
-                makeNumberedLis(uls.first().children(), num + ".");
+                toNumberedLis(uls.first().children(), num + ".");
             }
         }
     }
