@@ -10,8 +10,10 @@ import io.liuwei.autumn.util.ResourceWalker;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
@@ -37,12 +39,18 @@ import static java.nio.file.FileVisitResult.*;
 public class ResourceFileManager {
 
     @Autowired
+    @Qualifier("viewCache")
+    private Cache viewCache;
+
+    @Autowired
     private ResourceFileManager proxy;
 
     @Getter
-    private String staticRoot = "/static";
+    @Value("${autumn.static.dir}")
+    private String staticRoot;
 
-    private String templateRoot = "/templates";
+    @Value("${autumn.template.dir}")
+    private String templateRoot;
 
     private volatile Map<String, ResourceFile> resourceFileMap = Collections.emptyMap();
 
@@ -66,6 +74,7 @@ public class ResourceFileManager {
         if (visitor.isChanged()) {
             resourceFileMap = visitor.getResourceFileMap();
             proxy.clearStaticCache();
+            viewCache.clear();
         }
     }
 
@@ -79,6 +88,7 @@ public class ResourceFileManager {
         ResourceWalker.walk(templateRoot, visitor);
         if (visitor.getLastModified() > templateLastModified) {
             templateLastModified = visitor.getLastModified();
+            viewCache.clear();
             log.info("Updated templateLastModified {}", templateLastModified);
         }
     }
@@ -121,16 +131,15 @@ public class ResourceFileManager {
     }
 
     static class LoadResourceFileVisitor extends SimpleFileVisitor<Path> {
-        private Map<String, ResourceFile> oldMap;
+        private final Map<String, ResourceFile> oldMap;
         @Getter
-        private Map<String, ResourceFile> resourceFileMap;
+        private final Map<String, ResourceFile> resourceFileMap;
         private Path root;
         private int addOrModifiedCount;
-        private String classpathOfRoot; // e.g. /static
+        private final String rootPath; // e.g. /static
 
-        LoadResourceFileVisitor(String classpathOfRoot, Map<String, ResourceFile> oldMap) {
-            Validate.isTrue(classpathOfRoot.startsWith("/"));
-            this.classpathOfRoot = (classpathOfRoot.length() == 1) ? "" : classpathOfRoot;
+        LoadResourceFileVisitor(String rootPath, Map<String, ResourceFile> oldMap) {
+            this.rootPath = rootPath;
             this.oldMap = oldMap;
             this.resourceFileMap = Maps.newHashMapWithExpectedSize(oldMap.size());
         }
@@ -156,36 +165,37 @@ public class ResourceFileManager {
 
             if (StringUtils.containsIgnoreCase(file.getFileSystem().getClass().getSimpleName(), "zip")) {
                 // file in jar
-                String fileClasspath = path;
+                String filePath = path;
                 if (path.startsWith(Constants.BOOT_INF_CLASSES)) {
-                    fileClasspath = path.substring(Constants.BOOT_INF_CLASSES.length());
+                    filePath = path.substring(Constants.BOOT_INF_CLASSES.length());
                 }
+                filePath = ResourceWalker.CLASSPATH_PREFIX + filePath;
 
-                ResourceFile old = oldMap.get(fileClasspath);
+                ResourceFile old = oldMap.get(filePath);
                 if (old != null && old.getLastModified() >= attrs.lastModifiedTime().toMillis()) {
-                    resourceFileMap.put(fileClasspath, old);
+                    resourceFileMap.put(filePath, old);
                     return CONTINUE;
                 }
 
                 addOrModifiedCount++;
 
-                byte[] content = IOUtil.resourceToByteArray(fileClasspath);
+                byte[] content = IOUtil.resourceToByteArray(filePath);
                 String md5 = DigestUtils.md5DigestAsHex(content);
                 ResourceFile resourceFile = new ResourceFile();
                 resourceFile.setContent(content);
                 resourceFile.setMd5(md5);
-                resourceFile.setMediaType(MediaTypeUtil.getMediaType(fileClasspath));
+                resourceFile.setMediaType(MediaTypeUtil.getMediaType(filePath));
                 resourceFile.setLastModified(attrs.lastModifiedTime().toMillis());
-                resourceFile.setPath(fileClasspath);
-                resourceFileMap.put(fileClasspath, resourceFile);
+                resourceFile.setPath(filePath);
+                resourceFileMap.put(filePath, resourceFile);
                 return CONTINUE;
             } else {
                 // file in file system
-                String fileClasspath = classpathOfRoot + "/" + root.relativize(file).toString();
-                ResourceFile old = oldMap.get(fileClasspath);
+                String filePath = rootPath + "/" + root.relativize(file).toString();
+                ResourceFile old = oldMap.get(filePath);
                 long lastModified = attrs.lastModifiedTime().toMillis();
                 if (old != null && old.getLastModified() >= lastModified) {
-                    resourceFileMap.put(fileClasspath, old);
+                    resourceFileMap.put(filePath, old);
                     return CONTINUE;
                 }
 
@@ -197,8 +207,8 @@ public class ResourceFileManager {
                 resourceFile.setMd5(md5);
                 resourceFile.setMediaType(MediaTypeUtil.getMediaType(file.toFile().getName()));
                 resourceFile.setLastModified(lastModified);
-                resourceFile.setPath(fileClasspath);
-                resourceFileMap.put(fileClasspath, resourceFile);
+                resourceFile.setPath(filePath);
+                resourceFileMap.put(filePath, resourceFile);
                 return CONTINUE;
             }
         }

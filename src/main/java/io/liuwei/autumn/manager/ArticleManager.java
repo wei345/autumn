@@ -49,6 +49,10 @@ public class ArticleManager {
     @Qualifier("mediaCache")
     private Cache mediaCache;
 
+    @Autowired
+    @Qualifier("viewCache")
+    private Cache viewCache;
+
     /**
      * 包含数据目录下所有文件，包括文章
      */
@@ -93,6 +97,7 @@ public class ArticleManager {
         this.articleMap = articleMap;
         this.dataInfo = dataInfo;
         mediaCache.clear();
+        viewCache.clear();
         log.info("Reloaded. {}", dataInfo);
         return dataInfo;
     }

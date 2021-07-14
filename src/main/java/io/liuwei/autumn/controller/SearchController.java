@@ -28,6 +28,7 @@ import static org.springframework.web.util.HtmlUtils.htmlEscape;
  * @author liuwei
  * Created by liuwei on 2018/11/28.
  */
+@SuppressWarnings("FieldCanBeLocal")
 @Controller
 public class SearchController {
 
@@ -42,7 +43,7 @@ public class SearchController {
     @Value("${autumn.search.page-size}")
     private int pageSize;
 
-    private int maxSearchStrLength = 120;
+    private final int maxSearchStrLength = 120;
 
     @PostConstruct
     public void init() {

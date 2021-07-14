@@ -1,6 +1,7 @@
 package io.liuwei.autumn.controller;
 
 import io.liuwei.autumn.annotation.CheckModified;
+import io.liuwei.autumn.aop.ViewRenderingCacheFilter;
 import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.enums.AccessLevelEnum;
@@ -16,15 +17,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
+import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -61,18 +63,21 @@ public class ArticleController {
     private boolean isBreadcrumbEnabled;
 
     @GetMapping("")
-    public String home(AccessLevelEnum accessLevel, Model model) {
-        List<Article> list = articleService.listArticles(accessLevel);
-        list.sort(Comparator
-                .comparing(Article::getModified).reversed()
-                .thenComparing(Article::getPath));
+    public Object home(AccessLevelEnum accessLevel, ServletWebRequest webRequest, Map<String, Object> model) {
+        SimpleKey key = new SimpleKey("/home", accessLevel);
+        return ViewRenderingCacheFilter.cacheable(key, viewCache, webRequest, () -> {
+            List<Article> list = articleService.listArticles(accessLevel);
+            list.sort(Comparator
+                    .comparing(Article::getModified).reversed()
+                    .thenComparing(Article::getPath));
 
-        if (list.size() > 20) {
-            list = list.subList(0, 20);
-        }
+            if (list.size() > 20) {
+                list = list.subList(0, 20);
+            }
 
-        model.addAttribute("articles", list);
-        return "home";
+            model.put("articles", list);
+            return new ModelAndView("home", model);
+        });
     }
 
     @GetMapping(value = Constants.TREE_DOT_JSON, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -83,10 +88,14 @@ public class ArticleController {
     }
 
     @GetMapping("/sitemap")
-    public String sitemap(AccessLevelEnum accessLevel, Model model) {
-        String treeHtml = articleService.getTreeHtml(accessLevel);
-        model.addAttribute("treeHtml", treeHtml);
-        return "sitemap";
+    public Object sitemap(AccessLevelEnum accessLevel, ServletWebRequest webRequest, Map<String, Object> model) {
+        SimpleKey key = new SimpleKey("/sitemap", accessLevel);
+        return ViewRenderingCacheFilter.cacheable(key, viewCache, webRequest, () -> {
+            String treeHtml = articleService.getTreeHtml(accessLevel);
+            model.put("treeHtml", treeHtml);
+            return new ModelAndView("sitemap", model);
+        });
+
     }
 
     // 带扩展名，访问文件
@@ -127,10 +136,11 @@ public class ArticleController {
 
     // 不带扩展名，访问文章
     @GetMapping(value = "/**")
-    public String getArticle(String[] h,
+    public Object getArticle(String[] h,
                              AccessLevelEnum accessLevel,
                              HttpServletRequest request,
                              HttpServletResponse response,
+                             ServletWebRequest webRequest,
                              Map<String, Object> model) throws IOException {
         String path = WebUtil.getInternalPath(request);
         Article article = articleService.getArticle(path);
@@ -140,15 +150,18 @@ public class ArticleController {
             return null;
         }
 
-        ArticleVO articleVO = articleService.toVO(article);
-        highlight(h, articleVO);
+        SimpleKey cacheKey = new SimpleKey(path, h, accessLevel);
+        return ViewRenderingCacheFilter.cacheable(cacheKey, viewCache, webRequest, () -> {
+            ArticleVO articleVO = articleService.toVO(article);
+            highlight(h, articleVO);
 
-        if (isBreadcrumbEnabled) {
-            model.put("breadcrumb", articleService.getBreadcrumbLinks(article, accessLevel));
-        }
-        model.put("sitemapPath", path);
-        model.put("article", articleVO);
-        return "article";
+            if (isBreadcrumbEnabled) {
+                model.put("breadcrumb", articleService.getBreadcrumbLinks(article, accessLevel));
+            }
+            model.put("sitemapPath", path);
+            model.put("article", articleVO);
+            return new ModelAndView("article", model);
+        });
     }
 
     private void highlight(String[] h, ArticleVO articleVO) {

@@ -19,7 +19,7 @@ public class ResourceFileRefreshJob {
     @Autowired
     private ResourceFileManager resourceFileManager;
 
-    @Value("${autumn.resource.reload-interval-seconds}")
+    @Value("${autumn.static.reload-interval-seconds}")
     private int reloadIntervalSeconds;
 
     @Autowired

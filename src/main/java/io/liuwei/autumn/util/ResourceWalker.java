@@ -2,30 +2,45 @@ package io.liuwei.autumn.util;
 
 import io.liuwei.autumn.constant.Constants;
 
+import java.io.File;
 import java.net.URI;
 import java.nio.file.*;
 import java.util.Collections;
 
 public class ResourceWalker {
 
+    public static final String CLASSPATH_PREFIX = "classpath:";
+    private static final String FILE_PREFIX = "file:";
+
     /**
-     * @param classpath e.g. /static
+     * @param url e.g. classpath:/static, file:src/main/resources/templates
      */
-    public static void walk(String classpath, FileVisitor<? super Path> visitor) {
+    public static void walk(String url, FileVisitor<? super Path> visitor) {
         try {
-            URI uri = ResourceWalker.class.getResource(classpath).toURI();
 
-            if (uri.getScheme().equals("jar")) {
-                walkJar(uri, classpath, visitor);
+            if (url.startsWith(CLASSPATH_PREFIX)) {
+                String path = url.substring(CLASSPATH_PREFIX.length());
+
+                URI uri = ResourceWalker.class.getResource(path).toURI();
+
+                if (uri.getScheme().equals("jar")) {
+                    walkJar(uri, path, visitor);
+                    return;
+                }
+
+                if (uri.getScheme().equals("file")) {
+                    Files.walkFileTree(Paths.get(uri), visitor);
+                    return;
+                }
+            }
+
+            if (url.startsWith(FILE_PREFIX)) {
+                String path = url.substring(FILE_PREFIX.length());
+                Files.walkFileTree(new File(path).toPath(), visitor);
                 return;
             }
 
-            if (uri.getScheme().equals("file")) {
-                Files.walkFileTree(Paths.get(uri), visitor);
-                return;
-            }
-
-            throw new RuntimeException("Unsupported scheme. uri=" + uri.toString());
+            throw new IllegalArgumentException("Unsupported scheme. url=" + url);
 
         } catch (RuntimeException e) {
             throw e;

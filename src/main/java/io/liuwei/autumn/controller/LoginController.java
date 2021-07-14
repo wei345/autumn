@@ -1,23 +1,29 @@
 package io.liuwei.autumn.controller;
 
+import io.liuwei.autumn.aop.ViewRenderingCacheFilter;
 import io.liuwei.autumn.constant.CacheConstants;
 import io.liuwei.autumn.service.UserService;
 import io.liuwei.autumn.util.RateLimiter;
 import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.Cache;
+import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
-import static org.springframework.web.util.HtmlUtils.htmlEscape;
+import static org.springframework.web.util.HtmlUtils.*;
 
 /**
  * @author liuwei
@@ -32,6 +38,10 @@ public class LoginController {
     @Autowired(required = false)
     private StringRedisTemplate stringRedisTemplate;
 
+    @Autowired
+    @Qualifier("viewCache")
+    private Cache viewCache;
+
     private RateLimiter rateLimiter;
 
     @PostConstruct
@@ -40,8 +50,12 @@ public class LoginController {
     }
 
     @GetMapping("/login")
-    public String login() {
-        return "login";
+    public Object login(ServletWebRequest webRequest) {
+        return ViewRenderingCacheFilter.cacheable(
+                new SimpleKey("/login"),
+                viewCache,
+                webRequest,
+                () -> new ModelAndView("login"));
     }
 
     @PostMapping("/login")
