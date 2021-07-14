@@ -90,7 +90,6 @@ public class AppConfig {
     public Caffeine<?, ?> caffeine() {
         return Caffeine
                 .newBuilder()
-                .softValues() // JVM 缺内存时，可回收
                 .maximumSize(10_000);
     }
 
@@ -105,7 +104,6 @@ public class AppConfig {
                 CacheConstants.ARTICLE_HIT,
                 Caffeine
                         .newBuilder()
-                        .softValues()
                         .maximumSize(50_000) // 约每篇文章缓存 100 个词的匹配结果
                         .build());
     }
@@ -116,7 +114,6 @@ public class AppConfig {
                 CacheConstants.MEDIA_REVISION_CONTENT,
                 Caffeine
                         .newBuilder()
-                        .softValues()
                         .maximumSize(1000)
                         .build());
     }
@@ -127,7 +124,6 @@ public class AppConfig {
                 CacheConstants.VIEW_HTML,
                 Caffeine
                         .newBuilder()
-                        .softValues()
                         .maximumSize(10_000)
                         .build());
     }
