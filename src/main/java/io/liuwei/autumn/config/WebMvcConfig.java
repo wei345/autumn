@@ -1,7 +1,7 @@
 package io.liuwei.autumn.config;
 
 import io.liuwei.autumn.aop.AccessLevelMethodArgumentResolver;
-import io.liuwei.autumn.aop.SettingGlobalAttributeInterceptor;
+import io.liuwei.autumn.aop.SettingModelAttributeInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -15,7 +15,7 @@ import java.util.List;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Autowired
-    private SettingGlobalAttributeInterceptor settingGlobalAttributeInterceptor;
+    private SettingModelAttributeInterceptor settingGlobalAttributeInterceptor;
 
     @Autowired
     private AccessLevelMethodArgumentResolver accessLevelMethodArgumentResolver;

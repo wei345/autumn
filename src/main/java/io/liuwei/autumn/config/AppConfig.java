@@ -4,7 +4,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.io.BaseEncoding;
 import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
-import io.liuwei.autumn.aop.SettingGlobalAttributeInterceptor;
+import io.liuwei.autumn.aop.SettingModelAttributeInterceptor;
 import io.liuwei.autumn.component.CacheKeyGenerator;
 import io.liuwei.autumn.constant.CacheConstants;
 import io.liuwei.autumn.service.UserService;
@@ -65,8 +65,8 @@ public class AppConfig {
     }
 
     @Bean
-    public SettingGlobalAttributeInterceptor settingGlobalAttributeInterceptor() {
-        return new SettingGlobalAttributeInterceptor(prefix);
+    public SettingModelAttributeInterceptor settingGlobalAttributeInterceptor() {
+        return new SettingModelAttributeInterceptor(prefix);
     }
 
     @Bean

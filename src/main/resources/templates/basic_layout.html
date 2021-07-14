@@ -6,13 +6,12 @@
     <meta name="google" content="notranslate">
     <meta http-equiv="Content-Language" content="en">
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta id="ctx" name="ctx" th:value="${#request.getAttribute('ctx')}">
-    <meta id="prefix" name="prefix" th:value="${#request.getAttribute('prefix')}">
-    <meta id="treeJsonUrl" name="treeJsonUrl" th:value="${#request.getAttribute('treeJsonUrl')}">
-    <title th:if="${pageTitle} == null or ${pageTitle} == ''" th:text="${#request.getAttribute('siteTitle')}"></title>
-    <title th:if="${pageTitle} != null and ${pageTitle} != ''" th:text="${pageTitle} + ' - ' + ${#request.getAttribute('siteTitle')}"></title>
-    <link rel="icon" th:href="@{${#request.getAttribute('faviconUrl')}}" type="image/x-icon"/>
-    <link rel="stylesheet" th:href="@{${#request.getAttribute('cssUrl')}}"/>
+    <meta id="ctx" name="ctx" th:value="${ctx}">
+    <meta id="prefix" name="prefix" th:value="${prefix}">
+    <meta id="treeJsonUrl" name="treeJsonUrl" th:value="${treeJsonUrl}">
+    <title th:text="(${pageTitle} != null and ${pageTitle} != '' ? ${pageTitle} + ' - ' : '') + ${siteTitle}"></title>
+    <link rel="icon" th:href="@{${faviconUrl}}" type="image/x-icon"/>
+    <link rel="stylesheet" th:href="@{${cssUrl}}"/>
     <script>
         var autumn = {
             ctx: document.getElementById('ctx').getAttribute('value'),
@@ -20,7 +19,7 @@
             treeJsonUrl: document.getElementById('treeJsonUrl').getAttribute('value')
         };
     </script>
-    <script async th:src="@{${#request.getAttribute('jsUrl')}}"></script>
+    <script async th:src="@{${jsUrl}}"></script>
 </head>
 <body class="multiple_columns">
 <div class="container">
