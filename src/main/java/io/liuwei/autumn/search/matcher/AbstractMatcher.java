@@ -3,7 +3,7 @@ package io.liuwei.autumn.search.matcher;
 import io.liuwei.autumn.search.model.SearchingPage;
 import org.apache.commons.lang3.Validate;
 
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nonnull;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -17,7 +17,7 @@ public abstract class AbstractMatcher implements Matcher {
 
     private Set<SearchingPage> sourceData;
 
-    AbstractMatcher(@NotNull String expression) {
+    AbstractMatcher(@Nonnull String expression) {
         Validate.notNull(expression, "Matcher expression is null");
         this.expression = expression;
     }

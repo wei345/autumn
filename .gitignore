@@ -4,6 +4,7 @@
 *.rdb
 /target
 /logs
+LOG_FILE_IS_UNDEFINED
 application-prod.properties
 application-local.properties
 

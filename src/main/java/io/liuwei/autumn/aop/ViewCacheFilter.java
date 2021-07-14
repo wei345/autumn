@@ -2,19 +2,16 @@ package io.liuwei.autumn.aop;
 
 import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.model.RevisionContent;
+import io.liuwei.autumn.util.MediaTypeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.springframework.web.util.WebUtils;
 
@@ -27,7 +24,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.function.Supplier;
 
 /**
  * 缓存视图渲染结果，之后的请求如果 key 相等，直接返回缓存里的数据，不重复渲染，提高性能。
@@ -36,8 +32,8 @@ import java.util.function.Supplier;
  * @since 2021-07-14 14:55
  */
 @Component
-public class ViewRenderingCacheFilter extends OncePerRequestFilter {
-    private static final String CACHE_KEY_ATTRIBUTE = ViewRenderingCacheFilter.class.getName() + ".KEY";
+public class ViewCacheFilter extends OncePerRequestFilter {
+    private static final String CACHE_KEY_ATTRIBUTE = ViewCacheFilter.class.getName() + ".KEY";
 
     @Autowired
     @Qualifier("viewCache")
@@ -46,40 +42,7 @@ public class ViewRenderingCacheFilter extends OncePerRequestFilter {
     @Autowired
     private MediaRevisionResolver mediaRevisionResolver;
 
-    /**
-     * 缓存视图渲染结果，之后的请求如果 key 相等，直接返回缓存里的数据，不重复渲染，提高性能。
-     * <p>
-     * 要正确缓存页面，需要检查模版访问的所有属性，当 key 相等时，这些属性也要相等。
-     * 除了 key 覆盖的属性，还有一些 "全局" 属性，当它们发生变化时，要清除页面缓存。
-     *
-     * @param key        command 返回的 ModelAndView 的渲染结果会被放入缓存，关联这个 key
-     * @param viewCache  缓存渲染结果
-     * @param webRequest 用于检查和设置 ETag
-     * @param loader     Controller handler 里处理该请求的逻辑，期望响应 200，返回 ModelAndView 对象
-     * @return command 返回的 ModelAndView 对象，如果没有缓存；
-     * 或 null，如果有缓存且 ETag 相等；
-     * 或 ResponseEntity 对象，body 里为缓存的渲染结果，如果有缓存且 ETag 不相等。
-     */
-    public static Object cacheable(SimpleKey key, Cache viewCache, ServletWebRequest webRequest,
-                                   Supplier<ModelAndView> loader) {
-        RevisionContent rc = viewCache.get(key, RevisionContent.class);
-        if (rc == null) {
-            // Spring MVC 处理结束后，filter 会将渲染结果放入缓存
-            enableContentCaching(webRequest.getRequest(), key);
-            return loader.get();
-        } else {
-            if (webRequest.checkNotModified(rc.getEtag())) {
-                return null;
-            } else {
-                return ResponseEntity
-                        .status(HttpStatus.OK)
-                        .contentType(rc.getMediaType())
-                        .body(rc.getContent());
-            }
-        }
-    }
-
-    private static void enableContentCaching(ServletRequest request, SimpleKey cacheKey) {
+    public static void enableContentCaching(ServletRequest request, SimpleKey cacheKey) {
         request.setAttribute(CACHE_KEY_ATTRIBUTE, cacheKey);
     }
 
@@ -88,7 +51,8 @@ public class ViewRenderingCacheFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         HttpServletResponse responseToUse = response;
         if (!isAsyncDispatch(request) && !(response instanceof ContentCachingResponseWrapper)) {
             responseToUse = new ViewContentCachingResponseWrapper(response, request);
@@ -131,10 +95,11 @@ public class ViewRenderingCacheFilter extends OncePerRequestFilter {
         SimpleKey cacheKey = (SimpleKey) request.getAttribute(CACHE_KEY_ATTRIBUTE);
         return viewCache.get(cacheKey, () -> {
             byte[] bytes = response.getContentAsByteArray();
-            return mediaRevisionResolver.toRevisionContent(bytes, MediaType.TEXT_HTML);
+            return mediaRevisionResolver.toRevisionContent(bytes, MediaTypeUtil.TEXT_HTML_UTF8);
         });
     }
 
+    @SuppressWarnings("WeakerAccess")
     private static class ViewContentCachingResponseWrapper extends ContentCachingResponseWrapper {
 
         private final HttpServletRequest request;

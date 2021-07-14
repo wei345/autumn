@@ -1,18 +1,15 @@
 package io.liuwei.autumn.controller;
 
 import io.liuwei.autumn.annotation.CheckModified;
-import io.liuwei.autumn.aop.ViewRenderingCacheFilter;
+import io.liuwei.autumn.annotation.ViewCache;
 import io.liuwei.autumn.constant.Constants;
+import io.liuwei.autumn.model.ViewCacheLoader;
 import io.liuwei.autumn.service.StaticService;
 import io.liuwei.autumn.util.MediaTypeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cache.Cache;
-import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Map;
@@ -26,10 +23,6 @@ public class StaticController {
 
     @Autowired
     private StaticService staticService;
-
-    @Autowired
-    @Qualifier("viewCache")
-    private Cache viewCache;
 
     @GetMapping(value = Constants.JS_ALL_DOT_JS, produces = MediaTypeUtil.TEXT_JAVASCRIPT_UTF8_VALUE)
     @ResponseBody
@@ -45,15 +38,12 @@ public class StaticController {
         return staticService.getAllCss();
     }
 
+    @ViewCache
     @GetMapping(Constants.HELP)
-    public Object help(ServletWebRequest webRequest, Map<String, Object> model) {
-        return ViewRenderingCacheFilter.cacheable(
-                new SimpleKey("/help"),
-                viewCache,
-                webRequest,
-                () -> {
-                    model.put("contentHtml", staticService.getHelpContent());
-                    return new ModelAndView("content", model);
-                });
+    public Object help(Map<String, Object> model) {
+        return new ViewCacheLoader(() -> {
+            model.put("contentHtml", staticService.getHelpContent());
+            return "content";
+        });
     }
 }

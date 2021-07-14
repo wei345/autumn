@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.SimpleKey;
 
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.function.Function;
 
@@ -27,13 +27,13 @@ public abstract class AbstractPageHitMatcher extends AbstractMatcher {
     @Setter
     private Cache hitCache;
 
-    AbstractPageHitMatcher(@NotNull String expression) {
+    AbstractPageHitMatcher(@Nonnull String expression) {
         super(expression);
     }
 
-    private PageHit cacheableFindPageHit(@NotNull SearchingPage searchingPage,
-                                         @NotNull String expression,
-                                         @NotNull SimpleKey cacheKey,
+    private PageHit cacheableFindPageHit(@Nonnull SearchingPage searchingPage,
+                                         @Nonnull String expression,
+                                         @Nonnull SimpleKey cacheKey,
                                          Function<String, List<Hit>> find) {
         Validate.notNull(searchingPage);
         Validate.notNull(expression);

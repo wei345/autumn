@@ -3,7 +3,7 @@ package io.liuwei.autumn.search.model;
 import lombok.Getter;
 import lombok.ToString;
 
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
@@ -24,10 +24,10 @@ public class PageHit {
 
     public PageHit(boolean nameEqual,
                    boolean titleEqual,
-                   @NotNull List<Hit> nameHitList,
-                   @NotNull List<Hit> pathHitList,
-                   @NotNull List<Hit> titleHitList,
-                   @NotNull List<Hit> bodyHitList) {
+                   @Nonnull List<Hit> nameHitList,
+                   @Nonnull List<Hit> pathHitList,
+                   @Nonnull List<Hit> titleHitList,
+                   @Nonnull List<Hit> bodyHitList) {
         this.nameEqual = nameEqual;
         this.titleEqual = titleEqual;
         this.nameHitList = nameHitList;

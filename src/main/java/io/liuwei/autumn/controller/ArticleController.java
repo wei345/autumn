@@ -1,23 +1,17 @@
 package io.liuwei.autumn.controller;
 
 import io.liuwei.autumn.annotation.CheckModified;
-import io.liuwei.autumn.aop.ViewRenderingCacheFilter;
+import io.liuwei.autumn.annotation.ViewCache;
 import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.enums.AccessLevelEnum;
-import io.liuwei.autumn.model.Article;
-import io.liuwei.autumn.model.ArticleVO;
-import io.liuwei.autumn.model.Media;
-import io.liuwei.autumn.model.RevisionEtag;
+import io.liuwei.autumn.model.*;
 import io.liuwei.autumn.service.ArticleService;
 import io.liuwei.autumn.service.SearchService;
 import io.liuwei.autumn.util.WebUtil;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.Cache;
-import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +20,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.ServletWebRequest;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -55,18 +48,16 @@ public class ArticleController {
     @Autowired
     private MediaRevisionResolver mediaRevisionResolver;
 
-    @Autowired
-    @Qualifier("viewCache")
-    private Cache viewCache;
-
     @Value("${autumn.breadcrumb.enabled:false}")
     private boolean isBreadcrumbEnabled;
 
+    @ViewCache
     @GetMapping("")
-    public Object home(AccessLevelEnum accessLevel, ServletWebRequest webRequest, Map<String, Object> model) {
-        SimpleKey key = new SimpleKey("/home", accessLevel);
-        return ViewRenderingCacheFilter.cacheable(key, viewCache, webRequest, () -> {
+    public Object home(AccessLevelEnum accessLevel, Map<String, Object> model) {
+        return new ViewCacheLoader(() -> {
+
             List<Article> list = articleService.listArticles(accessLevel);
+
             list.sort(Comparator
                     .comparing(Article::getModified).reversed()
                     .thenComparing(Article::getPath));
@@ -76,8 +67,9 @@ public class ArticleController {
             }
 
             model.put("articles", list);
-            return new ModelAndView("home", model);
-        });
+            return "home";
+
+        }, accessLevel);
     }
 
     @GetMapping(value = Constants.TREE_DOT_JSON, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -87,15 +79,17 @@ public class ArticleController {
         return articleService.getTreeJson(accessLevel);
     }
 
+    @ViewCache
     @GetMapping("/sitemap")
-    public Object sitemap(AccessLevelEnum accessLevel, ServletWebRequest webRequest, Map<String, Object> model) {
-        SimpleKey key = new SimpleKey("/sitemap", accessLevel);
-        return ViewRenderingCacheFilter.cacheable(key, viewCache, webRequest, () -> {
-            String treeHtml = articleService.getTreeHtml(accessLevel);
-            model.put("treeHtml", treeHtml);
-            return new ModelAndView("sitemap", model);
-        });
+    public Object sitemap(AccessLevelEnum accessLevel, Map<String, Object> model) {
+        return new ViewCacheLoader(() -> {
 
+            String treeHtml = articleService.getTreeHtml(accessLevel);
+
+            model.put("treeHtml", treeHtml);
+            return "sitemap";
+
+        }, accessLevel);
     }
 
     // 带扩展名，访问文件
@@ -135,12 +129,12 @@ public class ArticleController {
     }
 
     // 不带扩展名，访问文章
+    @ViewCache
     @GetMapping(value = "/**")
     public Object getArticle(String[] h,
                              AccessLevelEnum accessLevel,
                              HttpServletRequest request,
                              HttpServletResponse response,
-                             ServletWebRequest webRequest,
                              Map<String, Object> model) throws IOException {
         String path = WebUtil.getInternalPath(request);
         Article article = articleService.getArticle(path);
@@ -150,8 +144,8 @@ public class ArticleController {
             return null;
         }
 
-        SimpleKey cacheKey = new SimpleKey(path, h, accessLevel);
-        return ViewRenderingCacheFilter.cacheable(cacheKey, viewCache, webRequest, () -> {
+        return new ViewCacheLoader(() -> {
+
             ArticleVO articleVO = articleService.toVO(article);
             highlight(h, articleVO);
 
@@ -160,8 +154,9 @@ public class ArticleController {
             }
             model.put("sitemapPath", path);
             model.put("article", articleVO);
-            return new ModelAndView("article", model);
-        });
+            return "article";
+
+        }, h, accessLevel);
     }
 
     private void highlight(String[] h, ArticleVO articleVO) {

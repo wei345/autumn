@@ -22,6 +22,10 @@ import java.util.Map;
 @Slf4j
 public class MediaTypeUtil {
 
+    public static final String TEXT_HTML_UTF8_VALUE = "text/html;charset=UTF-8";
+
+    public static final MediaType TEXT_HTML_UTF8 = MediaType.valueOf(TEXT_HTML_UTF8_VALUE);
+
     public static final String TEXT_JAVASCRIPT_UTF8_VALUE = "text/javascript;charset=UTF-8";
 
     public static final MediaType TEXT_JAVASCRIPT_UTF8 = MediaType.valueOf(TEXT_JAVASCRIPT_UTF8_VALUE);
