@@ -19,6 +19,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.unit.DataSize;
 
+import java.util.Set;
+
 /**
  * revision 放在 url 参数里，格式:
  * 1. {majorVersion}.{md5 前 7 位}
@@ -47,6 +49,19 @@ public class MediaRevisionResolver {
     @Autowired
     @Qualifier("mediaCache")
     private Cache mediaCache;
+
+    /**
+     * 如果设置了强 ETag，Tomcat 不压缩。
+     * 所以如果启用压缩，我们设置弱 ETag。
+     */
+    @Value("${server.compression.enabled}")
+    private boolean compressionEnabled;
+
+    /**
+     * 对压缩类型设置弱 ETag，对不压缩类型设置强 ETag。
+     */
+    @Value("${server.compression.mime-types}")
+    private Set<String> compressionTypes;
 
     @Value("${autumn.cache.maxMediaSize}")
     private DataSize cacheMaxMediaSize;
@@ -86,12 +101,18 @@ public class MediaRevisionResolver {
         return majorVersion + "." + timestamp;
     }
 
-    private String getEtag(String md5) {
-        return majorVersion + "." + md5;
+    private String getEtag(String md5, MediaType mediaType) {
+        String contentType = mediaType.getType() + "/" + mediaType.getSubtype();
+        boolean isWeak = compressionEnabled && compressionTypes.contains(contentType);
+        return etag(majorVersion + "." + md5, isWeak);
     }
 
     private String getEtag(long timestamp) {
-        return "W/\"" + majorVersion + "." + timestamp + "\"";
+        return etag(majorVersion + "." + timestamp, true);
+    }
+
+    private String etag(String value, boolean isWeak) {
+        return isWeak ? "W/\"" + value + "\"" : value;
     }
 
     public String toRevisionUrl(String path) {
@@ -125,7 +146,7 @@ public class MediaRevisionResolver {
         String md5 = DigestUtils.md5DigestAsHex(bytes);
         RevisionContent rc = new RevisionContent(bytes, mediaType);
         rc.setMd5(md5);
-        rc.setEtag(getEtag(md5));
+        rc.setEtag(getEtag(md5, mediaType));
         rc.setRevision(getRevision(md5));
         rc.setTimestamp(System.currentTimeMillis());
         return rc;

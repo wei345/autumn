@@ -3,13 +3,14 @@ package io.liuwei.autumn.aop;
 import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.model.RevisionContent;
 import io.liuwei.autumn.util.MediaTypeUtil;
+import io.liuwei.autumn.util.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
@@ -39,6 +40,8 @@ public class ViewCacheFilter extends OncePerRequestFilter {
     @Autowired
     private MediaRevisionResolver mediaRevisionResolver;
 
+    private final AntPathMatcher antPathMatcher = new AntPathMatcher();
+
     public static void enableContentCaching(ServletRequest request, SimpleKey cacheKey) {
         request.setAttribute(CACHE_KEY_ATTRIBUTE, cacheKey);
     }
@@ -50,9 +53,16 @@ public class ViewCacheFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        if (!HttpMethod.GET.matches(request.getMethod()) || isAsyncDispatch(request)) {
+        String path = WebUtil.getInternalPath(request);
+
+        if (!HttpMethod.GET.matches(request.getMethod())
+                || isAsyncDispatch(request)
+                || antPathMatcher.match("/**/*.*", path)) {
+
             filterChain.doFilter(request, response);
+
         } else {
+
             HttpServletResponse responseToUse = response;
             if (!(response instanceof ContentCachingResponseWrapper)) {
                 responseToUse = new ViewContentCachingResponseWrapper(response, request);
@@ -74,10 +84,11 @@ public class ViewCacheFilter extends OncePerRequestFilter {
             RevisionContent rc = setCache(request, responseWrapper);
 
             HttpServletResponse rawResponse = (HttpServletResponse) responseWrapper.getResponse();
-            if (!rawResponse.isCommitted()
-                    && new ServletWebRequest(request, response).checkNotModified(rc.getEtag())) {
+            if (!rawResponse.isCommitted() && WebUtil.checkNotModified(rc.getEtag(), request)) {
                 rawResponse.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+                WebUtil.setEtag(rc.getEtag(), rawResponse);
             } else {
+                WebUtil.setEtag(rc.getEtag(), responseWrapper);
                 responseWrapper.copyBodyToResponse();
             }
 

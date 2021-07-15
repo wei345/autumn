@@ -4,15 +4,17 @@ import com.vip.vjtools.vjkit.text.EscapeUtil;
 import io.liuwei.autumn.constant.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
-import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.lang.Nullable;
 import org.springframework.web.context.request.ServletWebRequest;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.util.CookieGenerator;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Enumeration;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author liuwei
@@ -44,25 +46,84 @@ public class WebUtil {
                 .substring(request.getContextPath().length());
     }
 
+    // ---- ETag ----
+
     /**
      * 除了设置 etag 之外，还会检查请求的 {@link Constants#REQUEST_PARAMETER_REVISION} 参数，
      * 如果跟 etag 匹配，会设置缓存时间，使用浏览器在缓存期间不再发送请求。
      */
-    public static boolean checkNotModified(String revision, String etag, WebRequest webRequest) {
-        if (webRequest instanceof ServletWebRequest) {
-            HttpServletRequest request = ((ServletRequestAttributes) webRequest).getRequest();
-            HttpServletResponse response = ((ServletRequestAttributes) webRequest).getResponse();
-            String reqRevision = request.getParameter(Constants.REQUEST_PARAMETER_REVISION);
-            if (revision.equals(reqRevision)) {
-                // Http 1.0 header, set a fix expires date.
-                //noinspection ConstantConditions
-                response.setDateHeader(HttpHeaders.EXPIRES, System.currentTimeMillis() + (DEFAULT_EXPIRES_SECONDS * 1000));
-                // Http 1.1 header, set a time after now.
-                response.setHeader(HttpHeaders.CACHE_CONTROL, "private, max-age=" + DEFAULT_EXPIRES_SECONDS);
+    public static boolean checkNotModified(String revision, String etag,
+                                           HttpServletRequest request, HttpServletResponse response) {
+        String reqRevision = request.getParameter(Constants.REQUEST_PARAMETER_REVISION);
+        if (revision.equals(reqRevision)) {
+            // Http 1.0 header, set a fix expires date.
+            response.setDateHeader(HttpHeaders.EXPIRES, System.currentTimeMillis() + (DEFAULT_EXPIRES_SECONDS * 1000));
+            // Http 1.1 header, set a time after now.
+            response.setHeader(HttpHeaders.CACHE_CONTROL, "private, max-age=" + DEFAULT_EXPIRES_SECONDS);
+        }
+        return checkNotModified(etag, request);
+    }
+
+    /**
+     * Pattern matching ETag multiple field values in headers such as "If-Match", "If-None-Match".
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc7232#section-2.3">Section 2.3 of RFC 7232</a>
+     */
+    private static final Pattern ETAG_HEADER_VALUE_PATTERN = Pattern.compile("\\*|\\s*((W\\/)?(\"[^\"]*\"))\\s*,?");
+
+    /**
+     * 不同于 {@link ServletWebRequest#checkNotModified(String)}，
+     * 此方法只检查 ETag 是否匹配，不设置 ETag，不设置 304。
+     */
+    public static boolean checkNotModified(@Nullable String etag, HttpServletRequest request) {
+        if (!org.springframework.util.StringUtils.hasLength(etag)) {
+            return false;
+        }
+
+        Enumeration<String> ifNoneMatch;
+        try {
+            ifNoneMatch = request.getHeaders(HttpHeaders.IF_NONE_MATCH);
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
+        if (!ifNoneMatch.hasMoreElements()) {
+            return false;
+        }
+
+        // We will perform this validation...
+        etag = padEtagIfNecessary(etag);
+        if (etag.startsWith("W/")) {
+            etag = etag.substring(2);
+        }
+        while (ifNoneMatch.hasMoreElements()) {
+            String clientETags = ifNoneMatch.nextElement();
+            Matcher etagMatcher = ETAG_HEADER_VALUE_PATTERN.matcher(clientETags);
+            // Compare weak/strong ETags as per https://tools.ietf.org/html/rfc7232#section-2.3
+            while (etagMatcher.find()) {
+                if (org.springframework.util.StringUtils.hasLength(etagMatcher.group()) && etag.equals(etagMatcher.group(3))) {
+                    return true;
+                }
             }
         }
-        return webRequest.checkNotModified(etag);
+
+        return false;
     }
+
+    private static String padEtagIfNecessary(String etag) {
+        if (!org.springframework.util.StringUtils.hasLength(etag)) {
+            return etag;
+        }
+        if ((etag.startsWith("\"") || etag.startsWith("W/\"")) && etag.endsWith("\"")) {
+            return etag;
+        }
+        return "\"" + etag + "\"";
+    }
+
+    public static void setEtag(String etag, HttpServletResponse response) {
+        response.setHeader(HttpHeaders.ETAG, padEtagIfNecessary(etag));
+    }
+
+    // ---- Cookie ----
 
     @SuppressWarnings("SameParameterValue")
     public static Cookie getCookie(String name, HttpServletRequest request) {

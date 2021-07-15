@@ -4,7 +4,6 @@ import io.liuwei.autumn.annotation.CheckModified;
 import io.liuwei.autumn.annotation.ViewCache;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.service.StaticService;
-import io.liuwei.autumn.util.MediaTypeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,14 +21,14 @@ public class StaticController {
     @Autowired
     private StaticService staticService;
 
-    @GetMapping(value = Constants.JS_ALL_DOT_JS, produces = MediaTypeUtil.TEXT_JAVASCRIPT_UTF8_VALUE)
+    @GetMapping(Constants.JS_ALL_DOT_JS)
     @ResponseBody
     @CheckModified
     public Object getAllJs() {
         return staticService.getAllJs();
     }
 
-    @GetMapping(value = Constants.CSS_ALL_DOT_CSS, produces = MediaTypeUtil.TEXT_CSS_UTF8_VALUE)
+    @GetMapping(Constants.CSS_ALL_DOT_CSS)
     @ResponseBody
     @CheckModified
     public Object getAllCss() {

@@ -16,13 +16,11 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.context.request.ServletWebRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -71,7 +69,7 @@ public class ArticleController {
         return "home";
     }
 
-    @GetMapping(value = Constants.TREE_DOT_JSON, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(Constants.TREE_DOT_JSON)
     @ResponseBody
     @CheckModified
     public Object getTreeJson(AccessLevelEnum accessLevel) {
@@ -89,9 +87,9 @@ public class ArticleController {
     // 带扩展名，访问文件
     @GetMapping(value = "/**/*.*")
     @ResponseBody
-    public ResponseEntity<byte[]> getMedia(AccessLevelEnum accessLevel, HttpServletResponse response,
-                                           ServletWebRequest webRequest) throws IOException {
-        String path = WebUtil.getInternalPath(webRequest.getRequest());
+    public ResponseEntity<byte[]> getMedia(AccessLevelEnum accessLevel, HttpServletRequest request,
+                                           HttpServletResponse response) throws IOException {
+        String path = WebUtil.getInternalPath(request);
         Media media = articleService.getMedia(path);
         RevisionEtag re;
 
@@ -102,16 +100,21 @@ public class ArticleController {
             return null;
         }
 
-        if (WebUtil.checkNotModified(re.getRevision(), re.getEtag(), webRequest)) {
-            return null;
+        if (WebUtil.checkNotModified(re.getRevision(), re.getEtag(), request, response)) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_MODIFIED)
+                    .eTag(re.getEtag())
+                    .build();
         }
 
         if (re.getRevisionContent() != null) {
             return ResponseEntity
                     .status(HttpStatus.OK)
+                    .eTag(re.getEtag())
                     .contentType(re.getRevisionContent().getMediaType())
                     .body(re.getRevisionContent().getContent());
         } else {
+            WebUtil.setEtag(re.getEtag(), response);
             response.setContentType(media.getMediaType().toString());
             OutputStream out = response.getOutputStream();
             try (FileInputStream in = new FileInputStream(media.getFile())) {

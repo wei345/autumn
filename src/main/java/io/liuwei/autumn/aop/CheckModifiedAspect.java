@@ -6,10 +6,11 @@ import io.liuwei.autumn.util.WebUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.web.context.request.ServletWebRequest;
 
 /**
  * 检查 ETag，如果没有变化则返回 304。
@@ -28,11 +29,17 @@ public class CheckModifiedAspect {
         if (result instanceof RevisionContent) {
             RevisionContent rc = (RevisionContent) result;
             ServletRequestAttributes sra = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes());
-            ServletWebRequest webRequest = new ServletWebRequest(sra.getRequest(), sra.getResponse());
-            if (WebUtil.checkNotModified(rc.getRevision(), rc.getEtag(), webRequest)) {
-                return null;
+            if (WebUtil.checkNotModified(rc.getRevision(), rc.getEtag(), sra.getRequest(), sra.getResponse())) {
+                return ResponseEntity
+                        .status(HttpStatus.NOT_MODIFIED)
+                        .eTag(rc.getEtag())
+                        .build();
             }
-            return rc.getContent();
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .eTag(rc.getEtag())
+                    .contentType(rc.getMediaType())
+                    .body(rc.getContent());
         }
 
         if (result == null) {

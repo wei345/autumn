@@ -20,7 +20,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
@@ -97,13 +96,15 @@ public class ViewCacheAspect {
             }
             return result;
         } else {
-            if (new ServletWebRequest(request, response).checkNotModified(rc.getEtag())) {
+            if (WebUtil.checkNotModified(rc.getEtag(), request)) {
                 return ResponseEntity
                         .status(HttpStatus.NOT_MODIFIED)
+                        .eTag(rc.getEtag())
                         .build();
             } else {
                 return ResponseEntity
                         .status(HttpStatus.OK)
+                        .eTag(rc.getEtag())
                         .contentType(rc.getMediaType())
                         .body(rc.getContent());
             }
