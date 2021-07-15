@@ -105,7 +105,7 @@ public class WildcardQuoteMatcher extends AbstractPageHitMatcher {
 
     @Override
     public SimpleKey getPageHitCacheKey(SearchingPage searchingPage) {
-        return new SimpleKey(searchingPage.getArticle().getSnapshotId(), getClass(), getExpression());
+        return new SimpleKey(searchingPage.getArticle().getSnapshotId(), getClass().getName(), getExpression());
     }
 
     public static class Parser extends AbstractTokenParser {

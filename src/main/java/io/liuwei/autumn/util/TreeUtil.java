@@ -78,48 +78,48 @@ public class TreeUtil {
         }
     }
 
-    public static void buildTreeHtml(List<TreeNode> nodes, String contentPath, StringBuilder stringBuilder) {
+    public static void buildTreeHtml(List<TreeNode> nodes, String contentPath, StringBuilder builder) {
         if (CollectionUtils.isEmpty(nodes)) {
             return;
         }
 
-        stringBuilder.append("<ul>");
+        builder.append("<ul>");
 
         for (TreeNode node : nodes) {
             // begin node
-            stringBuilder.append("<li class=\"tree_node");
+            builder.append("<li class=\"tree_node");
             if (!CollectionUtils.isEmpty(node.getChildren())) {
-                stringBuilder.append(" tree_node_dir tree_node_unfolded");
+                builder.append(" tree_node_dir tree_node_unfolded");
             } else {
-                stringBuilder.append(" tree_node_leaf");
+                builder.append(" tree_node_leaf");
             }
-            stringBuilder.append("\">");
+            builder.append("\">");
 
             // begin header
-            stringBuilder.append("<div class=\"tree_node_header\">");
+            builder.append("<div class=\"tree_node_header\">");
 
             // icon
-            stringBuilder.append("<span class=\"tree_node_header_icon no_selection\"></span>");
+            builder.append("<span class=\"tree_node_header_icon no_selection\"></span>");
 
             // title
             if (!CollectionUtils.isEmpty(node.getChildren())) {
-                stringBuilder.append("<span class=\"tree_node_header_name no_selection\">")
+                builder.append("<span class=\"tree_node_header_name no_selection\">")
                         .append(node.getName())
                         .append("</span>");
             } else {
-                stringBuilder.append("<a href=\"").append(contentPath).append(node.getPath()).append("\">")
+                builder.append("<a href=\"").append(contentPath).append(node.getPath()).append("\">")
                         .append(node.getName())
                         .append("</a>");
             }
 
             // end header
-            stringBuilder.append("</div>");
+            builder.append("</div>");
 
-            buildTreeHtml(node.getChildren(), contentPath, stringBuilder);
+            buildTreeHtml(node.getChildren(), contentPath, builder);
 
             // end node
-            stringBuilder.append("</li>");
+            builder.append("</li>");
         }
-        stringBuilder.append("</ul>");
+        builder.append("</ul>");
     }
 }

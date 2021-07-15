@@ -9,11 +9,9 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
-import org.springframework.web.util.WebUtils;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -26,7 +24,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 
 /**
- * 缓存视图渲染结果，之后的请求如果 key 相等，直接返回缓存里的数据，不重复渲染，提高性能。
+ * 缓存视图渲染结果。
  *
  * @author liuwei602099
  * @since 2021-07-14 14:55
@@ -53,49 +51,46 @@ public class ViewCacheFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        HttpServletResponse responseToUse = response;
-        if (!isAsyncDispatch(request) && !(response instanceof ContentCachingResponseWrapper)) {
-            responseToUse = new ViewContentCachingResponseWrapper(response, request);
-        }
+        if (!HttpMethod.GET.matches(request.getMethod()) || isAsyncDispatch(request)) {
+            filterChain.doFilter(request, response);
+        } else {
+            HttpServletResponse responseToUse = response;
+            if (!(response instanceof ContentCachingResponseWrapper)) {
+                responseToUse = new ViewContentCachingResponseWrapper(response, request);
+            }
 
-        filterChain.doFilter(request, responseToUse);
+            filterChain.doFilter(request, responseToUse);
 
-        if (!isAsyncStarted(request) && isContentCachingEnabled(request)) {
-            updateResponse(request, responseToUse);
+            if (isContentCachingEnabled(request)) {
+                handleContentCache(request, responseToUse);
+            }
         }
     }
 
-    private void updateResponse(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        ContentCachingResponseWrapper responseWrapper =
-                WebUtils.getNativeResponse(response, ContentCachingResponseWrapper.class);
-        Assert.notNull(responseWrapper, "ContentCachingResponseWrapper not found");
-        HttpServletResponse rawResponse = (HttpServletResponse) responseWrapper.getResponse();
-        int statusCode = responseWrapper.getStatusCode();
+    private void handleContentCache(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        ContentCachingResponseWrapper responseWrapper = (ContentCachingResponseWrapper) response;
 
-        if (isEligibleForCache(request, responseWrapper, statusCode)) {
+        int statusCode = responseWrapper.getStatus();
+        if (statusCode >= 200 && statusCode < 300) {
             RevisionContent rc = setCache(request, responseWrapper);
+
+            HttpServletResponse rawResponse = (HttpServletResponse) responseWrapper.getResponse();
             if (!rawResponse.isCommitted()
                     && new ServletWebRequest(request, response).checkNotModified(rc.getEtag())) {
                 rawResponse.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
             } else {
                 responseWrapper.copyBodyToResponse();
             }
+
         } else {
             responseWrapper.copyBodyToResponse();
         }
     }
 
-    protected boolean isEligibleForCache(HttpServletRequest request, HttpServletResponse response,
-                                         int responseStatusCode) {
-        String method = request.getMethod();
-        return responseStatusCode >= 200 && responseStatusCode < 300 && HttpMethod.GET.matches(method);
-    }
-
     private RevisionContent setCache(HttpServletRequest request, ContentCachingResponseWrapper response) {
-        SimpleKey cacheKey = (SimpleKey) request.getAttribute(CACHE_KEY_ATTRIBUTE);
-        return viewCache.get(cacheKey, () -> {
-            byte[] bytes = response.getContentAsByteArray();
-            return mediaRevisionResolver.toRevisionContent(bytes, MediaTypeUtil.TEXT_HTML_UTF8);
+        return viewCache.get(request.getAttribute(CACHE_KEY_ATTRIBUTE), () -> {
+            byte[] content = response.getContentAsByteArray();
+            return mediaRevisionResolver.toRevisionContent(content, MediaTypeUtil.TEXT_HTML_UTF8);
         });
     }
 
@@ -117,15 +112,6 @@ public class ViewCacheFilter extends OncePerRequestFilter {
                 super.setStatus(sc);
             } else {
                 response.setStatus(sc);
-            }
-        }
-
-        @Override
-        public void setStatus(int sc, String sm) {
-            if (useWrapperResponse()) {
-                super.setStatus(sc, sm);
-            } else {
-                response.setStatus(sc, sm);
             }
         }
 
@@ -225,15 +211,6 @@ public class ViewCacheFilter extends OncePerRequestFilter {
                 super.reset();
             } else {
                 response.reset();
-            }
-        }
-
-        @Override
-        public int getStatusCode() {
-            if (useWrapperResponse()) {
-                return super.getStatusCode();
-            } else {
-                return response.getStatus();
             }
         }
 

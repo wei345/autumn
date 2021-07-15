@@ -5,7 +5,10 @@ import io.liuwei.autumn.annotation.ViewCache;
 import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.enums.AccessLevelEnum;
-import io.liuwei.autumn.model.*;
+import io.liuwei.autumn.model.Article;
+import io.liuwei.autumn.model.ArticleVO;
+import io.liuwei.autumn.model.Media;
+import io.liuwei.autumn.model.RevisionEtag;
 import io.liuwei.autumn.service.ArticleService;
 import io.liuwei.autumn.service.SearchService;
 import io.liuwei.autumn.util.WebUtil;
@@ -54,25 +57,21 @@ public class ArticleController {
     @ViewCache
     @GetMapping("")
     public Object home(AccessLevelEnum accessLevel, Map<String, Object> model) {
-        return new ViewCacheLoader(() -> {
+        List<Article> list = articleService.listArticles(accessLevel);
 
-            List<Article> list = articleService.listArticles(accessLevel);
+        list.sort(Comparator
+                .comparing(Article::getModified).reversed()
+                .thenComparing(Article::getPath));
 
-            list.sort(Comparator
-                    .comparing(Article::getModified).reversed()
-                    .thenComparing(Article::getPath));
+        if (list.size() > 20) {
+            list = list.subList(0, 20);
+        }
 
-            if (list.size() > 20) {
-                list = list.subList(0, 20);
-            }
-
-            model.put("articles", list);
-            return "home";
-
-        }, accessLevel);
+        model.put("articles", list);
+        return "home";
     }
 
-    @GetMapping(value = Constants.TREE_DOT_JSON, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = Constants.TREE_DOT_JSON, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     @CheckModified
     public Object getTreeJson(AccessLevelEnum accessLevel) {
@@ -82,14 +81,9 @@ public class ArticleController {
     @ViewCache
     @GetMapping("/sitemap")
     public Object sitemap(AccessLevelEnum accessLevel, Map<String, Object> model) {
-        return new ViewCacheLoader(() -> {
-
-            String treeHtml = articleService.getTreeHtml(accessLevel);
-
-            model.put("treeHtml", treeHtml);
-            return "sitemap";
-
-        }, accessLevel);
+        String treeHtml = articleService.getTreeHtml(accessLevel);
+        model.put("treeHtml", treeHtml);
+        return "sitemap";
     }
 
     // 带扩展名，访问文件
@@ -144,30 +138,24 @@ public class ArticleController {
             return null;
         }
 
-        return new ViewCacheLoader(() -> {
+        ArticleVO articleVO = articleService.toVO(article);
+        highlight(h, articleVO);
 
-            ArticleVO articleVO = articleService.toVO(article);
-            highlight(h, articleVO);
-
-            if (isBreadcrumbEnabled) {
-                model.put("breadcrumb", articleService.getBreadcrumbLinks(article, accessLevel));
-            }
-            model.put("sitemapPath", path);
-            model.put("article", articleVO);
-            return "article";
-
-        }, h, accessLevel);
+        if (isBreadcrumbEnabled) {
+            model.put("breadcrumb", articleService.getBreadcrumbLinks(article, accessLevel));
+        }
+        model.put("sitemapPath", path);
+        model.put("article", articleVO);
+        return "article";
     }
 
     private void highlight(String[] h, ArticleVO articleVO) {
         if (h != null && h.length > 0) {
-            String[] strings = h;
+            List<String> searchStrList = Arrays.asList(h);
             // 太多高亮词会影响性能，正常不会太多
-            if (strings.length > 10) {
-                strings = new String[10];
-                System.arraycopy(h, 0, strings, 0, strings.length);
+            if (searchStrList.size() > 10) {
+                searchStrList = searchStrList.subList(0, 10);
             }
-            List<String> searchStrList = Arrays.asList(strings);
             articleVO.setTocHtml(searchService.highlightSearchStr(articleVO.getTocHtml(), searchStrList));
             articleVO.setContentHtml(searchService.highlightSearchStr(articleVO.getContentHtml(), searchStrList));
             articleVO.setTitleHtml(searchService.highlightSearchStr(articleVO.getTitleHtml(), searchStrList));

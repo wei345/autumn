@@ -43,7 +43,7 @@ public class UserService {
     private static final String LOGOUT_COOKIE_NAME = "logout";
     private static final String SEPARATOR = "|";
     private static final User NULL_USER = new User();
-    private static final String REQUEST_ATTRIBUTE_CURRENT_USER = UserService.class.getName() + ".current_user";
+    private static final String REQUEST_ATTRIBUTE_CURRENT_USER = UserService.class.getName() + ".CURRENT_USER";
     private final int rememberMeSeconds = 3600 * 24 * 365;
     private final String rememberMeCookieName;
     private byte[] aesKey;

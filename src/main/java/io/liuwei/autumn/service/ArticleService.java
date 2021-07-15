@@ -63,15 +63,15 @@ public class ArticleService {
     public RevisionContent getTreeJson(AccessLevelEnum accessLevel) {
         TreeNode root = getTree(accessLevel);
         byte[] bytes = jsonMapper.toJson(root).getBytes(StandardCharsets.UTF_8);
-        return mediaRevisionResolver.toRevisionContent(bytes, MediaType.APPLICATION_JSON_UTF8);
+        return mediaRevisionResolver.toRevisionContent(bytes, MediaType.APPLICATION_JSON);
     }
 
     @Cacheable(CacheConstants.ARTICLE_TREE_HTML)
     public String getTreeHtml(AccessLevelEnum accessLevel) {
         TreeNode root = getTree(accessLevel);
-        StringBuilder stringBuilder = new StringBuilder(10240);
-        TreeUtil.buildTreeHtml(root.getChildren(), contextPath, stringBuilder);
-        return stringBuilder.toString();
+        StringBuilder builder = new StringBuilder(10240);
+        TreeUtil.buildTreeHtml(root.getChildren(), contextPath, builder);
+        return builder.toString();
     }
 
     private TreeNode getTree(AccessLevelEnum accessLevel) {
