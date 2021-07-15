@@ -20,7 +20,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 
 /**
@@ -104,15 +103,6 @@ public class ViewCacheFilter extends OncePerRequestFilter {
             super(response);
             this.request = request;
             this.response = response;
-        }
-
-        @Override
-        public void setStatus(int sc) {
-            if (useWrapperResponse()) {
-                super.setStatus(sc);
-            } else {
-                response.setStatus(sc);
-            }
         }
 
         @Override
@@ -211,51 +201,6 @@ public class ViewCacheFilter extends OncePerRequestFilter {
                 super.reset();
             } else {
                 response.reset();
-            }
-        }
-
-        @Override
-        public byte[] getContentAsByteArray() {
-            if (useWrapperResponse()) {
-                return super.getContentAsByteArray();
-            } else {
-                throw new IllegalStateException();
-            }
-        }
-
-        @Override
-        public InputStream getContentInputStream() {
-            if (useWrapperResponse()) {
-                return super.getContentInputStream();
-            } else {
-                throw new IllegalStateException();
-            }
-        }
-
-        @Override
-        public int getContentSize() {
-            if (useWrapperResponse()) {
-                return super.getContentSize();
-            } else {
-                throw new IllegalStateException();
-            }
-        }
-
-        @Override
-        public void copyBodyToResponse() throws IOException {
-            if (useWrapperResponse()) {
-                super.copyBodyToResponse();
-            } else {
-                throw new IllegalStateException();
-            }
-        }
-
-        @Override
-        protected void copyBodyToResponse(boolean complete) throws IOException {
-            if (useWrapperResponse()) {
-                super.copyBodyToResponse(complete);
-            } else {
-                throw new IllegalStateException();
             }
         }
 

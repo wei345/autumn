@@ -5,7 +5,6 @@ import com.google.common.io.BaseEncoding;
 import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import io.liuwei.autumn.aop.SettingModelAttributeInterceptor;
-import io.liuwei.autumn.component.CacheKeyGenerator;
 import io.liuwei.autumn.constant.CacheConstants;
 import io.liuwei.autumn.service.UserService;
 import org.asciidoctor.Asciidoctor;
@@ -65,7 +64,7 @@ public class AppConfig {
     }
 
     @Bean
-    public SettingModelAttributeInterceptor settingGlobalAttributeInterceptor() {
+    public SettingModelAttributeInterceptor settingModelAttributeInterceptor() {
         return new SettingModelAttributeInterceptor(prefix);
     }
 
@@ -91,11 +90,6 @@ public class AppConfig {
         return Caffeine
                 .newBuilder()
                 .maximumSize(10_000);
-    }
-
-    @Bean
-    public CacheKeyGenerator cacheKeyGenerator() {
-        return new CacheKeyGenerator();
     }
 
     @Bean
