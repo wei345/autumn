@@ -50,7 +50,7 @@ public class StaticService {
     @Value("${autumn.google-analytics-id}")
     private String googleAnalyticsId;
 
-    @Value("${autumn.compressor.javascript.enabled}")
+    @Value("${autumn.static.js-compression-enabled}")
     private boolean jsCompressEnabled;
 
     @Autowired

@@ -10,9 +10,9 @@ var logoutCookieName = 'logout';
 var isMobi = /Mobi/.test(navigator.userAgent);
 var alwaysUnfoldRoot = false;
 var multipleSelectionEnabled = false;
-var container = au.el('.container');
-var main = au.el('.main');
-var content = au.el('.content');
+var container;
+var main;
+var content;
 var treeReady = false;
 var treeFirstShow = true;
 var isFixed = false;
@@ -22,6 +22,7 @@ var toggleSidebar = au.emptyFn;
 var toggleToc = au.emptyFn;
 detectClient();
 window.addEventListener('load', function () {
+    initDomVars();
     bindFixedToggle();
     bindSidebarToggle();
     bindTocToggle();
@@ -35,14 +36,32 @@ window.addEventListener('load', function () {
     // bindSitemapToggle();
     anchorLink();
     checkLogout();
-    document.querySelector('html').classList.remove('js-not-ready');
+    visiblePage();
 });
 
 function detectClient() {
-    var html = document.querySelector('html');
+    var html = au.el('html');
     html.classList.add('js');
     html.classList.add('js-not-ready');
     html.classList.add(isMobi ? 'mobi' : 'desktop');
+}
+
+function initDomVars() {
+    container = au.el('.container');
+    main = au.el('.main');
+    content = au.el('.content');
+}
+
+function visiblePage() {
+    var html = au.el('html');
+    html.classList.remove('js-not-ready');
+    if (autumn.cssLoaded) {
+        html.style.removeProperty('visibility');
+    } else {
+        autumn.onCssLoaded = function () {
+            html.style.removeProperty('visibility');
+        };
+    }
 }
 
 function bindSidebarToggle() {
