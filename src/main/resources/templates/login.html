@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="~{basic_layout}" th:with="pageTitle='Login'">
+      layout:decorate="~{basic_layout}" th:with="pageTitle='Login'">
 <body>
 <div layout:fragment="basic_layout_fragment" class="login_box">
     <p th:if="${message} != null and ${message} != ''" th:text="${message}" class="error_message"></p>

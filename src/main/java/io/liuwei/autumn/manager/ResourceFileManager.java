@@ -1,7 +1,7 @@
 package io.liuwei.autumn.manager;
 
 import com.google.common.collect.Maps;
-import io.liuwei.autumn.constant.CacheConstants;
+import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.model.ResourceFile;
 import io.liuwei.autumn.util.IOUtil;
@@ -78,7 +78,7 @@ public class ResourceFileManager {
         }
     }
 
-    @CacheEvict(value = CacheConstants.STATIC, allEntries = true)
+    @CacheEvict(value = CacheNames.STATIC, allEntries = true)
     public void clearStaticCache() {
         log.info("clearStaticCache");
     }

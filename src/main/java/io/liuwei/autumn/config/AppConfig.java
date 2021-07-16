@@ -5,7 +5,7 @@ import com.google.common.io.BaseEncoding;
 import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import io.liuwei.autumn.aop.SettingModelAttributeInterceptor;
-import io.liuwei.autumn.constant.CacheConstants;
+import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.service.UserService;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.jruby.internal.JRubyAsciidoctor;
@@ -95,7 +95,7 @@ public class AppConfig {
     @Bean
     public Cache hitCache() {
         return new CaffeineCache(
-                CacheConstants.ARTICLE_HIT,
+                CacheNames.ARTICLE_HIT,
                 Caffeine
                         .newBuilder()
                         .maximumSize(50_000) // 约每篇文章缓存 100 个词的匹配结果
@@ -105,7 +105,7 @@ public class AppConfig {
     @Bean
     public Cache mediaCache() {
         return new CaffeineCache(
-                CacheConstants.MEDIA_REVISION_CONTENT,
+                CacheNames.MEDIA_CONTENT,
                 Caffeine
                         .newBuilder()
                         .maximumSize(1000)
@@ -115,7 +115,7 @@ public class AppConfig {
     @Bean
     public Cache viewCache() {
         return new CaffeineCache(
-                CacheConstants.VIEW_HTML,
+                CacheNames.VIEW_HTML,
                 Caffeine
                         .newBuilder()
                         .maximumSize(10_000)

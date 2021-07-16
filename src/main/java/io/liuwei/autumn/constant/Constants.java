@@ -18,4 +18,6 @@ public class Constants {
 
     public static final String TREE_DOT_JSON = "/tree.json";
     public static final String FAVICON_DOT_ICO = "/favicon.ico";
+
+    public static final String HOMEPAGE_TITLE = "Home";
 }

@@ -1,7 +1,7 @@
 package io.liuwei.autumn.manager;
 
 import com.google.common.collect.Maps;
-import io.liuwei.autumn.constant.CacheConstants;
+import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.dao.DataFileDao;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.enums.SourceFormatEnum;
@@ -70,9 +70,9 @@ public class ArticleManager {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = CacheConstants.ARTICLE_LIST, allEntries = true),
-            @CacheEvict(value = CacheConstants.ARTICLE_TREE_JSON, allEntries = true),
-            @CacheEvict(value = CacheConstants.ARTICLE_TREE_HTML, allEntries = true),
+            @CacheEvict(value = CacheNames.ARTICLE_LIST, allEntries = true),
+            @CacheEvict(value = CacheNames.ARTICLE_TREE_JSON, allEntries = true),
+            @CacheEvict(value = CacheNames.ARTICLE_TREE_HTML, allEntries = true),
     })
     public synchronized DataInfo reload() {
         long startTime = System.currentTimeMillis();
@@ -110,7 +110,7 @@ public class ArticleManager {
         return articleMap.get(path);
     }
 
-    @Cacheable(value = CacheConstants.ARTICLE_LIST)
+    @Cacheable(value = CacheNames.ARTICLE_LIST)
     public List<Article> listArticles(AccessLevelEnum accessLevel) {
         if (accessLevel == AccessLevelEnum.OWNER) {
             return new ArrayList<>(articleMap.values());

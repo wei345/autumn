@@ -1,6 +1,7 @@
 package io.liuwei.autumn.util;
 
 import com.google.common.collect.Maps;
+import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.TreeNode;
 import org.springframework.util.CollectionUtils;
@@ -21,7 +22,7 @@ public class TreeUtil {
             return null;
         }
 
-        TreeNode root = new TreeNode("/", "Home");
+        TreeNode root = new TreeNode("/", Constants.HOMEPAGE_TITLE);
         if (articleList.size() == 0) {
             return root;
         }

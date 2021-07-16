@@ -1,6 +1,6 @@
 package io.liuwei.autumn.util;
 
-import com.vip.vjtools.vjkit.io.IOUtil;
+import com.google.common.io.ByteStreams;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -11,7 +11,7 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.concurrent.*;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.charset.StandardCharsets.*;
 
 /**
  * @author liuwei
@@ -66,7 +66,7 @@ public class CommandExecutor {
             process = Runtime.getRuntime().exec(command);
             if (input != null && input.length() > 0) {
                 OutputStream procStdin = process.getOutputStream();
-                IOUtil.copy(new ByteArrayInputStream(input.getBytes(UTF_8)), procStdin);
+                ByteStreams.copy(new ByteArrayInputStream(input.getBytes(UTF_8)), procStdin);
                 procStdin.flush();
                 procStdin.close();
             }
@@ -108,8 +108,7 @@ public class CommandExecutor {
         @Override
         public void run() {
             StringBuilder stringBuilder = stringBuilderHolder.get();
-            BufferedReader br = new BufferedReader(new InputStreamReader(in, UTF_8));
-            try {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(in, UTF_8))) {
                 char[] buff = new char[1024];
                 int len;
                 while ((len = br.read(buff, 0, buff.length)) != -1) {
@@ -117,8 +116,6 @@ public class CommandExecutor {
                 }
             } catch (IOException e) {
                 logger.warn("", e);
-            } finally {
-                IOUtil.closeQuietly(br);
             }
             content = stringBuilder.toString();
         }

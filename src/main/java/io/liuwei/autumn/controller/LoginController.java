@@ -1,7 +1,7 @@
 package io.liuwei.autumn.controller;
 
 import io.liuwei.autumn.annotation.ViewCache;
-import io.liuwei.autumn.constant.CacheConstants;
+import io.liuwei.autumn.constant.CacheKeys;
 import io.liuwei.autumn.service.UserService;
 import io.liuwei.autumn.util.RateLimiter;
 import io.liuwei.autumn.util.WebUtil;
@@ -54,7 +54,7 @@ public class LoginController {
                               HttpServletRequest request,
                               HttpServletResponse response) {
 
-        String rateKey = CacheConstants.RATE_LIMIT_LOGIN + WebUtil.getClientIpAddress(request);
+        String rateKey = CacheKeys.RATE_LIMIT_LOGIN_PREFIX + WebUtil.getClientIpAddress(request);
         if (!rateLimiter.acquire(rateKey)) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             model.put("message", "稍后再试");

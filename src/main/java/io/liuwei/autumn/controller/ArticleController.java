@@ -65,6 +65,7 @@ public class ArticleController {
             list = list.subList(0, 20);
         }
 
+        model.put("pageTitle", Constants.HOMEPAGE_TITLE);
         model.put("articles", list);
         return "home";
     }

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="~{content_layout}" th:with="pageTitle='Search'">
+      layout:decorate="~{content_layout}" th:with="pageTitle='Search'">
 <body>
 <div layout:fragment="content_layout_fragment" class="sr">
     <div th:if="${sr != null}">

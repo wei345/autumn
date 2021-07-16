@@ -1,7 +1,7 @@
 package io.liuwei.autumn.util;
 
 import com.google.common.collect.Maps;
-import com.vip.vjtools.vjkit.io.FileUtil;
+import com.google.common.io.Files;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
@@ -50,7 +50,8 @@ public class MediaTypeUtil {
     }
 
     public static MediaType getMediaType(String filename) {
-        return EXTENSION_2_MEDIA_TYPE_MAP.getOrDefault(FileUtil.getFileExtension(filename), DEFAULT_MIME_TYPE);
+        //noinspection UnstableApiUsage
+        return EXTENSION_2_MEDIA_TYPE_MAP.getOrDefault(Files.getFileExtension(filename), DEFAULT_MIME_TYPE);
     }
 
     private static Map<String, MediaType> parseMimeTypes() {

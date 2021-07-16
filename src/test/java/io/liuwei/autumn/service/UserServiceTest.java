@@ -10,12 +10,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import static com.vip.vjtools.vjkit.text.EncodeUtil.decodeHex;
-import static com.vip.vjtools.vjkit.text.EncodeUtil.encodeHex;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.api.Assertions.assertThat;
-import static io.liuwei.autumn.service.UserService.passwordDigest1;
-import static io.liuwei.autumn.service.UserService.passwordDigest2;
+import static com.vip.vjtools.vjkit.text.EncodeUtil.*;
+import static io.liuwei.autumn.service.UserService.*;
+import static java.nio.charset.StandardCharsets.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * @author liuwei

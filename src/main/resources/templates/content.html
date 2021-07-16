@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="~{content_layout}" th:with="pageTitle=${contentHtml.title}">
+      layout:decorate="~{content_layout}" th:with="pageTitle=${contentHtml.title}">
 <body>
 <div layout:fragment="content_layout_fragment" class="center_position">
     <div th:utext="${contentHtml.tocHtml}"></div>

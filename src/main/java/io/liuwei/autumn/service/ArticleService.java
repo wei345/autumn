@@ -2,7 +2,8 @@ package io.liuwei.autumn.service;
 
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import io.liuwei.autumn.component.MediaRevisionResolver;
-import io.liuwei.autumn.constant.CacheConstants;
+import io.liuwei.autumn.constant.CacheNames;
+import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.converter.ContentHtmlConverter;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.manager.ArticleManager;
@@ -59,14 +60,14 @@ public class ArticleService {
         return articleManager.listArticles(accessLevel);
     }
 
-    @Cacheable(CacheConstants.ARTICLE_TREE_JSON)
+    @Cacheable(CacheNames.ARTICLE_TREE_JSON)
     public RevisionContent getTreeJson(AccessLevelEnum accessLevel) {
         TreeNode root = getTree(accessLevel);
         byte[] bytes = jsonMapper.toJson(root).getBytes(StandardCharsets.UTF_8);
         return mediaRevisionResolver.toRevisionContent(bytes, MediaType.APPLICATION_JSON);
     }
 
-    @Cacheable(CacheConstants.ARTICLE_TREE_HTML)
+    @Cacheable(CacheNames.ARTICLE_TREE_HTML)
     public String getTreeHtml(AccessLevelEnum accessLevel) {
         TreeNode root = getTree(accessLevel);
         StringBuilder builder = new StringBuilder(10240);
@@ -78,7 +79,7 @@ public class ArticleService {
         return TreeUtil.toArticleTree(listArticles(accessLevel));
     }
 
-    @Cacheable(value = CacheConstants.ARTICLE_BREADCRUMB, keyGenerator = "cacheKeyGenerator")
+    @Cacheable(value = CacheNames.ARTICLE_BREADCRUMB, keyGenerator = "cacheKeyGenerator")
     public List<Link> getBreadcrumbLinks(Article article, AccessLevelEnum accessLevel) {
         LinkedList<Link> links = new LinkedList<>();
         int lastSlash;
@@ -103,7 +104,7 @@ public class ArticleService {
      */
     private Link getBreadcrumbDirectoryLink(String path, AccessLevelEnum accessLevel) {
         if (path.length() == 0) {
-            return new Link("Home", "/");
+            return new Link(Constants.HOMEPAGE_TITLE, "/");
         }
         String name = StringUtils.substringAfterLast(path, "/");
 
@@ -119,7 +120,7 @@ public class ArticleService {
         }
     }
 
-    @Cacheable(value = CacheConstants.ARTICLE_HTML, keyGenerator = "cacheKeyGenerator")
+    @Cacheable(value = CacheNames.ARTICLE_HTML, keyGenerator = "cacheKeyGenerator")
     public ContentHtml getContentHtml(Article article) {
         ContentHtml contentHtml = contentHtmlConverter.convert(article.getTitle(), article.getContent());
         contentHtml.setTocHtml(HtmlUtil.toNumberedTocHtml(contentHtml.getTocHtml()));
@@ -130,8 +131,6 @@ public class ArticleService {
                         mediaRevisionResolver::toRevisionUrl));
         return contentHtml;
     }
-
-
 
     public ArticleVO toVO(Article article) {
         ContentHtml contentHtml = aopProxy.getContentHtml(article);

@@ -19,8 +19,6 @@ public class ResourceWalkerTest {
 
     @Test
     public void walk() {
-
-
         ResourceWalker.walk("/static", new SimpleFileVisitor<Path>() {
 
             @Override
@@ -36,19 +34,12 @@ public class ResourceWalkerTest {
                     if (path.startsWith(Constants.BOOT_INF_CLASSES)) {
                         String relativePath = path.substring(Constants.BOOT_INF_CLASSES.length());
                         getClass().getResourceAsStream(relativePath);
-
-
                     }
-
-
                 }
-
                 return CONTINUE;
             }
 
 
         });
-
-
     }
 }

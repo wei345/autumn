@@ -1,6 +1,6 @@
 package io.liuwei.autumn.controller;
 
-import io.liuwei.autumn.constant.CacheConstants;
+import io.liuwei.autumn.constant.CacheKeys;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Pagination;
 import io.liuwei.autumn.search.model.SearchResult;
@@ -69,7 +69,7 @@ public class SearchController {
             s = s.substring(0, maxSearchStrLength);
         }
 
-        String rateKey = CacheConstants.RATE_LIMIT_SEARCH + WebUtil.getClientIpAddress(request);
+        String rateKey = CacheKeys.RATE_LIMIT_SEARCH_PREFIX + WebUtil.getClientIpAddress(request);
         if (!rateLimiter.acquire(rateKey)) {
             request.setAttribute("s", htmlEscape(s));
             response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(), "稍后再试");

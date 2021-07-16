@@ -3,7 +3,8 @@ package io.liuwei.autumn.service;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
 import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.config.AppProperties;
-import io.liuwei.autumn.constant.CacheConstants;
+import io.liuwei.autumn.constant.CacheKeys;
+import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.converter.ContentHtmlConverter;
 import io.liuwei.autumn.manager.ResourceFileManager;
@@ -58,7 +59,7 @@ public class StaticService {
         this.codeBlock = appProperties.getCodeBlock();
     }
 
-    @Cacheable(value = CacheConstants.STATIC, key = "'" + Constants.JS_ALL_DOT_JS + "'")
+    @Cacheable(value = CacheNames.STATIC, key = CacheKeys.JS_ALL_DOT_JS)
     public RevisionContent getAllJs() {
         log.info("building {}", Constants.JS_ALL_DOT_JS);
 
@@ -111,7 +112,7 @@ public class StaticService {
                 content.getBytes(StandardCharsets.UTF_8), MediaTypeUtil.TEXT_JAVASCRIPT_UTF8);
     }
 
-    @Cacheable(value = CacheConstants.STATIC, key = "'" + Constants.CSS_ALL_DOT_CSS + "'")
+    @Cacheable(value = CacheNames.STATIC, key = CacheKeys.CSS_ALL_DOT_CSS)
     public RevisionContent getAllCss() {
         log.info("building {}", Constants.CSS_ALL_DOT_CSS);
 
@@ -139,7 +140,7 @@ public class StaticService {
         return mediaRevisionResolver.toRevisionContent(bytes, MediaTypeUtil.TEXT_CSS_UTF8);
     }
 
-    @Cacheable(value = CacheConstants.STATIC, key = "'" + Constants.HELP + "'")
+    @Cacheable(value = CacheNames.STATIC, key = CacheKeys.HELP)
     public ContentHtml getHelpContent() {
         log.info("building {}", Constants.HELP);
         ResourceFile help = getStaticResourceFile("/help.adoc");
