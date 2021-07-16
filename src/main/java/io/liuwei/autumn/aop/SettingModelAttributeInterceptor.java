@@ -46,7 +46,7 @@ public class SettingModelAttributeInterceptor implements HandlerInterceptor {
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        if (modelAndView != null) {
+        if (modelAndView != null && modelAndView.getViewName() != null) {
             Map<String, Object> model = modelAndView.getModel();
             User user = userService.getCurrentUser(request, response);
             AccessLevelEnum accessLevel = userService.getAccessLevel(user);

@@ -1,5 +1,6 @@
 package io.liuwei.autumn.controller;
 
+import io.liuwei.autumn.annotation.ViewCache;
 import io.liuwei.autumn.constant.CacheKeys;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Pagination;
@@ -21,8 +22,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
-
-import static org.springframework.web.util.HtmlUtils.*;
 
 /**
  * @author liuwei
@@ -50,14 +49,15 @@ public class SearchController {
         this.rateLimiter = new RateLimiter(100, 600, stringRedisTemplate);
     }
 
+    @ViewCache
     @GetMapping("/search")
-    public Object search(String s,
+    public Object search(String q,
                          Integer offset,
                          AccessLevelEnum accessLevel,
                          Map<String, Object> model,
                          HttpServletRequest request,
                          HttpServletResponse response) throws IOException {
-        if (StringUtils.isBlank(s)) {
+        if (StringUtils.isBlank(q)) {
             return new RedirectView("/", true, false);
         }
 
@@ -65,27 +65,25 @@ public class SearchController {
             offset = 0;
         }
 
-        if (s.length() > maxSearchStrLength) {
-            s = s.substring(0, maxSearchStrLength);
+        if (q.length() > maxSearchStrLength) {
+            q = q.substring(0, maxSearchStrLength);
         }
 
         String rateKey = CacheKeys.RATE_LIMIT_SEARCH_PREFIX + WebUtil.getClientIpAddress(request);
         if (!rateLimiter.acquire(rateKey)) {
-            request.setAttribute("s", htmlEscape(s));
             response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(), "稍后再试");
             return null;
         }
 
-        String q = s;
-        SearchResult sr = searchService.search(s, accessLevel, offset, pageSize);
-        model.put("s", htmlEscape(s));
+        String q1 = q;
+        SearchResult sr = searchService.search(q, accessLevel, offset, pageSize);
         model.put("sr", sr);
         model.put("pagination",
                 new Pagination(
                         offset,
                         pageSize,
                         sr.getTotal(),
-                        (pageNumber, offset1) -> "/search?s=" + q + "&offset=" + offset1));
+                        (pageNumber, offset1) -> "/search?q=" + q1 + "&offset=" + offset1));
         return "search_result";
     }
 }
