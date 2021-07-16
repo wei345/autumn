@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 
-import static org.springframework.web.util.HtmlUtils.htmlEscape;
+import static org.springframework.web.util.HtmlUtils.*;
 
 /**
  * @author liuwei

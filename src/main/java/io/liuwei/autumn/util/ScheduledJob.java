@@ -12,11 +12,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ScheduledJob {
 
-    private int intervalSeconds;
+    private final int intervalSeconds;
 
-    private Runnable command;
+    private final Runnable command;
 
-    private ScheduledExecutorService scheduler;
+    private final ScheduledExecutorService scheduler;
 
     public ScheduledJob(int intervalSeconds, Runnable command, ScheduledExecutorService scheduler) {
         if (command == null) {

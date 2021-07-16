@@ -1,9 +1,9 @@
 package io.liuwei.autumn.search.matcher;
 
-import io.liuwei.autumn.search.parser.AbstractPrefixMatcherParser;
+import io.liuwei.autumn.search.Token;
 import io.liuwei.autumn.search.model.Hit;
 import io.liuwei.autumn.search.model.SearchingPage;
-import io.liuwei.autumn.search.Token;
+import io.liuwei.autumn.search.parser.AbstractPrefixMatcherParser;
 import org.springframework.cache.interceptor.SimpleKey;
 
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
 // -abc
 public class ExcludeMatcher extends AbstractPageHitMatcher {
 
-    private String searchStr;
+    private final String searchStr;
 
     private ExcludeMatcher(String expression, String searchStr) {
         super(expression);

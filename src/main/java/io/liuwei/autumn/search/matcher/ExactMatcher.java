@@ -1,9 +1,9 @@
 package io.liuwei.autumn.search.matcher;
 
-import io.liuwei.autumn.search.parser.AbstractPrefixMatcherParser;
+import io.liuwei.autumn.search.Token;
 import io.liuwei.autumn.search.model.Hit;
 import io.liuwei.autumn.search.model.SearchingPage;
-import io.liuwei.autumn.search.Token;
+import io.liuwei.autumn.search.parser.AbstractPrefixMatcherParser;
 import io.liuwei.autumn.util.HtmlUtil;
 import io.liuwei.autumn.util.Kmp;
 import org.springframework.cache.interceptor.SimpleKey;
@@ -22,7 +22,7 @@ public class ExactMatcher extends AbstractPageHitMatcher {
     /**
      * 小写的 searchStr e.g. abc
      */
-    private String searchStr;
+    private final String searchStr;
 
     private ExactMatcher(String expression, String searchStr) {
         super(expression);

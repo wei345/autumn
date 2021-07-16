@@ -53,6 +53,7 @@ public class Article {
     /**
      * 快照 ID
      * <p>
+     *
      * @see MediaRevisionResolver#getSnapshotId(Article)
      */
     private String snapshotId;

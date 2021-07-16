@@ -9,6 +9,7 @@ import io.liuwei.autumn.search.model.PageHit;
 import io.liuwei.autumn.search.model.SearchingPage;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -19,8 +20,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
-import static com.vip.vjtools.vjkit.text.EscapeUtil.escapeHtml;
-import static com.vip.vjtools.vjkit.text.EscapeUtil.urlEncode;
+import static com.vip.vjtools.vjkit.text.EscapeUtil.*;
 
 /**
  * @author liuwei
@@ -33,7 +33,7 @@ public class Highlighter {
     private static final String HL_TAG_OPEN = "<" + HL_TAG + " class=\"" + HL_TAG_CLASS + "\">";
     private static final String HL_TAG_CLOSE = "</" + HL_TAG + ">";
     // 获得不重叠的 hit list
-    private static Comparator<Hit> HIT_COMPARATOR = (o1, o2) -> {
+    private static final Comparator<Hit> HIT_COMPARATOR = (o1, o2) -> {
         // o1 在 o2 前面，无重叠
         if (o1.getStart() < o2.getStart() && o2.getStart() >= o1.getEnd()) {
             return -1;
@@ -46,10 +46,10 @@ public class Highlighter {
         return 0;
     };
     @SuppressWarnings("FieldCanBeLocal")
-    private int maxPreviewLength = 120;
+    private final int maxPreviewLength = 120;
 
-    private StringBuilderHolder stringBuilderHolder1 = new StringBuilderHolder(64);
-    private StringBuilderHolder stringBuilderHolder2 = new StringBuilderHolder(64);
+    private final StringBuilderHolder stringBuilderHolder1 = new StringBuilderHolder(64);
+    private final StringBuilderHolder stringBuilderHolder2 = new StringBuilderHolder(64);
 
 
     public void highlightSearchingPage(Collection<SearchingPage> searchingPages) {
@@ -59,9 +59,9 @@ public class Highlighter {
     private void highlightSearchingPage(SearchingPage searchingPage) {
         Article page = searchingPage.getArticle();
         if (CollectionUtils.isEmpty(searchingPage.getUnmodifiableHitMap())) {
-            searchingPage.setPathPreview(escapeHtml(page.getPath()));
-            searchingPage.setTitlePreview(escapeHtml(page.getTitle()));
-            searchingPage.setBodyPreview(escapeHtml(
+            searchingPage.setPathPreview(StringEscapeUtils.escapeHtml4(page.getPath()));
+            searchingPage.setTitlePreview(StringEscapeUtils.escapeHtml4(page.getTitle()));
+            searchingPage.setBodyPreview(StringEscapeUtils.escapeHtml4(
                     StringUtils.substring(page.getContent(), 0, maxPreviewLength)));
             return;
         }
@@ -90,7 +90,7 @@ public class Highlighter {
 
     private String highlightHits(String source, Collection<Hit> hits, boolean escape) {
         if (CollectionUtils.isEmpty(hits) || StringUtils.isBlank(source)) {
-            return escape ? escapeHtml(source) : source;
+            return escape ? StringEscapeUtils.escapeHtml4(source) : source;
         }
 
         StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
@@ -128,7 +128,7 @@ public class Highlighter {
 
     private String highlightHitsLessOrEqLength(String source, List<Hit> hits, int maxLength) {
         if (CollectionUtils.isEmpty(hits) || StringUtils.isBlank(source)) {
-            return escapeHtml(StringUtils.substring(source, 0, maxLength));
+            return StringEscapeUtils.escapeHtml4(StringUtils.substring(source, 0, maxLength));
         }
 
         // 尽可能多包含 searchStr 也不一定好，因为可能会命中一段代码，而代码之前的段落文字可能更有意义。
@@ -233,7 +233,7 @@ public class Highlighter {
     }
 
     private String htmlEscape(String str, int start, int end) {
-        return escapeHtml(str.substring(start, end));
+        return StringEscapeUtils.escapeHtml4(str.substring(start, end));
     }
 
     /* 这个实现有 bug，例如原文中有 ">"，html 转义为 "&gt;"，高亮 "gt;"，期望 "&gt;"，实际 "&<em>gt;</em>"

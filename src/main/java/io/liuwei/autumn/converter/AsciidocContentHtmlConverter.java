@@ -1,7 +1,7 @@
 package io.liuwei.autumn.converter;
 
-import com.vip.vjtools.vjkit.text.EscapeUtil;
 import io.liuwei.autumn.model.ContentHtml;
+import org.apache.commons.text.StringEscapeUtils;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.AttributesBuilder;
 import org.asciidoctor.OptionsBuilder;
@@ -22,7 +22,7 @@ public class AsciidocContentHtmlConverter implements ContentHtmlConverter {
                     .showTitle(true)
                     .tableOfContents(true));
 
-    private Asciidoctor asciidoctor;
+    private final Asciidoctor asciidoctor;
 
     public AsciidocContentHtmlConverter(Asciidoctor asciidoctor) {
         this.asciidoctor = asciidoctor;
@@ -32,7 +32,7 @@ public class AsciidocContentHtmlConverter implements ContentHtmlConverter {
     public ContentHtml convert(String title, String content) {
         // title html
         String titleId = "articletitle";
-        String titleHtml = "<h1 id=\"" + titleId + "\">" + EscapeUtil.escapeHtml(title) + "</h1>";
+        String titleHtml = "<h1 id=\"" + titleId + "\">" + StringEscapeUtils.escapeHtml4(title) + "</h1>";
 
         // content html
         String contentHtml = asciidoctor.convert(content, optionsBuilder);

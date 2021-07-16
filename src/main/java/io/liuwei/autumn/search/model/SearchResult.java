@@ -11,9 +11,9 @@ import java.util.List;
 @Getter
 public class SearchResult {
 
-    private List<SearchingPage> pages;
-    private long timeCost;
-    private int total;
+    private final List<SearchingPage> pages;
+    private final long timeCost;
+    private final int total;
 
     public SearchResult(List<SearchingPage> pages, long timeCost, int total) {
         this.pages = pages;

@@ -3,8 +3,8 @@ package io.liuwei.autumn.util;
 import com.google.common.io.BaseEncoding;
 import org.junit.Test;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.api.Assertions.assertThat;
+import static java.nio.charset.StandardCharsets.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * @author liuwei
@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class BaseEncodingTest {
 
     @Test
-    public void omitPadding(){
+    public void omitPadding() {
 
         String raw = "abcd";
 

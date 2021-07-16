@@ -61,16 +61,11 @@ public class DataFileDao {
             }
 
             if (file.isFile()) {
-                if (file.getName().endsWith(".iml")) {
-                    return false;
-                }
+                return !file.getName().endsWith(".iml");
             } else {
-                if (file.getName().toLowerCase().endsWith(".graffle") ||
-                        file.getName().equalsIgnoreCase("target")) {
-                    return false;
-                }
+                return !file.getName().toLowerCase().endsWith(".graffle") &&
+                        !file.getName().equalsIgnoreCase("target");
             }
-            return true;
         }
 
         @Override

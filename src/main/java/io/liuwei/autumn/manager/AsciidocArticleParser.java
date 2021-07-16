@@ -102,9 +102,9 @@ public class AsciidocArticleParser {
         return "";
     }
 
-    private String parseContent(LineReader lineReader){
+    private String parseContent(LineReader lineReader) {
         for (String line : lineReader) {
-            if(StringUtils.isNotBlank(line) && !line.startsWith(attrPrefix)){
+            if (StringUtils.isNotBlank(line) && !line.startsWith(attrPrefix)) {
                 lineReader.back();
                 break;
             }

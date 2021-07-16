@@ -5,9 +5,8 @@ import io.liuwei.autumn.aop.CheckModifiedAspect;
 import java.lang.annotation.*;
 
 /**
- * @see CheckModifiedAspect
- *
  * @author liuwei
+ * @see CheckModifiedAspect
  * @since 2021-07-08
  */
 @Target({ElementType.METHOD, ElementType.TYPE})

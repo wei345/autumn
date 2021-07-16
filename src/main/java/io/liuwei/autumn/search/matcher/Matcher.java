@@ -1,7 +1,7 @@
 package io.liuwei.autumn.search.matcher;
 
-import io.liuwei.autumn.search.model.SearchingPage;
 import io.liuwei.autumn.search.Token;
+import io.liuwei.autumn.search.model.SearchingPage;
 
 import java.util.Set;
 

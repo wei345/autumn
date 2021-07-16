@@ -1,9 +1,9 @@
 package io.liuwei.autumn.search.operator;
 
 import com.google.common.collect.Sets;
-import io.liuwei.autumn.search.parser.AbstractTokenParser;
-import io.liuwei.autumn.search.model.SearchingPage;
 import io.liuwei.autumn.search.matcher.*;
+import io.liuwei.autumn.search.model.SearchingPage;
+import io.liuwei.autumn.search.parser.AbstractTokenParser;
 
 import java.util.Set;
 

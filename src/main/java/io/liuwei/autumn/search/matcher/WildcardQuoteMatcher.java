@@ -2,9 +2,9 @@ package io.liuwei.autumn.search.matcher;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
-import io.liuwei.autumn.search.parser.AbstractTokenParser;
 import io.liuwei.autumn.search.model.Hit;
 import io.liuwei.autumn.search.model.SearchingPage;
+import io.liuwei.autumn.search.parser.AbstractTokenParser;
 import io.liuwei.autumn.util.Kmp;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.lang.Nullable;
@@ -22,7 +22,7 @@ import java.util.List;
  */
 public class WildcardQuoteMatcher extends AbstractPageHitMatcher {
 
-    private String[] searches;
+    private final String[] searches;
 
     private WildcardQuoteMatcher(String expression, String[] searches) {
         super(expression);
@@ -110,7 +110,7 @@ public class WildcardQuoteMatcher extends AbstractPageHitMatcher {
 
     public static class Parser extends AbstractTokenParser {
 
-        private static StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(64);
+        private static final StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(64);
 
         @Override
         public boolean accept(String input, int start) {

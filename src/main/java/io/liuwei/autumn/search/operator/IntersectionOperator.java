@@ -1,8 +1,8 @@
 package io.liuwei.autumn.search.operator;
 
-import io.liuwei.autumn.search.parser.AbstractTokenParser;
 import io.liuwei.autumn.search.matcher.Matcher;
 import io.liuwei.autumn.search.matcher.ResultMatcher;
+import io.liuwei.autumn.search.parser.AbstractTokenParser;
 
 /**
  * 交集操作符。

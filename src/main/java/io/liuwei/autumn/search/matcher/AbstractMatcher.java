@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractMatcher implements Matcher {
 
-    private String expression;
+    private final String expression;
 
     private Set<SearchingPage> sourceData;
 

@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RateLimiter {
 
     /* KEYS[1]=key,ARGV[1]=limit,ARGV[2]=timeWindow,return=result */
-    private static String redisLimitScript =
+    private static final String redisLimitScript =
             "local key = KEYS[1] " +
                     "local limit = tonumber(ARGV[1]) " +
                     "local timeWindow = ARGV[2] " +
@@ -31,7 +31,7 @@ public class RateLimiter {
                     "   redis.call('expire', key, timeWindow) " +
                     "end " +
                     "return 1 ";
-    private static RedisScript<Boolean> redisScript = new DefaultRedisScript<>(redisLimitScript, Boolean.class);
+    private static final RedisScript<Boolean> redisScript = new DefaultRedisScript<>(redisLimitScript, Boolean.class);
     private final int limit;
     private final int timeWindowInSeconds;
     private final StringRedisTemplate stringRedisTemplate;

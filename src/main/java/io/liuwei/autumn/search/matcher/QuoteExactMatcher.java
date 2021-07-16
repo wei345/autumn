@@ -1,9 +1,9 @@
 package io.liuwei.autumn.search.matcher;
 
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
-import io.liuwei.autumn.search.parser.AbstractTokenParser;
 import io.liuwei.autumn.search.model.Hit;
 import io.liuwei.autumn.search.model.SearchingPage;
+import io.liuwei.autumn.search.parser.AbstractTokenParser;
 import org.springframework.cache.interceptor.SimpleKey;
 
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class QuoteExactMatcher extends AbstractPageHitMatcher {
 
-    private String searchStr;
+    private final String searchStr;
 
     private QuoteExactMatcher(String expression, String searchStr) {
         super(expression);
@@ -37,7 +37,7 @@ public class QuoteExactMatcher extends AbstractPageHitMatcher {
     }
 
     public static class Parser extends AbstractTokenParser {
-        private static StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(64);
+        private static final StringBuilderHolder stringBuilderHolder = new StringBuilderHolder(64);
 
         public boolean accept(String input, int start) {
             if (input.charAt(start) != '"' || input.length() - start < 3) { // 最短 "x" 3 个字符

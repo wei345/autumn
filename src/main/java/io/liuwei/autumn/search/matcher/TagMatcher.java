@@ -1,8 +1,8 @@
 package io.liuwei.autumn.search.matcher;
 
-import io.liuwei.autumn.search.parser.AbstractPrefixMatcherParser;
-import io.liuwei.autumn.search.model.SearchingPage;
 import io.liuwei.autumn.search.Token;
+import io.liuwei.autumn.search.model.SearchingPage;
+import io.liuwei.autumn.search.parser.AbstractPrefixMatcherParser;
 
 import java.util.Set;
 
@@ -13,7 +13,7 @@ import java.util.Set;
 // tag:abc
 public class TagMatcher extends AbstractMatcher {
 
-    private String searchStr;
+    private final String searchStr;
 
     private TagMatcher(String expression, String searchStr) {
         super(expression);

@@ -14,13 +14,13 @@ import java.util.List;
 @ToString
 public class PageHit {
 
-    private boolean nameEqual;
-    private boolean titleEqual;
-    private List<Hit> nameHitList;
-    private List<Hit> pathHitList;
-    private List<Hit> titleHitList;
-    private List<Hit> bodyHitList;
-    private int hitCount;
+    private final boolean nameEqual;
+    private final boolean titleEqual;
+    private final List<Hit> nameHitList;
+    private final List<Hit> pathHitList;
+    private final List<Hit> titleHitList;
+    private final List<Hit> bodyHitList;
+    private final int hitCount;
 
     public PageHit(boolean nameEqual,
                    boolean titleEqual,

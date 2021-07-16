@@ -12,7 +12,7 @@ import java.util.Set;
  * Created by liuwei on 2018/11/27.
  */
 public class ResultMatcher implements Matcher {
-    private Set<SearchingPage> result;
+    private final Set<SearchingPage> result;
 
     public ResultMatcher(Set<SearchingPage> result) {
         this.result = result;

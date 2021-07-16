@@ -21,7 +21,7 @@ import java.util.function.Function;
  * Created by liuwei on 2018/12/13.
  */
 public abstract class AbstractPageHitMatcher extends AbstractMatcher {
-    private static Logger logger = LoggerFactory.getLogger(AbstractPageHitMatcher.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractPageHitMatcher.class);
 
     @Getter
     @Setter
