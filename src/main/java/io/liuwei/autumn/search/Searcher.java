@@ -12,6 +12,7 @@ import org.springframework.cache.Cache;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -100,13 +101,14 @@ public class Searcher {
         List<SearchingPage> list = new ArrayList<>(set);
         list.sort(Comparator
                 .comparing(SearchingPage::getNameEqCount).reversed()
-                .thenComparing(SearchingPage::getTitleEqCount).reversed()
-                .thenComparing(SearchingPage::getNameHitCount).reversed()
-                .thenComparing(SearchingPage::getTitleHitCount).reversed()
-                .thenComparing(SearchingPage::getPathHitCount).reversed()
-                .thenComparing(SearchingPage::getHitCount).reversed()
-                .thenComparing(o -> o.getArticle().getModified()).reversed()
-                .thenComparing(o -> o.getArticle().getPath()));
+                .thenComparing(Comparator.comparing(SearchingPage::getTitleEqCount).reversed())
+                .thenComparing(Comparator.comparing(SearchingPage::getNameHitCount).reversed())
+                .thenComparing(Comparator.comparing(SearchingPage::getTitleHitCount).reversed())
+                .thenComparing(Comparator.comparing(SearchingPage::getPathHitCount).reversed())
+                .thenComparing(Comparator.comparing(SearchingPage::getHitCount).reversed())
+                .thenComparing(Comparator.comparing((Function<SearchingPage, Date>)
+                        searchingPage -> searchingPage.getArticle().getModified()).reversed())
+                .thenComparing(searchingPage -> searchingPage.getArticle().getPath()));
         return list;
     }
 
