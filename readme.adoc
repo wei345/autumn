@@ -120,47 +120,47 @@ mvn -q -DskipTests=false -Dtest=io.liuwei.autumn.AesTest#generateKey test
 
 |数据目录下所有文件路径
 |应用启动
-|重新加载数据时刷新
+|重新加载数据目录时刷新
 
 |所有文章内容
 |应用启动
-|重新加载数据时刷新
+|重新加载数据目录时刷新
 
 |classpath:/static 里的所有文件内容
 |应用启动
-|重新加载数据时刷新
+|重新加载 static 目录时刷新
 
 |文章列表
 |被访问
-|数据更新
+|重新加载数据目录
 
 |文章 tree JSON
 |被访问
-|数据更新
+|重新加载数据目录
 
 |文章 tree HTML
 |被访问
-|数据更新
+|重新加载数据目录
 
 |all.js
 |被访问
-|数据更新
+|重新加载 static 目录
 
 |all.css
 |被访问
-|数据更新
+|重新加载 static 目录
 
 |help 内容 HTML
 |被访问
-|数据更新
+|重新加载 static 目录
 
 |数据目录下不大于 1M 的文件
 |被访问
-|数据更新，或达到缓存上限
+|重新加载数据目录，或达到缓存上限
 
-|所有接收 GET 请求响应 HTML 的页面，包括首页、站点地图页、文章页、搜索结果页、帮助页、登录页
+|View 渲染结果，包括首页、站点地图页、文章页、搜索结果页、帮助页、登录页
 |被访问
-|数据更新，或达到缓存上限
+|重新加载数据目录，或达到缓存上限
 
 |文章内容 HTML
 |被访问
@@ -178,10 +178,14 @@ mvn -q -DskipTests=false -Dtest=io.liuwei.autumn.AesTest#generateKey test
 |被访问
 |到期失效，或达到缓存上限
 
-|remeberMe Cookie 解析结果
+|rememberMe Cookie 解析结果
 |被访问
 |到期失效，或达到缓存上限
 |===
+
+文章内容 HTML、文章面包屑和搜索 hit，这几个缓存项的 key 使用了文章的 snapshotId。
+snapshotId 是根据文章内容生成的，如果文章内容变化，snapshotId 也会变化，
+如果文章内容不变，snapshotId 也不变。所以重新加载数据目录时，不需要清除这些缓存。
 
 == ...
 
