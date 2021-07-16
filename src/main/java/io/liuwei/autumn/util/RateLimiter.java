@@ -37,7 +37,7 @@ public class RateLimiter {
     private final StringRedisTemplate stringRedisTemplate;
     private Cache<String, AtomicInteger> cache;
 
-    public RateLimiter(int limit, int timeWindowInSeconds, StringRedisTemplate stringRedisTemplate) {
+    public RateLimiter(int limit, int timeWindowInSeconds, int maxSize, StringRedisTemplate stringRedisTemplate) {
         this.limit = limit;
         this.timeWindowInSeconds = timeWindowInSeconds;
         this.stringRedisTemplate = stringRedisTemplate;
@@ -45,6 +45,7 @@ public class RateLimiter {
             cache = CacheBuilder
                     .newBuilder()
                     .expireAfterWrite(timeWindowInSeconds, TimeUnit.SECONDS)
+                    .maximumSize(maxSize)
                     .build();
         }
         log.info("Using {}", isRedisEnabled() ? "Redis" : "guava Cache");

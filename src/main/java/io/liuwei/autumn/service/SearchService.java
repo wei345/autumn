@@ -8,6 +8,7 @@ import io.liuwei.autumn.search.Highlighter;
 import io.liuwei.autumn.search.Searcher;
 import io.liuwei.autumn.search.model.SearchResult;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +38,9 @@ public class SearchService {
     }
 
     public String highlightSearchStr(String html, List<String> searchStrList) {
+        if (StringUtils.isBlank(html)) {
+            return html;
+        }
         return highlighter.highlightSearchStr(html, searchStrList);
     }
 

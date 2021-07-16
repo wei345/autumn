@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
  * @author liuwei
  * @since 2021-07-07 15:51
  */
+@SuppressWarnings("UnstableApiUsage")
 @Component
 @Slf4j
 public class DataFileDao {

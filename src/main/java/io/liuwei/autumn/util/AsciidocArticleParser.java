@@ -1,4 +1,4 @@
-package io.liuwei.autumn.manager;
+package io.liuwei.autumn.util;
 
 import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.enums.AccessLevelEnum;
@@ -8,8 +8,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.ast.DocumentHeader;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -21,7 +19,6 @@ import java.util.*;
  * @since 2021-07-07 17:21
  */
 @SuppressWarnings("FieldCanBeLocal")
-@Component
 public class AsciidocArticleParser {
     private static final FastDateFormat DATE_PARSER_ON_SECOND = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
     private final String attrPrefix = ":";
@@ -33,7 +30,6 @@ public class AsciidocArticleParser {
     private final String titlePrefix = "= ";
     private final Asciidoctor asciidoctor;
 
-    @Autowired
     public AsciidocArticleParser(Asciidoctor asciidoctor) {
         this.asciidoctor = asciidoctor;
     }

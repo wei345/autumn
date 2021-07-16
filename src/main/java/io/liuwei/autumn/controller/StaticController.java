@@ -38,7 +38,7 @@ public class StaticController {
     @ViewCache
     @GetMapping(Constants.HELP)
     public Object help(Map<String, Object> model) {
-        model.put("contentHtml", staticService.getHelpContent());
+        model.put("contentHtml", staticService.getHelpContentHtml());
         return "content";
     }
 }

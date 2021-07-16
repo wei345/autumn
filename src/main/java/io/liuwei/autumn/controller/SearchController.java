@@ -46,7 +46,7 @@ public class SearchController {
 
     @PostConstruct
     public void init() {
-        this.rateLimiter = new RateLimiter(100, 600, stringRedisTemplate);
+        this.rateLimiter = new RateLimiter(100, 600, 1_000_000, stringRedisTemplate);
     }
 
     @ViewCache

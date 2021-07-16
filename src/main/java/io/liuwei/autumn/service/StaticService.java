@@ -141,7 +141,7 @@ public class StaticService {
     }
 
     @Cacheable(value = CacheNames.STATIC, key = CacheKeys.HELP)
-    public ContentHtml getHelpContent() {
+    public ContentHtml getHelpContentHtml() {
         log.info("building {}", Constants.HELP);
         ResourceFile help = getStaticResourceFile("/help.adoc");
         return contentHtmlConverter.convert("Help", help.getContentAsString());

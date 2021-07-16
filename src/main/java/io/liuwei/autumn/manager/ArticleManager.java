@@ -8,11 +8,13 @@ import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.DataInfo;
 import io.liuwei.autumn.model.Media;
+import io.liuwei.autumn.util.AsciidocArticleParser;
 import io.liuwei.autumn.util.MediaTypeUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.asciidoctor.Asciidoctor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
@@ -40,7 +42,7 @@ import java.util.stream.Collectors;
 public class ArticleManager {
 
     @Autowired
-    private AsciidocArticleParser asciidocArticleParser;
+    private Asciidoctor asciidoctor;
 
     @Autowired
     private DataFileDao dataFileDao;
@@ -52,6 +54,8 @@ public class ArticleManager {
     @Autowired
     @Qualifier("viewCache")
     private Cache viewCache;
+
+    private AsciidocArticleParser asciidocArticleParser;
 
     /**
      * 包含数据目录下所有文件，包括文章
@@ -66,6 +70,7 @@ public class ArticleManager {
 
     @PostConstruct
     public void init() {
+        asciidocArticleParser = new AsciidocArticleParser(asciidoctor);
         reload();
     }
 
