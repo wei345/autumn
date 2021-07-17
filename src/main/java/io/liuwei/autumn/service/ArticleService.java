@@ -124,11 +124,12 @@ public class ArticleService {
     public ContentHtml getContentHtml(Article article) {
         ContentHtml contentHtml = contentHtmlConverter.convert(article.getTitle(), article.getContent());
         contentHtml.setTocHtml(HtmlUtil.toNumberedTocHtml(contentHtml.getTocHtml()));
-        contentHtml.setContentHtml(HtmlUtil
-                .rewriteImgSrcToRevisionUrl(
-                        contentHtml.getContentHtml(),
-                        article.getPath(),
-                        mediaRevisionResolver::toRevisionUrl));
+        contentHtml.setContentHtml(
+                HtmlUtil.addHeadingClass(
+                        HtmlUtil.rewriteImgSrcToRevisionUrl(
+                                contentHtml.getContentHtml(),
+                                article.getPath(),
+                                mediaRevisionResolver::toRevisionUrl)));
         return contentHtml;
     }
 

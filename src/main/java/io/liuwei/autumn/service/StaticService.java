@@ -68,41 +68,42 @@ public class StaticService {
                 .map(this::getStaticResourceFile)
                 .collect(Collectors.toList());
 
-        StringBuilder sb = STRING_BUILDER_HOLDER.get();
+        StringBuilder builder = STRING_BUILDER_HOLDER.get();
 
         // 我们的 js，包到一个 function 里
-        sb
-                .append("\"use strict\";\n")
-                .append("(function () {\n");
+        builder.append("\"use strict\";\n");
+        builder.append("(function () {\n");
         jsList.forEach(js ->
-                sb
-                        .append(js.getContentAsString().replaceFirst("\"use strict\";\n", "").trim())
+                builder.append(
+                        js.getContentAsString()
+                                .replaceFirst("\"use strict\";\n", "")
+                                .trim())
                         .append("\n"));
-        sb.append("})();\n");
+        builder.append("})();\n");
 
         // 代码块高亮
         if (codeBlock.isHighlightingEnabled()) {
-            sb
+            builder
                     .append(getHighlightJs())
                     .append("\n");
         }
 
         // 代码块行号
         if (codeBlock.isLineNumberEnabled()) {
-            sb
+            builder
                     .append(getLineNumberJs())
                     .append("\n");
         }
 
         // Google 分析
         if (StringUtils.isNotBlank(googleAnalyticsId)) {
-            sb
+            builder
                     .append(getGoogleAnalyticsJs())
                     .append("\n");
         }
 
         // 压缩
-        String content = sb.toString();
+        String content = builder.toString();
         if (jsCompressEnabled) {
             String depend = "var autumn = {ctx: '', prefix: '', treeVersionKeyValue: ''}";
             content = JsCompressor.compressJs(depend, content);

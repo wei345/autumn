@@ -20,6 +20,7 @@ public class AsciidocContentHtmlConverter implements ContentHtmlConverter {
     private final OptionsBuilder optionsBuilder = OptionsBuilder.options()
             .attributes(AttributesBuilder.attributes()
                     .showTitle(true)
+                    .setAnchors(true)
                     .tableOfContents(true));
 
     private final Asciidoctor asciidoctor;
@@ -31,8 +32,10 @@ public class AsciidocContentHtmlConverter implements ContentHtmlConverter {
     @Override
     public ContentHtml convert(String title, String content) {
         // title html
-        String titleId = "articletitle";
-        String titleHtml = "<h1 id=\"" + titleId + "\">" + StringEscapeUtils.escapeHtml4(title) + "</h1>";
+        String titleId = "article-title";
+        String titleHtml = "<h1 id=\"" + titleId + "\" class=\"heading\">" +
+                "<a class=\"anchor\" href=\"\"></a>" +
+                StringEscapeUtils.escapeHtml4(title) + "</h1>";
 
         // content html
         String contentHtml = asciidoctor.convert(content, optionsBuilder);

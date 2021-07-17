@@ -40,7 +40,12 @@ window.addEventListener('load', function () {
 });
 
 function detectClient() {
-    au.el('html').classList.add('js', isMobi ? 'mobi' : 'desktop');
+    var html = au.el('html');
+    html.classList.add('js');
+    if (isMobi) {
+        html.classList.remove('desktop');
+        html.classList.add('mobi');
+    }
 }
 
 function initVars() {
@@ -362,27 +367,17 @@ function anchorLink() {
         'h6': true
     };
 
-    var headers = au.els('h1, .sect1 h2, .sect2 h3, .sect3 h4, .sect4 h5, .sect5 h6, .sect6 h7', contentNode);
-    for (var i = 0, firstHeading = true; i < headers.length; i++) {
-        var hNode = headers[i];
+    var anchors = au.els('.heading > a.anchor', contentNode);
+    for (var i = 0; i < anchors.length; i++) {
+        var anchor = anchors[i];
+        var hNode = anchor.parentNode;
         var tagName = hNode.tagName.toLowerCase();
         if (!levels[tagName]) {
             continue;
         }
-        var a = document.createElement('a');
-        if (firstHeading && i < 2 && tagName === 'h1') {
-            a.href = au.pathname();
-        } else {
-            a.href = '#' + hNode.id;
-        }
-        a.classList.add('anchor');
-        hNode.classList.add('heading');
         if (isMobi) {
-            hNode.appendChild(a);
-        } else {
-            hNode.insertBefore(a, hNode.firstChild);
+            hNode.appendChild(anchor);
         }
-        firstHeading = false;
     }
 }
 

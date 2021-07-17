@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" class="desktop">
 <head>
     <title th:text="(${pageTitle} != null and ${pageTitle} != '' ? ${pageTitle} + ' - ' : '') + ${siteTitle}"></title>
     <meta charset="utf-8">
@@ -24,7 +23,9 @@
           onload="this.rel = 'stylesheet';
           autumn.onCssLoaded ? autumn.onCssLoaded() : autumn.cssLoaded = true;
           this.onload = null">
-    <noscript><link rel="stylesheet" th:href="@{${cssUrl}}"></noscript>
+    <noscript>
+        <link rel="stylesheet" th:href="@{${cssUrl}}">
+    </noscript>
 </head>
 <body class="multiple_columns">
 <div class="container">

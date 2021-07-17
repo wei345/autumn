@@ -413,30 +413,36 @@ input.header__row_1__search_input {
     background-color: #ff9;
 }
 
+.page .heading a.anchor {
+    color: rgba(0, 0, 0, .2);
+    font-weight: normal;
+    text-decoration: none;
+}
+
 .page .heading a.anchor:before {
     content: '#';
-    color: rgba(0,0,0,.2);
-    width: 21px;
+}
+
+.desktop .page .heading a.anchor {
     display: inline-block;
-    vertical-align: middle;
-}
-
-.page .heading a.anchor:hover:before {
-    color: #097dff;
-}
-
-.desktop .page .heading > a.anchor {
     margin-left: -21px;
+    padding-right: 5px;
+    width: 16px;
+    text-align: right;
     visibility: hidden;
 }
 
-.desktop .page .heading:hover > a.anchor {
+.desktop .page .heading:hover a.anchor {
     visibility: visible;
 }
 
-.mobi .page .heading a.anchor:before {
-    opacity: .3;
+.desktop .page .heading a.anchor:hover {
+    color: #097dff;
+}
+
+.mobi .page .heading a.anchor {
     margin-left: 10px;
+    opacity: .3;
 }
 
 .toc {
