@@ -3,7 +3,7 @@ var au = util();
 var ctx = autumn.ctx;
 var prefix = autumn.prefix;
 var treeJsonUrl = autumn.treeJsonUrl;
-var lsRecentVisitKey = prefix + 'recently_visit';
+var localStorageRecentVisitKey = prefix + 'recently_visit';
 var recentlyVisitMaxCount = 100;
 var recentlyVisitPages;
 var logoutCookieName = 'logout';
@@ -22,7 +22,7 @@ var toggleSidebar = au.emptyFn;
 var toggleToc = au.emptyFn;
 detectClient();
 window.addEventListener('load', function () {
-    initDomVars();
+    initVars();
     bindFixedToggle();
     bindSidebarToggle();
     bindTocToggle();
@@ -36,30 +36,26 @@ window.addEventListener('load', function () {
     // bindSitemapToggle();
     anchorLink();
     checkLogout();
-    visiblePage();
+    showPage();
 });
 
 function detectClient() {
-    var html = au.el('html');
-    html.classList.add('js');
-    html.classList.add('js-not-ready');
-    html.classList.add(isMobi ? 'mobi' : 'desktop');
+    au.el('html').classList.add('js', isMobi ? 'mobi' : 'desktop');
 }
 
-function initDomVars() {
+function initVars() {
     container = au.el('.container');
     main = au.el('.main');
     content = au.el('.content');
 }
 
-function visiblePage() {
+function showPage() {
     var html = au.el('html');
-    html.classList.remove('js-not-ready');
     if (autumn.cssLoaded) {
-        html.style.removeProperty('visibility');
+        html.removeAttribute('style');
     } else {
         autumn.onCssLoaded = function () {
-            html.style.removeProperty('visibility');
+            html.removeAttribute('style');
         };
     }
 }
@@ -379,12 +375,11 @@ function anchorLink() {
         } else {
             a.href = '#' + hNode.id;
         }
+        a.classList.add('anchor');
+        hNode.classList.add('heading');
         if (isMobi) {
-            a.classList.add('heading__anchor__icon');
             hNode.appendChild(a);
         } else {
-            a.classList.add('heading__anchor');
-            hNode.classList.add('heading');
             hNode.insertBefore(a, hNode.firstChild);
         }
         firstHeading = false;
@@ -412,4 +407,11 @@ function toggleFixed(fixed) {
     }
     isFixed = fixed;
     return fixed
+}
+
+function checkLogout() {
+    if (au.getCookie(logoutCookieName)) {
+        localStorage.removeItem(localStorageRecentVisitKey);
+        au.deleteCookie(logoutCookieName);
+    }
 }

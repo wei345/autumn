@@ -1031,13 +1031,6 @@ function setupQuickSearch(treeRoot) {
     }
 }
 
-function checkLogout() {
-    if (au.getCookie(logoutCookieName)) {
-        localStorage.removeItem(lsRecentVisitKey);
-        au.deleteCookie(logoutCookieName);
-    }
-}
-
 function updateVisitList() {
     // 确定 currentPath
     var currentPath = au.pathname();
@@ -1072,11 +1065,11 @@ function updateVisitList() {
             }
         }
     }
-    localStorage.setItem(lsRecentVisitKey, JSON.stringify(newVisitList));
+    localStorage.setItem(localStorageRecentVisitKey, JSON.stringify(newVisitList));
 }
 
 function getVisitList() {
-    var v = localStorage.getItem(lsRecentVisitKey);
+    var v = localStorage.getItem(localStorageRecentVisitKey);
     return v ? JSON.parse(v) : [];
 }
 
