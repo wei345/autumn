@@ -4,8 +4,9 @@
       layout:decorate="~{content_layout}" th:with="pageTitle=${contentHtml.title}">
 <body>
 <div layout:fragment="content_layout_fragment" class="center_position">
-    <div th:utext="${contentHtml.tocHtml}"></div>
-    <div th:utext="${contentHtml.contentHtml}"></div>
+    <div th:remove="tag" th:utext="${contentHtml.tocHtml}"></div>
+    <div th:remove="tag" th:utext="${contentHtml.titleHtml}"></div>
+    <div th:remove="tag" th:utext="${contentHtml.contentHtml}"></div>
 </div>
 </body>
 </html>

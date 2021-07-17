@@ -175,7 +175,8 @@ public class HtmlUtil {
 
     public static String addHeadingClass(String html) {
         Document document = Jsoup.parse(html);
-        document.select("a.anchor").forEach(a -> a.parent().addClass("heading"));
+        document.select("a.anchor")
+                .forEach(a -> a.parent().addClass("heading").appendChild(a));
         return document.body().html();
     }
 

@@ -260,7 +260,7 @@ function setupQuickSearch(treeRoot) {
 
     function openQs() {
         qsOpened = true;
-        container.classList.add('qs_opened');
+        containerNode.classList.add('qs_opened');
         onQsOpenListeners.forEach(fn => fn());
     }
 
@@ -271,8 +271,8 @@ function setupQuickSearch(treeRoot) {
         clearResult();
         lastS = null;
         qsOpened = false;
-        container.classList.remove('qs_opened');
-        container.classList.remove('qsr_more');
+        containerNode.classList.remove('qs_opened');
+        containerNode.classList.remove('qsr_more');
         onQsCloseListeners.forEach(fn => fn());
     }
 
@@ -556,7 +556,7 @@ function setupQuickSearch(treeRoot) {
     function showSearchResult(pages, resultName) {
         qsrAllPages = pages;
         qsrResultName = resultName ? resultName : 'results';
-        var lines = container.classList.contains('qsr_more') ? pages.length : qsrDefaultLines;
+        var lines = containerNode.classList.contains('qsr_more') ? pages.length : qsrDefaultLines;
         renderPages(pages, lines, qsrResultName);
         qsrSelectedIndex = -1;
     }
@@ -564,7 +564,7 @@ function setupQuickSearch(treeRoot) {
     function showMoreResult() {
         renderPages(qsrAllPages, qsrAllPages.length, qsrResultName);
         select();
-        container.classList.add('qsr_more');
+        containerNode.classList.add('qsr_more');
         scroll(0, 0);
     }
 
@@ -945,7 +945,7 @@ function setupQuickSearch(treeRoot) {
             ctOpened = true;
             ct.classList.add('show');
             ctToggle.classList.add('unfolded');
-            container.classList.add('show_ct');
+            containerNode.classList.add('show_ct');
             syncFromInput();
         }
 
@@ -956,7 +956,7 @@ function setupQuickSearch(treeRoot) {
             ctOpened = false;
             ct.classList.remove('show');
             ctToggle.classList.remove('unfolded');
-            container.classList.remove('show_ct');
+            containerNode.classList.remove('show_ct');
         }
 
         function syncToInput() {
@@ -1049,7 +1049,7 @@ function updateVisitList() {
             return;
         }
         var params = au.parseQueryString(queryString);
-        currentPath += '?s=' + encodeURIComponent(params.s);
+        currentPath += '?q=' + encodeURIComponent(params.q);
     }
 
     // 更新

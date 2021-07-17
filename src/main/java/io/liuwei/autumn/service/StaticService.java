@@ -11,9 +11,7 @@ import io.liuwei.autumn.manager.ResourceFileManager;
 import io.liuwei.autumn.model.ContentHtml;
 import io.liuwei.autumn.model.ResourceFile;
 import io.liuwei.autumn.model.RevisionContent;
-import io.liuwei.autumn.util.IOUtil;
-import io.liuwei.autumn.util.JsCompressor;
-import io.liuwei.autumn.util.MediaTypeUtil;
+import io.liuwei.autumn.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +43,9 @@ public class StaticService {
 
     @Autowired
     private ContentHtmlConverter contentHtmlConverter;
+
+    @Autowired
+    private AsciidocArticleParser asciidocArticleParser;
 
     private AppProperties.CodeBlock codeBlock;
 
@@ -145,7 +146,10 @@ public class StaticService {
     public ContentHtml getHelpContentHtml() {
         log.info("building {}", Constants.HELP);
         ResourceFile help = getStaticResourceFile("/help.adoc");
-        return contentHtmlConverter.convert("Help", help.getContentAsString());
+        String content = asciidocArticleParser.parse(help.getContentAsString(), "/help").getContent();
+        ContentHtml contentHtml = contentHtmlConverter.convert("Help", content);
+        contentHtml.setContentHtml(HtmlUtil.addHeadingClass(contentHtml.getContentHtml()));
+        return contentHtml;
     }
 
     private String getLineNumberJs() {

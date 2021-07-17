@@ -14,7 +14,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.asciidoctor.Asciidoctor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
@@ -42,9 +41,6 @@ import java.util.stream.Collectors;
 public class ArticleManager {
 
     @Autowired
-    private Asciidoctor asciidoctor;
-
-    @Autowired
     private DataFileDao dataFileDao;
 
     @Autowired
@@ -55,6 +51,7 @@ public class ArticleManager {
     @Qualifier("viewCache")
     private Cache viewCache;
 
+    @Autowired
     private AsciidocArticleParser asciidocArticleParser;
 
     /**
@@ -70,7 +67,6 @@ public class ArticleManager {
 
     @PostConstruct
     public void init() {
-        asciidocArticleParser = new AsciidocArticleParser(asciidoctor);
         reload();
     }
 

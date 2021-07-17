@@ -10,9 +10,9 @@ var logoutCookieName = 'logout';
 var isMobi = /Mobi/.test(navigator.userAgent);
 var alwaysUnfoldRoot = false;
 var multipleSelectionEnabled = false;
-var container;
-var main;
-var content;
+var containerNode;
+var mainNode;
+var contentNode;
 var treeReady = false;
 var treeFirstShow = true;
 var isFixed = false;
@@ -42,16 +42,16 @@ window.addEventListener('load', function () {
 function detectClient() {
     var html = au.el('html');
     html.classList.add('js');
-    if (isMobi) {
-        html.classList.remove('desktop');
-        html.classList.add('mobi');
+    if (!isMobi) {
+        html.classList.remove('mobi');
+        html.classList.add('desktop');
     }
 }
 
 function initVars() {
-    container = au.el('.container');
-    main = au.el('.main');
-    content = au.el('.content');
+    containerNode = au.el('.container');
+    mainNode = au.el('.main');
+    contentNode = au.el('.content');
 }
 
 function showPage() {
@@ -59,7 +59,7 @@ function showPage() {
     if (autumn.cssLoaded) {
         html.removeAttribute('style');
     } else {
-        autumn.onCssLoaded = function () {
+        autumn.onCssLoad = function () {
             html.removeAttribute('style');
         };
     }
@@ -73,7 +73,7 @@ function bindSidebarToggle() {
         return;
     }
     var lsKey = prefix + 'sidebar.display';
-    if (getComputedStyle(main).getPropertyValue('flex-direction') === 'row') {
+    if (getComputedStyle(mainNode).getPropertyValue('flex-direction') === 'row') {
         internalToggleSidebar(localStorage.getItem(lsKey) !== '0'); // 默认展开
     }
     toggle.addEventListener('click', toggleSidebarAndRemember);
@@ -81,9 +81,9 @@ function bindSidebarToggle() {
 
     function internalToggleSidebar(show) {
         if (show == null) {
-            show = container.classList.toggle('show_sidebar');
+            show = containerNode.classList.toggle('show_sidebar');
         } else {
-            container.classList.toggle('show_sidebar', show);
+            containerNode.classList.toggle('show_sidebar', show);
         }
         if (show) {
             sidebar.prepend(toggle);
@@ -124,9 +124,9 @@ function bindTocToggle() {
 
     function internalToggleToc(show) {
         if (show == null) {
-            show = !content.classList.toggle('hide_toc');
+            show = !contentNode.classList.toggle('hide_toc');
         } else {
-            content.classList.toggle('hide_toc', !show);
+            contentNode.classList.toggle('hide_toc', !show);
         }
         return show;
     }
@@ -340,9 +340,9 @@ function bindSitemapToggle() {
 }
 
 function selectedNodeScrollIntoViewIfTreeFirstShow() {
-    if (treeFirstShow && treeReady && container.classList.contains('show_sidebar')) {
+    if (treeFirstShow && treeReady && containerNode.classList.contains('show_sidebar')) {
         treeFirstShow = false;
-        if (getComputedStyle(main).getPropertyValue('flex-direction') === 'row' && !isFixed) {
+        if (getComputedStyle(mainNode).getPropertyValue('flex-direction') === 'row' && !isFixed) {
             return;
         }
         var selected = au.el('.tree_node_header_selected');
@@ -354,10 +354,6 @@ function selectedNodeScrollIntoViewIfTreeFirstShow() {
 }
 
 function anchorLink() {
-    var contentNode = au.el('.page_content');
-    if (!contentNode) {
-        return;
-    }
     var levels = {
         'h1': true,
         'h2': true,
@@ -375,8 +371,8 @@ function anchorLink() {
         if (!levels[tagName]) {
             continue;
         }
-        if (isMobi) {
-            hNode.appendChild(anchor);
+        if (!isMobi) {
+            hNode.insertBefore(anchor, hNode.firstChild);
         }
     }
 }
@@ -396,9 +392,9 @@ function toggleFixedAndRemember() {
 
 function toggleFixed(fixed) {
     if (fixed == null) {
-        fixed = container.classList.toggle(fixedClassName);
+        fixed = containerNode.classList.toggle(fixedClassName);
     } else {
-        container.classList.toggle(fixedClassName, fixed);
+        containerNode.classList.toggle(fixedClassName, fixed);
     }
     isFixed = fixed;
     return fixed

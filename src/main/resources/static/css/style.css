@@ -413,17 +413,17 @@ input.header__row_1__search_input {
     background-color: #ff9;
 }
 
-.page .heading a.anchor {
+.content .heading a.anchor {
     color: rgba(0, 0, 0, .2);
     font-weight: normal;
     text-decoration: none;
 }
 
-.page .heading a.anchor:before {
+.content .heading a.anchor:before {
     content: '#';
 }
 
-.desktop .page .heading a.anchor {
+.desktop .content .heading a.anchor {
     display: inline-block;
     margin-left: -21px;
     padding-right: 5px;
@@ -432,17 +432,17 @@ input.header__row_1__search_input {
     visibility: hidden;
 }
 
-.desktop .page .heading:hover a.anchor {
+.desktop .content .heading:hover a.anchor {
     visibility: visible;
 }
 
-.desktop .page .heading a.anchor:hover {
+.desktop .content .heading a.anchor:hover {
     color: #097dff;
 }
 
-.mobi .page .heading a.anchor {
+.mobi .content .heading a.anchor {
     margin-left: 10px;
-    opacity: .3;
+    opacity: .5;
 }
 
 .toc {

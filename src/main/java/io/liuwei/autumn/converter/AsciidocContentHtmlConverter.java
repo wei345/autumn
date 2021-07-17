@@ -34,8 +34,9 @@ public class AsciidocContentHtmlConverter implements ContentHtmlConverter {
         // title html
         String titleId = "article-title";
         String titleHtml = "<h1 id=\"" + titleId + "\" class=\"heading\">" +
+                StringEscapeUtils.escapeHtml4(title) +
                 "<a class=\"anchor\" href=\"\"></a>" +
-                StringEscapeUtils.escapeHtml4(title) + "</h1>";
+                "</h1>";
 
         // content html
         String contentHtml = asciidoctor.convert(content, optionsBuilder);

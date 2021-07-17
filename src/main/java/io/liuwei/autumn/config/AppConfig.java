@@ -7,6 +7,7 @@ import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import io.liuwei.autumn.aop.SettingModelAttributeInterceptor;
 import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.service.UserService;
+import io.liuwei.autumn.util.AsciidocArticleParser;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.jruby.internal.JRubyAsciidoctor;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +21,7 @@ import javax.annotation.PostConstruct;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static java.nio.charset.StandardCharsets.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * @author liuwei
@@ -76,6 +77,11 @@ public class AppConfig {
     @Bean
     public Asciidoctor asciidoctor() {
         return new JRubyAsciidoctor();
+    }
+
+    @Bean
+    public AsciidocArticleParser asciidocArticleParser(Asciidoctor asciidoctor) {
+        return new AsciidocArticleParser(asciidoctor);
     }
 
     @Bean

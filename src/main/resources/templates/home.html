@@ -2,20 +2,18 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{content_layout}">
-<div layout:fragment="content_layout_fragment" class="page">
-    <div class="page_content">
-        <h1 id="home" th:text="${pageTitle}"></h1>
-        <p th:if="${#lists.isEmpty(articles)}">Welcome</p>
-        <h2 th:if="${not #lists.isEmpty(articles)}" id="recently-modified">Recently Modified</h2>
-        <ol th:if="${not #lists.isEmpty(articles)}" class='recently_modified'>
-            <li th:each="article : ${articles}">
-                <a th:href="@{${article.path}}">
-                    <span th:text="${article.title}"></span>
-                    <i th:data-time="${article.modified.time}"
-                       th:text="${#dates.format(article.modified, 'yyyy-MM-dd')}"></i>
-                </a>
-            </li>
-        </ol>
-    </div>
+<div layout:fragment="content_layout_fragment" class="center_position">
+    <h1 id="home" th:text="${pageTitle}"></h1>
+    <p th:if="${#lists.isEmpty(articles)}">Welcome</p>
+    <h2 th:if="${not #lists.isEmpty(articles)}" id="recently-modified">Recently Modified</h2>
+    <ol th:if="${not #lists.isEmpty(articles)}" class='recently_modified'>
+        <li th:each="article : ${articles}">
+            <a th:href="@{${article.path}}">
+                <span th:text="${article.title}"></span>
+                <i th:data-time="${article.modified.time}"
+                   th:text="${#dates.format(article.modified, 'yyyy-MM-dd')}"></i>
+            </a>
+        </li>
+    </ol>
 </div>
 </html>
