@@ -89,7 +89,7 @@ public class ResourceFileManager {
         if (visitor.getLastModified() > templateLastModified) {
             templateLastModified = visitor.getLastModified();
             viewCache.clear();
-            log.info("Updated templateLastModified {}", templateLastModified);
+            log.info("template changed. {}", templateRoot);
         }
     }
 

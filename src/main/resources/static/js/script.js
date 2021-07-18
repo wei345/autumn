@@ -36,7 +36,7 @@ window.addEventListener('load', function () {
     // bindSitemapToggle();
     anchorLink();
     checkLogout();
-    showPage();
+    onLoad();
 });
 
 function detectClient() {
@@ -48,21 +48,16 @@ function detectClient() {
     }
 }
 
+function onLoad() {
+    if (autumn.onLoad) {
+        autumn.onLoad();
+    }
+}
+
 function initVars() {
     containerNode = au.el('.container');
     mainNode = au.el('.main');
     contentNode = au.el('.content');
-}
-
-function showPage() {
-    var html = au.el('html');
-    if (autumn.cssLoaded) {
-        html.removeAttribute('style');
-    } else {
-        autumn.onCssLoad = function () {
-            html.removeAttribute('style');
-        };
-    }
 }
 
 function bindSidebarToggle() {

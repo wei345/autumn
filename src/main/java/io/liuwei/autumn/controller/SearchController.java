@@ -31,6 +31,8 @@ import java.util.Map;
 @Controller
 public class SearchController {
 
+    private final int maxSearchStrLength = 120;
+
     @Autowired
     private SearchService searchService;
 
@@ -41,8 +43,6 @@ public class SearchController {
 
     @Value("${autumn.search.page-size}")
     private int pageSize;
-
-    private final int maxSearchStrLength = 120;
 
     @PostConstruct
     public void init() {
@@ -75,15 +75,22 @@ public class SearchController {
             return null;
         }
 
-        String q1 = q;
         SearchResult sr = searchService.search(q, accessLevel, offset, pageSize);
+
+        String q1 = q;
+        Pagination pagination = new Pagination(
+                offset,
+                pageSize,
+                sr.getTotal(),
+                (pageNumber, offset1) -> {
+                    String url = "/search?q=" + q1;
+                    if (offset1 > 0) {
+                        url += "&offset=" + offset1;
+                    }
+                    return url;
+                });
         model.put("sr", sr);
-        model.put("pagination",
-                new Pagination(
-                        offset,
-                        pageSize,
-                        sr.getTotal(),
-                        (pageNumber, offset1) -> "/search?q=" + q1 + "&offset=" + offset1));
-        return "search_result";
+        model.put("pagination", pagination);
+        return "search";
     }
 }

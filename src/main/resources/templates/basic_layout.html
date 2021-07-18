@@ -8,21 +8,29 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta id="ctx" name="ctx" th:value="${ctx}">
     <meta id="prefix" name="prefix" th:value="${prefix}">
-    <meta id="treeJsonUrl" name="treeJsonUrl" th:value="${treeJsonUrl}">
+    <meta id="treeJsonUrl" name="treeJsonUrl" th:value="@{${treeJsonUrl}}">
+    <meta id="cssUrl" name="cssUrl" th:value="@{${cssUrl}}">
     <link rel="icon" th:href="@{${faviconUrl}}" type="image/x-icon"/>
     <script>
-        var autumn = {
-            ctx: document.getElementById('ctx').getAttribute('value'),
-            prefix: document.getElementById('prefix').getAttribute('value'),
-            treeJsonUrl: document.getElementById('treeJsonUrl').getAttribute('value')
-        };
-        document.querySelector('html').style.visibility = 'hidden';
+        (function () {
+            document.querySelector('html').style.visibility = 'hidden';
+            var countDown = 2;
+            window.autumn = {
+                ctx: document.getElementById('ctx').getAttribute('value'),
+                prefix: document.getElementById('prefix').getAttribute('value'),
+                treeJsonUrl: document.getElementById('treeJsonUrl').getAttribute('value'),
+                onLoad: function () {
+                    if (--countDown === 0) {
+                        document.querySelector('html').removeAttribute('style');
+                    }
+                }
+            };
+            document.writeln('<link href="' + document.getElementById('cssUrl').getAttribute('value') + '" ' +
+                'rel="preload" as="style" ' +
+                'onload="this.rel = \'stylesheet\'; autumn.onLoad(); this.onload = null">');
+        })();
     </script>
     <script async th:src="@{${jsUrl}}"></script>
-    <link th:href="@{${cssUrl}}" rel="preload" as="style"
-          onload="this.rel = 'stylesheet';
-          autumn.onCssLoad ? autumn.onCssLoad() : autumn.cssLoaded = true;
-          this.onload = null">
     <noscript>
         <link rel="stylesheet" th:href="@{${cssUrl}}">
     </noscript>

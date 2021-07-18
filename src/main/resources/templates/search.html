@@ -27,10 +27,10 @@
             <a th:if="${pagination.hasPrevious()}" class="previous" th:href="@{${pagination.previous.url}}">
                 <span class="pn">Previous</span>
             </a>
-            <span th:each="p : ${pagination.pageList}">
-                <span th:if="${p.page} == ${pagination.page}" th:text="${p.page}" class="pn"></span>
-                <a th:if="${p.page} != ${pagination.page}" th:href="@{${p.url}}">
-                    <span class="pn" th:text="${p.page}"></span>
+            <span th:each="page : ${pagination.pageList}">
+                <span th:if="${page.pageNumber} == ${pagination.pageNumber}" th:text="${page.pageNumber}" class="pn"></span>
+                <a th:if="${page.pageNumber} != ${pagination.pageNumber}" th:href="@{${page.url}}">
+                    <span class="pn" th:text="${page.pageNumber}"></span>
                 </a>
             </span>
             <a th:if="${pagination.hasNext()}" class="next" th:href="@{${pagination.next.url}}">

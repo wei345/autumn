@@ -19,7 +19,7 @@ public class Pagination {
     private final int offset;
 
     @Getter
-    private final int page;
+    private final int pageNumber;
 
     private final int pageSize;
 
@@ -28,15 +28,15 @@ public class Pagination {
     private final int totalPage;
 
     @Getter
-    private final List<PageNumber> pageList;
+    private final List<Page> pageList;
 
     private final UrlFactory urlFactory;
 
     @Getter
-    private PageNumber previous;
+    private Page previous;
 
     @Getter
-    private PageNumber next;
+    private Page next;
 
     public Pagination(int offset, int pageSize, int totalElements, UrlFactory urlFactory) {
         this(offset, pageSize, totalElements, DEFAULT_PAGE_LIST_SIZE, urlFactory);
@@ -47,30 +47,30 @@ public class Pagination {
         this.pageSize = pageSize;
         this.totalElements = totalElements;
         this.urlFactory = urlFactory;
-        this.page = calcCurrentPage();
+        this.pageNumber = calcCurrentPageNumber();
         this.totalPage = calcTotalPage();
         this.pageList = calcPageList(pageListSize);
         if (hasPrevious()) {
-            this.previous = newPageNumber(Math.min(page - 1, totalPage));
+            this.previous = newPage(Math.min(pageNumber - 1, totalPage));
         }
         if (hasNext()) {
-            this.next = newPageNumber(page + 1);
+            this.next = newPage(pageNumber + 1);
         }
     }
 
-    private List<PageNumber> calcPageList(int count) {
-        int from = Math.max(1, Math.min(page - count / 2, totalPage - count + 1));
+    private List<Page> calcPageList(int count) {
+        int from = Math.max(1, Math.min(pageNumber - count / 2, totalPage - count + 1));
         int to = Math.min(from + count - 1, totalPage);
-        List<PageNumber> list = new ArrayList<>(to - from + 1);
+        List<Page> list = new ArrayList<>(to - from + 1);
         for (int i = from; i <= to; i++) {
-            list.add(newPageNumber(i));
+            list.add(newPage(i));
         }
         return list;
     }
 
-    private PageNumber newPageNumber(int pageNumber) {
+    private Page newPage(int pageNumber) {
         int offset = pageSize * (pageNumber - 1);
-        return new PageNumber(pageNumber, offset, urlFactory.getUrl(pageNumber, offset));
+        return new Page(pageNumber, offset, urlFactory.getUrl(pageNumber, offset));
     }
 
     private int calcTotalPage() {
@@ -81,7 +81,7 @@ public class Pagination {
         return count;
     }
 
-    private int calcCurrentPage() {
+    private int calcCurrentPageNumber() {
         int pageNumber = offset / pageSize + 1;
         if (offset % pageSize > 0) {
             pageNumber++;
@@ -90,11 +90,11 @@ public class Pagination {
     }
 
     public boolean hasPrevious() {
-        return page > 1;
+        return pageNumber > 1;
     }
 
     public boolean hasNext() {
-        return page < totalPage;
+        return pageNumber < totalPage;
     }
 
     public boolean hasMore() {
@@ -104,7 +104,7 @@ public class Pagination {
         if (pageList.size() > 1) {
             return true;
         }
-        return pageList.get(0).page != page;
+        return pageList.get(0).pageNumber != pageNumber;
     }
 
     public interface UrlFactory {
@@ -112,13 +112,13 @@ public class Pagination {
     }
 
     @Getter
-    public static class PageNumber {
-        private final int page;
+    public static class Page {
+        private final int pageNumber;
         private final int offset;
         private final String url;
 
-        PageNumber(int page, int offset, String url) {
-            this.page = page;
+        Page(int pageNumber, int offset, String url) {
+            this.pageNumber = pageNumber;
             this.offset = offset;
             this.url = url;
         }
