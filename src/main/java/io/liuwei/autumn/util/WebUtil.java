@@ -49,8 +49,11 @@ public class WebUtil {
     // ---- ETag ----
 
     /**
-     * 除了设置 etag 之外，还会检查请求的 {@link Constants#REQUEST_PARAMETER_REVISION} 参数，
-     * 如果跟 etag 匹配，会设置缓存时间，使用浏览器在缓存期间不再发送请求。
+     * 检查 request Header ETag 跟指定的 <code>etag</code> 是否匹配。
+     * <p>
+     * 还会检查 request 的 {@value Constants#REQUEST_PARAMETER_REVISION} 参数，
+     * 如果跟指定的 <code>etag</code> 匹配，会设置 response Header {@value HttpHeaders#EXPIRES} 和
+     * {@value HttpHeaders#CACHE_CONTROL}，使浏览器在缓存过期前不发送请求。
      */
     public static boolean checkNotModified(String revision, String etag,
                                            HttpServletRequest request, HttpServletResponse response) {

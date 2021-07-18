@@ -96,7 +96,7 @@ public class ViewCacheAspect {
             }
             return result;
         } else {
-            if (WebUtil.checkNotModified(rc.getEtag(), request)) {
+            if (WebUtil.checkNotModified(rc.getRevision(), rc.getEtag(), request, response)) {
                 return ResponseEntity
                         .status(HttpStatus.NOT_MODIFIED)
                         .eTag(rc.getEtag())
