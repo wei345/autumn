@@ -1,5 +1,6 @@
 "use strict";
 var au = util();
+var searchQueryParameterName = 'q';
 var ctx = autumn.ctx;
 var prefix = autumn.prefix;
 var treeJsonUrl = autumn.treeJsonUrl;

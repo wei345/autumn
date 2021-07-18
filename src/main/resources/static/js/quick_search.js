@@ -12,7 +12,7 @@ function setupQuickSearch(treeRoot) {
     var qsrList = au.el('.qsr__list');
     var qsrAllPages;
     var qsrResultName;
-    var qsrDefaultLines = 6;
+    var qsrDefaultLineCount = 6;
     var qsrSelectedIndex = -1;
     var categoryPrefix = 'c:';
     var tagPrefix = 't:';
@@ -556,8 +556,8 @@ function setupQuickSearch(treeRoot) {
     function showSearchResult(pages, resultName) {
         qsrAllPages = pages;
         qsrResultName = resultName ? resultName : 'results';
-        var lines = containerNode.classList.contains('qsr_more') ? pages.length : qsrDefaultLines;
-        renderPages(pages, lines, qsrResultName);
+        var lineCount = containerNode.classList.contains('qsr_more') ? pages.length : qsrDefaultLineCount;
+        renderPages(pages, lineCount, qsrResultName);
         qsrSelectedIndex = -1;
     }
 
@@ -625,9 +625,9 @@ function setupQuickSearch(treeRoot) {
         }
         // search page
         var queryString = path.substr(questionMarkIndex);
-        var s = au.parseQueryString(queryString).s;
-        if (s) {
-            return 'Search: ' + s;
+        var q = au.parseQueryString(queryString)[searchQueryParameterName];
+        if (q) {
+            return 'Search: ' + q;
         }
         return path;
     }
@@ -1049,7 +1049,7 @@ function updateVisitList() {
             return;
         }
         var params = au.parseQueryString(queryString);
-        currentPath += '?q=' + encodeURIComponent(params.q);
+        currentPath += '?' + searchQueryParameterName + '=' + encodeURIComponent(params[searchQueryParameterName]);
     }
 
     // 更新
