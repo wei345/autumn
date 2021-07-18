@@ -27,7 +27,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.Map;
 
-import static java.nio.file.FileVisitResult.*;
+import static java.nio.file.FileVisitResult.CONTINUE;
 
 /**
  * @author liuwei
@@ -43,7 +43,7 @@ public class ResourceFileManager {
     private Cache viewCache;
 
     @Autowired
-    private ResourceFileManager proxy;
+    private ResourceFileManager aopProxy;
 
     @Getter
     @Value("${autumn.static.dir}")
@@ -73,14 +73,14 @@ public class ResourceFileManager {
         ResourceWalker.walk(staticRoot, visitor);
         if (visitor.isChanged()) {
             resourceFileMap = visitor.getResourceFileMap();
-            proxy.clearStaticCache();
+            aopProxy.clearStaticCache();
             viewCache.clear();
+            log.info("static changed. {}", staticRoot);
         }
     }
 
     @CacheEvict(value = CacheNames.STATIC, allEntries = true)
     public void clearStaticCache() {
-        log.info("clearStaticCache");
     }
 
     private void refreshTemplateLastModified() {
@@ -134,9 +134,9 @@ public class ResourceFileManager {
         private final Map<String, ResourceFile> oldMap;
         @Getter
         private final Map<String, ResourceFile> resourceFileMap;
+        private final String rootPath; // e.g. /static
         private Path root;
         private int addOrModifiedCount;
-        private final String rootPath; // e.g. /static
 
         LoadResourceFileVisitor(String rootPath, Map<String, ResourceFile> oldMap) {
             this.rootPath = rootPath;

@@ -47,13 +47,13 @@ public class StaticService {
     @Autowired
     private AsciidocArticleParser asciidocArticleParser;
 
-    private AppProperties.CodeBlock codeBlock;
-
     @Value("${autumn.google-analytics-id}")
     private String googleAnalyticsId;
 
     @Value("${autumn.static.js-compression-enabled}")
     private boolean jsCompressEnabled;
+
+    private AppProperties.CodeBlock codeBlock;
 
     @Autowired
     private void setAppProperties(AppProperties appProperties) {
