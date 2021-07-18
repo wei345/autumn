@@ -137,7 +137,15 @@ public class ArticleController {
         String path = WebUtil.getInternalPath(request);
         Article article = articleService.getArticle(path);
 
-        if (article == null || !article.getAccessLevel().allow(accessLevel)) {
+        if (article == null) {
+            response.sendError(404);
+            return null;
+        }
+
+        if (!article.getAccessLevel().allow(accessLevel)) {
+            if (accessLevel == AccessLevelEnum.ANON && article.getAccessLevel().allow(AccessLevelEnum.USER)) {
+                request.setAttribute("loginReturnUrl", path);
+            }
             response.sendError(404);
             return null;
         }
