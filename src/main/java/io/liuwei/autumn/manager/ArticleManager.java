@@ -9,6 +9,8 @@ import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.DataInfo;
 import io.liuwei.autumn.model.Media;
 import io.liuwei.autumn.util.AsciidocArticleParser;
+import io.liuwei.autumn.util.CollectionUtil;
+import io.liuwei.autumn.util.DiffUtil;
 import io.liuwei.autumn.util.MediaTypeUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -26,10 +28,7 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -58,9 +57,9 @@ public class ArticleManager {
      * 包含数据目录下所有文件，包括文章
      */
     // file path -> File. file path 以 "/" 开头，"/" 表示数据目录
-    private volatile Map<String, Media> mediaMap;
+    private volatile Map<String, Media> mediaMap = Collections.emptyMap();
 
-    private volatile Map<String, Article> articleMap;
+    private volatile Map<String, Article> articleMap = Collections.emptyMap();
 
     @Getter
     private volatile DataInfo dataInfo;
@@ -78,29 +77,60 @@ public class ArticleManager {
     public synchronized DataInfo reload() {
         long startTime = System.currentTimeMillis();
 
-        Map<String, File> allFileMap = dataFileDao.getAllFileMap();
-        Map<String, Media> mediaMap = Maps.newHashMapWithExpectedSize(allFileMap.size());
-        Map<String, Article> articleMap = Maps.newHashMapWithExpectedSize(allFileMap.size());
-        for (Map.Entry<String, File> fileEntry : allFileMap.entrySet()) {
-            Media media = toMedia(fileEntry.getValue(), fileEntry.getKey());
-            mediaMap.put(media.getPath(), media);
-            if (SourceFormatEnum.getByFileName(fileEntry.getKey()) == SourceFormatEnum.ASCIIDOC) {
-                String path = StringUtils.substringBeforeLast(fileEntry.getKey(), ".");
-                Article article = toArticle(fileEntry.getValue(), path);
-                articleMap.put(path, article);
-                media.setAccessLevel(article.getAccessLevel());
+        Map<String, Media> mediaMap1 = mediaMap;
+        Map<String, Article> articleMap1 = articleMap;
+        Map<String, File> fileMap2 = dataFileDao.getAllFileMap();
+
+        Map<String, Long> map1 = mediaMap1.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, o -> o.getValue().getLastModified()));
+        Map<String, Long> map2 = fileMap2.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, o -> o.getValue().lastModified()));
+        DiffUtil.Diff<String> diff = DiffUtil.diff(map1, map2);
+
+        if (diff.getAdded().size() == 0 && diff.getModified().size() == 0 && diff.getDeleted().size() == 0) {
+            dataInfo.setCheckTime(new Date());
+        } else {
+            Map<String, Media> mediaMap2 = Maps.newHashMapWithExpectedSize(fileMap2.size());
+            Map<String, Article> articleMap2 = Maps.newHashMapWithExpectedSize(fileMap2.size());
+
+            Iterator<String> addedOrModifiedIterator = CollectionUtil.unionIterator(diff.getAdded(), diff.getModified());
+            while (addedOrModifiedIterator.hasNext()) {
+                String path = addedOrModifiedIterator.next();
+                File file = fileMap2.get(path);
+                Media media = toMedia(file, path);
+                mediaMap2.put(path, media);
+                String articlePath = toArticlePath(path);
+                if (articlePath != null) {
+                    Article article = toArticle(file, articlePath);
+                    articleMap2.put(articlePath, article);
+                    media.setAccessLevel(article.getAccessLevel());
+                }
             }
+
+            for (String path : diff.getNotChanged()) {
+                mediaMap2.put(path, mediaMap1.get(path));
+                String articlePath = toArticlePath(path);
+                if (articlePath != null) {
+                    articleMap2.put(articlePath, articleMap1.get(articlePath));
+                }
+            }
+
+            long costMills = System.currentTimeMillis() - startTime;
+            DataInfo dataInfo = toDataInfo(dataFileDao.getDataDir(), mediaMap2, articleMap2, costMills, diff);
+            this.mediaMap = mediaMap2;
+            this.articleMap = articleMap2;
+            this.dataInfo = dataInfo;
+            mediaCache.clear();
+            viewCache.clear();
+            log.info("Data changed. {}", dataInfo);
         }
 
-        long costMills = System.currentTimeMillis() - startTime;
-        DataInfo dataInfo = toDataInfo(dataFileDao.getDataDir(), mediaMap, articleMap, costMills);
-        this.mediaMap = mediaMap;
-        this.articleMap = articleMap;
-        this.dataInfo = dataInfo;
-        mediaCache.clear();
-        viewCache.clear();
-        log.info("Reloaded. {}", dataInfo);
         return dataInfo;
+    }
+
+    private String toArticlePath(String mediaPath) {
+        return SourceFormatEnum.getByFileName(mediaPath) == SourceFormatEnum.ASCIIDOC ?
+                StringUtils.substringBeforeLast(mediaPath, ".") : null;
     }
 
     public Media getMedia(String path) {
@@ -160,10 +190,13 @@ public class ArticleManager {
     private DataInfo toDataInfo(String dataDir,
                                 Map<String, Media> mediaMap,
                                 Map<String, Article> articleMap,
-                                Long costMills) {
+                                Long costMills,
+                                DiffUtil.Diff<String> diff) {
+        Date time = new Date();
         DataInfo dataInfo = new DataInfo();
         dataInfo.setDataDir(dataDir);
-        dataInfo.setTime(new Date());
+        dataInfo.setLoadTime(time);
+        dataInfo.setCheckTime(time);
         dataInfo.setCost(costMills);
         dataInfo.setFile(mediaMap.size());
         dataInfo.setArticle(articleMap.size());
@@ -185,6 +218,14 @@ public class ArticleManager {
                         .stream()
                         .filter(o -> o.getAccessLevel().allow(AccessLevelEnum.ANON))
                         .count());
+
+        DataInfo.DiffCount diffCount = new DataInfo.DiffCount();
+        diffCount.setAdded(diff.getAdded().size());
+        diffCount.setModified(diff.getModified().size());
+        diffCount.setDeleted(diff.getDeleted().size());
+        diffCount.setNotChanged(diff.getNotChanged().size());
+        diffCount.setChanged(diffCount.getAdded() + diffCount.getModified() + diffCount.getDeleted());
+        dataInfo.setDiffCount(diffCount);
         return dataInfo;
     }
 

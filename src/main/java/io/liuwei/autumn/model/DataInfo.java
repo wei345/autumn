@@ -13,6 +13,11 @@ import java.util.Date;
 @Data
 public class DataInfo {
     /**
+     * 最近变化
+     */
+    private DiffCount diffCount;
+
+    /**
      * 数据目录
      */
     private String dataDir;
@@ -48,9 +53,27 @@ public class DataInfo {
     private Long cost;
 
     /**
-     * 加载数据的时间
+     * 数据加载时间
      */
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date time;
+    private Date loadTime;
+
+    /**
+     * 检查时间
+     */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private volatile Date checkTime;
+
+    @Data
+    public static class DiffCount {
+        private long added;
+        private long modified;
+        private long deleted;
+        /**
+         * added + modified + deleted
+         */
+        private long changed;
+        private long notChanged;
+    }
 
 }
