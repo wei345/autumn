@@ -1,6 +1,6 @@
 package io.liuwei.autumn.converter;
 
-import io.liuwei.autumn.model.ContentHtml;
+import io.liuwei.autumn.model.ArticleHtml;
 
 /**
  * 把文章原文转为 HTML。
@@ -8,7 +8,7 @@ import io.liuwei.autumn.model.ContentHtml;
  * @author liuwei
  * Created by liuwei on 2018/11/30.
  */
-public interface ContentHtmlConverter {
+public interface ArticleHtmlConverter {
 
-    ContentHtml convert(String title, String content);
+    ArticleHtml convert(String title, String content);
 }

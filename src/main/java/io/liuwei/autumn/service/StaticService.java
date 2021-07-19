@@ -6,9 +6,9 @@ import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.constant.CacheKeys;
 import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.constant.Constants;
-import io.liuwei.autumn.converter.ContentHtmlConverter;
+import io.liuwei.autumn.converter.ArticleHtmlConverter;
 import io.liuwei.autumn.manager.ResourceFileManager;
-import io.liuwei.autumn.model.ContentHtml;
+import io.liuwei.autumn.model.ArticleHtml;
 import io.liuwei.autumn.model.ResourceFile;
 import io.liuwei.autumn.model.RevisionContent;
 import io.liuwei.autumn.util.*;
@@ -42,7 +42,7 @@ public class StaticService {
     private MediaRevisionResolver mediaRevisionResolver;
 
     @Autowired
-    private ContentHtmlConverter contentHtmlConverter;
+    private ArticleHtmlConverter articleHtmlConverter;
 
     @Autowired
     private AsciidocArticleParser asciidocArticleParser;
@@ -143,13 +143,13 @@ public class StaticService {
     }
 
     @Cacheable(value = CacheNames.STATIC, key = CacheKeys.HELP)
-    public ContentHtml getHelpContentHtml() {
+    public ArticleHtml getHelpArticleHtml() {
         log.info("building {}", Constants.HELP);
         ResourceFile help = getStaticResourceFile("/help.adoc");
         String content = asciidocArticleParser.parse(help.getContentAsString(), "/help").getContent();
-        ContentHtml contentHtml = contentHtmlConverter.convert("Help", content);
-        contentHtml.setContentHtml(HtmlUtil.addHeadingClass(contentHtml.getContentHtml()));
-        return contentHtml;
+        ArticleHtml articleHtml = articleHtmlConverter.convert("Help", content);
+        articleHtml.setContentHtml(HtmlUtil.addHeadingClass(articleHtml.getContentHtml()));
+        return articleHtml;
     }
 
     private String getLineNumberJs() {

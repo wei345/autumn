@@ -1,6 +1,6 @@
 package io.liuwei.autumn.converter;
 
-import io.liuwei.autumn.model.ContentHtml;
+import io.liuwei.autumn.model.ArticleHtml;
 import org.apache.commons.text.StringEscapeUtils;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.AttributesBuilder;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * @since 2020-06-01 18:45
  */
 @Component
-public class AsciidocContentHtmlConverter implements ContentHtmlConverter {
+public class AsciidocArticleHtmlConverter implements ArticleHtmlConverter {
 
     private final OptionsBuilder optionsBuilder = OptionsBuilder.options()
             .attributes(AttributesBuilder.attributes()
@@ -25,12 +25,12 @@ public class AsciidocContentHtmlConverter implements ContentHtmlConverter {
 
     private final Asciidoctor asciidoctor;
 
-    public AsciidocContentHtmlConverter(Asciidoctor asciidoctor) {
+    public AsciidocArticleHtmlConverter(Asciidoctor asciidoctor) {
         this.asciidoctor = asciidoctor;
     }
 
     @Override
-    public ContentHtml convert(String title, String content) {
+    public ArticleHtml convert(String title, String content) {
         // title html
         String titleId = "article-title";
         String titleHtml = "<h1 id=\"" + titleId + "\" class=\"heading\">" +
@@ -74,6 +74,6 @@ public class AsciidocContentHtmlConverter implements ContentHtmlConverter {
             tocHtml = tocEl.outerHtml();
         }
 
-        return new ContentHtml(title, titleHtml, tocHtml, contentHtml);
+        return new ArticleHtml(title, titleHtml, tocHtml, contentHtml);
     }
 }

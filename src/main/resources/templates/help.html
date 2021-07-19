@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{content_layout}" th:with="pageTitle=${contentHtml.title}">
+      layout:decorate="~{content_layout}" th:with="pageTitle=${articleHtml.title}">
 <body>
 <div layout:fragment="content_layout_fragment" class="center_position">
-    <div th:remove="tag" th:utext="${contentHtml.tocHtml}"></div>
-    <div th:remove="tag" th:utext="${contentHtml.titleHtml}"></div>
-    <div th:remove="tag" th:utext="${contentHtml.contentHtml}"></div>
+    <div th:remove="tag" th:utext="${articleHtml.tocHtml}"></div>
+    <div th:remove="tag" th:utext="${articleHtml.titleHtml}"></div>
+    <div th:remove="tag" th:utext="${articleHtml.contentHtml}"></div>
 </div>
 </body>
 </html>

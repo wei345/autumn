@@ -4,7 +4,7 @@ import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.constant.Constants;
-import io.liuwei.autumn.converter.ContentHtmlConverter;
+import io.liuwei.autumn.converter.ArticleHtmlConverter;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.manager.ArticleManager;
 import io.liuwei.autumn.model.*;
@@ -34,7 +34,7 @@ public class ArticleService {
     private ArticleManager articleManager;
 
     @Autowired
-    private ContentHtmlConverter contentHtmlConverter;
+    private ArticleHtmlConverter articleHtmlConverter;
 
     @Autowired
     private MediaRevisionResolver mediaRevisionResolver;
@@ -121,20 +121,20 @@ public class ArticleService {
     }
 
     @Cacheable(value = CacheNames.ARTICLE_HTML, keyGenerator = "cacheKeyGenerator")
-    public ContentHtml getContentHtml(Article article) {
-        ContentHtml contentHtml = contentHtmlConverter.convert(article.getTitle(), article.getContent());
-        contentHtml.setTocHtml(HtmlUtil.toNumberedTocHtml(contentHtml.getTocHtml()));
-        contentHtml.setContentHtml(
+    public ArticleHtml getArticleHtml(Article article) {
+        ArticleHtml articleHtml = articleHtmlConverter.convert(article.getTitle(), article.getContent());
+        articleHtml.setTocHtml(HtmlUtil.toNumberedTocHtml(articleHtml.getTocHtml()));
+        articleHtml.setContentHtml(
                 HtmlUtil.addHeadingClass(
                         HtmlUtil.rewriteImgSrcToRevisionUrl(
-                                contentHtml.getContentHtml(),
+                                articleHtml.getContentHtml(),
                                 article.getPath(),
                                 mediaRevisionResolver::toRevisionUrl)));
-        return contentHtml;
+        return articleHtml;
     }
 
     public ArticleVO toVO(Article article) {
-        ContentHtml contentHtml = aopProxy.getContentHtml(article);
+        ArticleHtml articleHtml = aopProxy.getArticleHtml(article);
         ArticleVO vo = new ArticleVO();
         vo.setPath(article.getPath());
         vo.setTitle(article.getTitle());
@@ -147,9 +147,9 @@ public class ArticleService {
         vo.setContent(article.getContent());
         vo.setSource(article.getSource());
         vo.setSourceMd5(article.getSourceMd5());
-        vo.setTitleHtml(contentHtml.getTitleHtml());
-        vo.setContentHtml(contentHtml.getContentHtml());
-        vo.setTocHtml(contentHtml.getTocHtml());
+        vo.setTitleHtml(articleHtml.getTitleHtml());
+        vo.setContentHtml(articleHtml.getContentHtml());
+        vo.setTocHtml(articleHtml.getTocHtml());
         return vo;
     }
 }

@@ -9,14 +9,14 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ContentHtml {
+public class ArticleHtml {
     private String title;
     private String titleHtml;
     private String tocHtml;
     private String contentHtml;
     private long time;
 
-    public ContentHtml(String title, String titleHtml, String tocHtml, String contentHtml) {
+    public ArticleHtml(String title, String titleHtml, String tocHtml, String contentHtml) {
         this.title = title;
         this.tocHtml = tocHtml;
         this.titleHtml = titleHtml;
