@@ -5,7 +5,6 @@ import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.model.ResourceFile;
 import io.liuwei.autumn.util.IOUtil;
-import io.liuwei.autumn.util.MediaTypeUtil;
 import io.liuwei.autumn.util.ResourceWalker;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
-import org.springframework.util.DigestUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -180,13 +178,9 @@ public class ResourceFileManager {
                 addOrModifiedCount++;
 
                 byte[] content = IOUtil.resourceToByteArray(filePath);
-                String md5 = DigestUtils.md5DigestAsHex(content);
                 ResourceFile resourceFile = new ResourceFile();
                 resourceFile.setContent(content);
-                resourceFile.setMd5(md5);
-                resourceFile.setMediaType(MediaTypeUtil.getMediaType(filePath));
                 resourceFile.setLastModified(attrs.lastModifiedTime().toMillis());
-                resourceFile.setPath(filePath);
                 resourceFileMap.put(filePath, resourceFile);
                 return CONTINUE;
             } else {
@@ -201,13 +195,9 @@ public class ResourceFileManager {
 
                 addOrModifiedCount++;
                 byte[] content = IOUtil.toByteArray(file);
-                String md5 = DigestUtils.md5DigestAsHex(content);
                 ResourceFile resourceFile = new ResourceFile();
                 resourceFile.setContent(content);
-                resourceFile.setMd5(md5);
-                resourceFile.setMediaType(MediaTypeUtil.getMediaType(file.toFile().getName()));
                 resourceFile.setLastModified(lastModified);
-                resourceFile.setPath(filePath);
                 resourceFileMap.put(filePath, resourceFile);
                 return CONTINUE;
             }

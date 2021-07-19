@@ -2,9 +2,8 @@ package io.liuwei.autumn.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.http.MediaType;
 
-import static java.nio.charset.StandardCharsets.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * @author liuwei
@@ -14,10 +13,7 @@ import static java.nio.charset.StandardCharsets.*;
 @Setter
 public class ResourceFile {
     private byte[] content;
-    private String md5; // content md5
-    private MediaType mediaType;
     private long lastModified; // file last modified
-    private String path; // classpath
 
     public String getContentAsString() {
         return new String(content, UTF_8);

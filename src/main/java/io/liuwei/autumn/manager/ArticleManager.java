@@ -157,7 +157,7 @@ public class ArticleManager {
     private Media toMedia(File file, String path) {
         Media media = new Media();
         media.setPath(path);
-        media.setMediaType(MediaTypeUtil.getMediaType(file.getName()));
+        media.setMediaType(MediaTypeUtil.getMediaType(file.getName(), StandardCharsets.UTF_8));
         media.setFile(file);
         media.setLastModified(file.lastModified());
         media.setAccessLevel(AccessLevelEnum.ANON);

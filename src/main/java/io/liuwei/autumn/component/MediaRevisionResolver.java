@@ -8,6 +8,7 @@ import io.liuwei.autumn.model.Media;
 import io.liuwei.autumn.model.RevisionContent;
 import io.liuwei.autumn.model.RevisionEtag;
 import io.liuwei.autumn.util.IOUtil;
+import io.liuwei.autumn.util.Md5Util;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.util.DigestUtils;
 import org.springframework.util.unit.DataSize;
 
 import java.util.Set;
@@ -37,6 +37,7 @@ import java.util.Set;
 @Component
 @Slf4j
 public class MediaRevisionResolver {
+
     /**
      * 修改 etag version 会导致所有客户端页面缓存失效。
      * 某些情况下你可能想修改这个值，例如修改了 response CharacterEncoding
@@ -142,9 +143,10 @@ public class MediaRevisionResolver {
                 () -> toRevisionContent(IOUtil.toByteArray(media.getFile()), media.getMediaType()));
     }
 
-    public RevisionContent toRevisionContent(byte[] bytes, MediaType mediaType) {
-        String md5 = DigestUtils.md5DigestAsHex(bytes);
-        RevisionContent rc = new RevisionContent(bytes, mediaType);
+    public RevisionContent toRevisionContent(byte[] content, MediaType mediaType) {
+        // 计算 md5 包含内容类型，如果内容类型变化，md5 也会变化
+        String md5 = Md5Util.md5DigestAsHex(mediaType, content);
+        RevisionContent rc = new RevisionContent(content, mediaType);
         rc.setMd5(md5);
         rc.setEtag(getEtag(md5, mediaType));
         rc.setRevision(getRevision(md5));
