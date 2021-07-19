@@ -93,7 +93,8 @@ public class ArticleManager {
             Map<String, Media> mediaMap2 = Maps.newHashMapWithExpectedSize(fileMap2.size());
             Map<String, Article> articleMap2 = Maps.newHashMapWithExpectedSize(fileMap2.size());
 
-            Iterator<String> addedOrModifiedIterator = CollectionUtil.unionIterator(diff.getAdded(), diff.getModified());
+            Iterator<String> addedOrModifiedIterator =
+                    CollectionUtil.unionIterator(diff.getAdded().iterator(), diff.getModified().iterator());
             while (addedOrModifiedIterator.hasNext()) {
                 String path = addedOrModifiedIterator.next();
                 File file = fileMap2.get(path);

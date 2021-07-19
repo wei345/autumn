@@ -1,6 +1,5 @@
 package io.liuwei.autumn.util;
 
-import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -10,21 +9,28 @@ import java.util.Iterator;
 public class CollectionUtil {
 
     /**
-     * 不创建新的集合，返回一个 Iterator 对象，通过该对象可以依次遍历两个集合中的元素。
+     * 不创建新的集合，返回一个 Iterator 对象，通过该对象可以依次遍历多个集合中的元素。
      */
-    public static <T> Iterator<T> unionIterator(Collection<? extends T> coll1, Collection<? extends T> coll2) {
-        Iterator<? extends T> iterator1 = coll1.iterator();
-        Iterator<? extends T> iterator2 = coll2.iterator();
+    @SafeVarargs
+    public static <T> Iterator<T> unionIterator(Iterator<? extends T>... iterators) {
+
         return new Iterator<T>() {
+
+            int index = 0;
 
             @Override
             public boolean hasNext() {
-                return iterator1.hasNext() || iterator2.hasNext();
+                for (; index < iterators.length; index++) {
+                    if (iterators[index].hasNext()) {
+                        return true;
+                    }
+                }
+                return false;
             }
 
             @Override
             public T next() {
-                return iterator1.hasNext() ? iterator1.next() : iterator2.next();
+                return iterators[index].next();
             }
         };
     }
