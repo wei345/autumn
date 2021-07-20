@@ -22,6 +22,7 @@
                 onLoad: function () {
                     if (--countDown === 0) {
                         document.querySelector('html').removeAttribute('style');
+                        document.dispatchEvent(new Event('visible'));
                     }
                 }
             };

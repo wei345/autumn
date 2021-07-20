@@ -1,0 +1,108 @@
+autumn:
+  site-title: Autumn
+  # 用户名和密码，可以用 io.liuwei.autumn.service.UserServiceTest.generateUser 生成。
+  # 格式：id username password salt; id ...
+  # 示例，用户名: user，密码: 123456
+  users: >
+    1 user 748E0A260678FDF702911DF2C0E899680AB2F49DDCCA5932C2D110B0C516E2F2C4367564A1F78E55FBD23453B98669E25C4D696C80D6C99D16530004DD549D5F 2747F124D4C580EE777E114B03578BAB;
+  access:
+    # 所有者用户 ID，有最高访问权限，可以看到 owner 级别的文章
+    owner-user-id: 1
+  remember-me:
+    # AES key，可以用 io.liuwei.autumn.AesTest.generateKey 生成。
+    aes-key: 91A97D3979C440AC7FA09EAD3AD7B3DF
+  data:
+    dir: src/test/data
+    # 逗号分隔文件名或目录名. e.g. /a/b,/a/c.adoc
+    excludes: ''
+    # 数据刷新间隔，0 表示禁用。
+    # 还可以通过 HTTP 接口触发数据刷新，例如 curl -s -X POST http://localhost:8601/data/reload
+    reload-interval-seconds: 86400
+  static:
+    # 开发时可设为 file:src/main/resources/static，修改不需要重新编译
+    dir: classpath:/static
+    # 静态资源刷新间隔，0 表示禁用。
+    reload-interval-seconds: 3
+    js-compression-enabled: true
+  cache:
+    maxMediaSize: 1MB
+  code-block:
+    # 是否高亮代码块。启用后，js 和 css 中会自动增加 highlight.js 内容
+    highlighting-enabled: true
+    # highlightjs version，用于构造 highlightjs 完整资源路径，会被 Maven 自动替换为 pom 里的 highlightjs.version 属性值
+    highlightjs-version: '@highlightjs.version@'
+    # 设置对哪些语言启用高亮，多个值以英文逗号分隔，每个值对应
+    # highlightjs-9.8.0.jar!/META-INF/resources/webjars/highlightjs/9.8.0/languages 里的文件名，不含扩展名
+    highlighting-languages: bash,clojure,css,java,javascript,json,lisp,lua,nginx,php,python,ruby,sql,xml,yaml
+    # 代码块高亮样式，对应 highlightjs-9.8.0.jar!/META-INF/resources/webjars/highlightjs/9.8.0/styles
+    # 里的文件名，不含扩展名。这个几个都不错：default, atom-one-light, solarized-light 和 solarized-dark
+    highlighting-style: default
+    # 是否显示代码块行号
+    line-number-enabled: false
+  breadcrumb:
+    # 是否显示面包屑
+    enabled: false
+  search:
+    # 搜索结果每页条数
+    page-size: 10
+  google-analytics-id: ''
+server:
+  port: 8601
+  servlet:
+    context-path: ''
+    encoding:
+      charset: UTF-8
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,text/javascript,text/css,text/asciidoc
+  tomcat:
+    # Tomcat base directory. If not specified, a temporary directory is used.
+    basedir: logs/tomcat
+    access-log:
+      enabled: true
+      # Directory in which log files are created. Can be absolute or relative to the Tomcat base dir.
+      directory: ..
+      # %D 处理请求花费的总时间，可能受网络影响，毫秒。
+      # %F 从开始处理请求到提交 response 花费的时间，毫秒。可以看作是服务器处理时间。
+      # %D 减去 %F 是网络传输时间。
+      # see https://tomcat.apache.org/tomcat-8.0-doc/config/valve.html
+      pattern: '%{X-Forwarded-For}i %h [%{yyyy-MM-dd HH:mm:ss.SSS}t] "%r" %s
+                %b "%{Referer}i" "%{User-Agent}i" %D %F %I'
+logging:
+  file:
+    name: logs/autumn.log
+  logback:
+    rollingpolicy:
+      max-history: 100
+spring:
+  profiles:
+    # 如果指定多个 profile, Spring 采用 last-wins 策略. 也就是说后面的 profile 优先级更高。
+    include: local
+  autoconfigure:
+    # 默认不启用 Redis，设为空可以启用 Redis。Redis 用于存储一些计数，例如登录计数。
+    # 如果不启用 Redis，应用重启后，之前的计数将丢失，将从初始值 0 开始重新计数。
+    # 建议生产环境启用 Redis。
+    exclude: org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+  cache:
+    type: caffeine
+  redis:
+    # 如果在只有一个 Redis 实例的环境中运行多个 Autumn 实例，那么需要指定 redis database 以避免 key 冲突。
+    # Redis Cluster 环境该配置无效，详见 Redis 文档。
+    database: 0
+  mvc:
+    formcontent:
+      filter:
+        enabled: false
+    hiddenmethod:
+      filter:
+        enabled: false
+  thymeleaf:
+    # 开发时使用下面设置，修改模版立刻生效，不需要重新编译
+    # prefix: file:src/main/resources/templates/
+    # cache: false
+    prefix: classpath:/templates/
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
+
+

@@ -47,7 +47,7 @@ public class ResourceFileManager {
     @Value("${autumn.static.dir}")
     private String staticRoot;
 
-    @Value("${autumn.template.dir}")
+    @Value("${spring.thymeleaf.prefix}")
     private String templateRoot;
 
     private volatile Map<String, ResourceFile> resourceFileMap = Collections.emptyMap();
