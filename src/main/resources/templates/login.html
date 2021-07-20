@@ -14,9 +14,10 @@
         <input class="button-primary" type="submit" value="Login">
     </form>
     <script>
-        document.addEventListener('visible', function () {
+        document.addEventListener('visible', (function () {
             document.getElementById('username').focus();
-        });
+            return arguments.callee;
+        })());
     </script>
 </div>
 </body>
