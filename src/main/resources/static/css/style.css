@@ -352,6 +352,10 @@ input.header__row_1__search_input {
     padding: 0;
 }
 
+.tree_node_dir > .tree_node_header {
+    cursor: pointer;
+}
+
 .tree_node_header {
     border: dashed 1px transparent;
 }
