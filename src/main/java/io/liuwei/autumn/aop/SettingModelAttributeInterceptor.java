@@ -4,6 +4,7 @@ import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.enums.AccessLevelEnum;
+import io.liuwei.autumn.manager.RevisionContentManager;
 import io.liuwei.autumn.model.RevisionContent;
 import io.liuwei.autumn.model.User;
 import io.liuwei.autumn.service.ArticleService;
@@ -22,6 +23,9 @@ import java.util.Map;
  * @since 2018-12-19
  */
 public class SettingModelAttributeInterceptor implements HandlerInterceptor {
+
+    @Autowired
+    private RevisionContentManager revisionContentManager;
 
     @Autowired
     private UserService userService;
@@ -54,7 +58,7 @@ public class SettingModelAttributeInterceptor implements HandlerInterceptor {
             AccessLevelEnum accessLevel = userService.getAccessLevel(user);
             model.put("ctx", request.getContextPath());
             model.put("siteTitle", appProperties.getSiteTitle());
-            model.put("faviconUrl", mediaRevisionResolver.toRevisionUrl(Constants.FAVICON_DOT_ICO));
+            model.put("faviconUrl", revisionContentManager.toRevisionUrl(Constants.FAVICON_DOT_ICO));
             model.put("cssUrl", toRevisionUrl(Constants.CSS_ALL_DOT_CSS, staticService.getAllCss()));
             model.put("jsUrl", toRevisionUrl(Constants.JS_ALL_DOT_JS, staticService.getAllJs()));
             model.put("treeJsonUrl", toRevisionUrl(Constants.TREE_DOT_JSON, articleService.getTreeJson(accessLevel)));

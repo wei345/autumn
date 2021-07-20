@@ -7,7 +7,7 @@ import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import io.liuwei.autumn.aop.SettingModelAttributeInterceptor;
 import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.service.UserService;
-import io.liuwei.autumn.util.AsciidocArticleParser;
+import io.liuwei.autumn.component.AsciidocArticleParser;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.jruby.internal.JRubyAsciidoctor;
 import org.springframework.beans.factory.annotation.Value;

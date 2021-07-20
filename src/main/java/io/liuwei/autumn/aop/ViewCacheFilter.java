@@ -1,6 +1,6 @@
 package io.liuwei.autumn.aop;
 
-import io.liuwei.autumn.component.MediaRevisionResolver;
+import io.liuwei.autumn.manager.RevisionContentManager;
 import io.liuwei.autumn.model.RevisionContent;
 import io.liuwei.autumn.util.MediaTypeUtil;
 import io.liuwei.autumn.util.WebUtil;
@@ -29,18 +29,16 @@ import java.io.PrintWriter;
  * @author liuwei602099
  * @since 2021-07-14 14:55
  */
+@SuppressWarnings({"WeakerAccess", "NullableProblems"})
 @Component
 public class ViewCacheFilter extends OncePerRequestFilter {
     private static final String CACHE_KEY_ATTRIBUTE = ViewCacheFilter.class.getName() + ".KEY";
-
+    private final AntPathMatcher antPathMatcher = new AntPathMatcher();
     @Autowired
     @Qualifier("viewCache")
     private Cache viewCache;
-
     @Autowired
-    private MediaRevisionResolver mediaRevisionResolver;
-
-    private final AntPathMatcher antPathMatcher = new AntPathMatcher();
+    private RevisionContentManager revisionContentManager;
 
     public static void enableContentCaching(ServletRequest request, SimpleKey cacheKey) {
         request.setAttribute(CACHE_KEY_ATTRIBUTE, cacheKey);
@@ -100,11 +98,10 @@ public class ViewCacheFilter extends OncePerRequestFilter {
     private RevisionContent setCache(HttpServletRequest request, ContentCachingResponseWrapper response) {
         return viewCache.get(request.getAttribute(CACHE_KEY_ATTRIBUTE), () -> {
             byte[] content = response.getContentAsByteArray();
-            return mediaRevisionResolver.toRevisionContent(content, MediaTypeUtil.TEXT_HTML_UTF8);
+            return revisionContentManager.toRevisionContent(content, MediaTypeUtil.TEXT_HTML_UTF8);
         });
     }
 
-    @SuppressWarnings("WeakerAccess")
     private static class ViewContentCachingResponseWrapper extends ContentCachingResponseWrapper {
 
         private final HttpServletRequest request;

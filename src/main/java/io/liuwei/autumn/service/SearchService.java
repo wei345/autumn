@@ -2,7 +2,6 @@ package io.liuwei.autumn.service;
 
 
 import io.liuwei.autumn.enums.AccessLevelEnum;
-import io.liuwei.autumn.manager.ArticleManager;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.search.Highlighter;
 import io.liuwei.autumn.search.Searcher;
@@ -22,16 +21,14 @@ import java.util.List;
 @Slf4j
 public class SearchService {
 
+    private final Highlighter highlighter = new Highlighter();
     @Autowired
     private Searcher searcher;
-
     @Autowired
-    private ArticleManager articleManager;
-
-    private final Highlighter highlighter = new Highlighter();
+    private ArticleService articleService;
 
     public SearchResult search(String input, AccessLevelEnum accessLevel, int offset, int count) {
-        List<Article> articles = articleManager.listArticles(accessLevel);
+        List<Article> articles = articleService.listArticles(accessLevel);
         SearchResult sr = searcher.search(input, articles, offset, count);
         log.info("Search '{}', {} results in {} ms", input, sr.getTotal(), sr.getTimeCost());
         return sr;

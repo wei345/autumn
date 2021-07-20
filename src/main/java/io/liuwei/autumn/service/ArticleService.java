@@ -1,12 +1,12 @@
 package io.liuwei.autumn.service;
 
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
-import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.converter.ArticleHtmlConverter;
 import io.liuwei.autumn.enums.AccessLevelEnum;
-import io.liuwei.autumn.manager.ArticleManager;
+import io.liuwei.autumn.manager.MediaManager;
+import io.liuwei.autumn.manager.RevisionContentManager;
 import io.liuwei.autumn.model.*;
 import io.liuwei.autumn.util.HtmlUtil;
 import io.liuwei.autumn.util.TreeUtil;
@@ -31,13 +31,13 @@ import java.util.List;
 public class ArticleService {
 
     @Autowired
-    private ArticleManager articleManager;
+    private MediaManager mediaManager;
+
+    @Autowired
+    private RevisionContentManager revisionContentManager;
 
     @Autowired
     private ArticleHtmlConverter articleHtmlConverter;
-
-    @Autowired
-    private MediaRevisionResolver mediaRevisionResolver;
 
     @Autowired
     private JsonMapper jsonMapper;
@@ -48,23 +48,19 @@ public class ArticleService {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
-    public Media getMedia(String path) {
-        return articleManager.getMedia(path);
-    }
-
     public Article getArticle(String path) {
-        return articleManager.getArticle(path);
+        return mediaManager.getArticle(path);
     }
 
     public List<Article> listArticles(AccessLevelEnum accessLevel) {
-        return articleManager.listArticles(accessLevel);
+        return mediaManager.listArticles(accessLevel);
     }
 
     @Cacheable(CacheNames.ARTICLE_TREE_JSON)
     public RevisionContent getTreeJson(AccessLevelEnum accessLevel) {
         TreeNode root = getTree(accessLevel);
         byte[] bytes = jsonMapper.toJson(root).getBytes(StandardCharsets.UTF_8);
-        return mediaRevisionResolver.toRevisionContent(bytes, MediaType.APPLICATION_JSON);
+        return revisionContentManager.toRevisionContent(bytes, MediaType.APPLICATION_JSON);
     }
 
     @Cacheable(CacheNames.ARTICLE_TREE_HTML)
@@ -108,9 +104,9 @@ public class ArticleService {
         }
         String name = StringUtils.substringAfterLast(path, "/");
 
-        Article article = articleManager.getArticle(path);
+        Article article = mediaManager.getArticle(path);
         if (article == null) {
-            article = articleManager.getArticle(path + "/" + name);
+            article = mediaManager.getArticle(path + "/" + name);
         }
 
         if (article == null || !article.getAccessLevel().allow(accessLevel)) {
@@ -129,7 +125,7 @@ public class ArticleService {
                         HtmlUtil.rewriteImgSrcToRevisionUrl(
                                 articleHtml.getContentHtml(),
                                 article.getPath(),
-                                mediaRevisionResolver::toRevisionUrl)));
+                                revisionContentManager::toRevisionUrl)));
         return articleHtml;
     }
 

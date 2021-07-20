@@ -1,6 +1,6 @@
 package io.liuwei.autumn.controller;
 
-import io.liuwei.autumn.manager.ArticleManager;
+import io.liuwei.autumn.manager.MediaManager;
 import io.liuwei.autumn.model.DataInfo;
 import io.liuwei.autumn.util.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,14 +23,14 @@ import java.io.IOException;
 public class DataController {
 
     @Autowired
-    private ArticleManager articleManager;
+    private MediaManager mediaManager;
 
     @GetMapping("/data/info")
     public DataInfo getDataInfo(HttpServletRequest request, HttpServletResponse response) {
         if (!checkAuth(request, response)) {
             return null;
         }
-        return articleManager.getDataInfo();
+        return mediaManager.getDataInfo();
     }
 
     // curl --silent -X POST http://localhost:8061/data/reload
@@ -40,7 +40,7 @@ public class DataController {
             return null;
         }
 
-        return articleManager.reload();
+        return mediaManager.reload();
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")

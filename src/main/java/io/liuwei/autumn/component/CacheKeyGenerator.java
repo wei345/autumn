@@ -12,6 +12,7 @@ import java.util.stream.Stream;
  * @author liuwei602099
  * @since 2021-07-12 17:18
  */
+@SuppressWarnings("ALL")
 @Component
 public class CacheKeyGenerator implements KeyGenerator {
     @Override

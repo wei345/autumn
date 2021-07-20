@@ -1,4 +1,4 @@
-package io.liuwei.autumn.util;
+package io.liuwei.autumn.component;
 
 import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.enums.AccessLevelEnum;

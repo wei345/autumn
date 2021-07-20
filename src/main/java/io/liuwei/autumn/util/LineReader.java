@@ -8,6 +8,7 @@ import java.util.Iterator;
  * @author liuwei
  * @since 2021-07-07 17:23
  */
+@SuppressWarnings("ALL")
 public class LineReader implements Iterable<String> {
     @Getter
     private final String text;

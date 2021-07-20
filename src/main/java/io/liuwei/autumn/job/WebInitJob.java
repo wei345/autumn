@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class ApplicationInitJob {
+public class WebInitJob {
 
     @Autowired
     private ServerProperties serverProperties;

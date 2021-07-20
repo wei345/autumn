@@ -1,13 +1,14 @@
 package io.liuwei.autumn.service;
 
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
-import io.liuwei.autumn.component.MediaRevisionResolver;
+import io.liuwei.autumn.component.AsciidocArticleParser;
 import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.constant.CacheKeys;
 import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.converter.ArticleHtmlConverter;
 import io.liuwei.autumn.manager.ResourceFileManager;
+import io.liuwei.autumn.manager.RevisionContentManager;
 import io.liuwei.autumn.model.ArticleHtml;
 import io.liuwei.autumn.model.ResourceFile;
 import io.liuwei.autumn.model.RevisionContent;
@@ -39,7 +40,7 @@ public class StaticService {
     private ResourceFileManager resourceFileManager;
 
     @Autowired
-    private MediaRevisionResolver mediaRevisionResolver;
+    private RevisionContentManager revisionContentManager;
 
     @Autowired
     private ArticleHtmlConverter articleHtmlConverter;
@@ -110,7 +111,7 @@ public class StaticService {
             content = JsCompressor.compressJs(depend, content);
         }
 
-        return mediaRevisionResolver.toRevisionContent(
+        return revisionContentManager.toRevisionContent(
                 content.getBytes(StandardCharsets.UTF_8), MediaTypeUtil.TEXT_JAVASCRIPT_UTF8);
     }
 
@@ -139,7 +140,7 @@ public class StaticService {
         }
 
         byte[] bytes = build.toString().getBytes(StandardCharsets.UTF_8);
-        return mediaRevisionResolver.toRevisionContent(bytes, MediaTypeUtil.TEXT_CSS_UTF8);
+        return revisionContentManager.toRevisionContent(bytes, MediaTypeUtil.TEXT_CSS_UTF8);
     }
 
     @Cacheable(value = CacheNames.STATIC, key = CacheKeys.HELP)

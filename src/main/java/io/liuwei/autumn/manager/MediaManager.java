@@ -8,7 +8,7 @@ import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.DataInfo;
 import io.liuwei.autumn.model.Media;
-import io.liuwei.autumn.util.AsciidocArticleParser;
+import io.liuwei.autumn.component.AsciidocArticleParser;
 import io.liuwei.autumn.util.CollectionUtil;
 import io.liuwei.autumn.util.DiffUtil;
 import io.liuwei.autumn.util.MediaTypeUtil;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  */
 @Component
 @Slf4j
-public class ArticleManager {
+public class MediaManager {
 
     @Autowired
     private DataFileDao dataFileDao;

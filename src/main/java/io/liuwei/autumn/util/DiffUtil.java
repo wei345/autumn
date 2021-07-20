@@ -39,11 +39,11 @@ public class DiffUtil {
 
     @Getter
     @Setter
-    public static class Diff<T> {
-        private List<T> added;
-        private List<T> modified;
-        private List<T> deleted;
-        private List<T> notChanged;
+    public static class Diff<K> {
+        private List<K> added;
+        private List<K> modified;
+        private List<K> deleted;
+        private List<K> notChanged;
 
         Diff(int count) {
             this.added = new ArrayList<>();

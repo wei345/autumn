@@ -1,6 +1,6 @@
 package io.liuwei.autumn.job;
 
-import io.liuwei.autumn.manager.ArticleManager;
+import io.liuwei.autumn.manager.MediaManager;
 import io.liuwei.autumn.util.ScheduledJob;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +17,7 @@ import java.util.concurrent.ScheduledExecutorService;
 public class DataRefreshJob {
 
     @Autowired
-    private ArticleManager articleManager;
+    private MediaManager mediaManager;
 
     @Value("${autumn.data.reload-interval-seconds}")
     private int reloadIntervalSeconds;
@@ -27,7 +27,7 @@ public class DataRefreshJob {
 
     @PostConstruct
     private void init() {
-        new ScheduledJob(reloadIntervalSeconds, articleManager::reload, scheduledExecutorService)
+        new ScheduledJob(reloadIntervalSeconds, mediaManager::reload, scheduledExecutorService)
                 .start();
     }
 }
