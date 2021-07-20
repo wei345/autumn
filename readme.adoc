@@ -79,7 +79,7 @@ spring.autoconfigure.exclude=
 
 [source,bash]
 ----
-mvn -q -DskipTests=false -Dtest=io.liuwei.autumn.service.UserServiceTest#generateUser test
+mvn -q -DskipTests=false -Dtest=UserServiceTest#generateUser test
 ----
 
 输出示例：
