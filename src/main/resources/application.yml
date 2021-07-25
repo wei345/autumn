@@ -79,10 +79,9 @@ spring:
     # 如果指定多个 profile, Spring 采用 last-wins 策略. 也就是说后面的 profile 优先级更高。
     include: local
   autoconfigure:
-    # 默认不启用 Redis，设为空可以启用 Redis。Redis 用于存储一些计数，例如登录计数。
-    # 如果不启用 Redis，应用重启后，之前的计数将丢失，将从初始值 0 开始重新计数。
-    # 建议生产环境启用 Redis。
-    exclude: org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+    # Redis 用于存储一些计数，例如登录计数。
+    # 打开下面注释可以禁用 redis
+    # exclude: org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
   cache:
     type: caffeine
   redis:
