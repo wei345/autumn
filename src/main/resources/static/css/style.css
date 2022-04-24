@@ -1,3 +1,4 @@
+/* <editor-fold desc="一般样式"> */
 body {
     line-height: 1.8;
     font-family: Arial, x-locale-body, sans-serif;
@@ -24,78 +25,6 @@ a {
 
 a:hover {
     text-decoration: underline;
-}
-
-code {
-    background: #f4f5f6;
-    border-radius: 4px;
-    font-size: 86%;
-    margin: 0 2px;
-    padding: 2px 5px;
-    white-space: nowrap;
-    word-break: normal;
-    tab-size: 4;
-}
-
-pre {
-    background: #f4f5f6;
-    border-radius: 3px;
-    overflow-y: hidden;
-}
-
-pre > code {
-    margin: 0;
-    border-radius: 0;
-    display: block;
-    padding: 10px 16px;
-    white-space: pre;
-    overflow-y: hidden;
-    -webkit-font-smoothing: auto;
-}
-
-pre > code.hljs {
-    padding: 10px 16px;
-}
-
-.hljs-ln {
-    margin: 0;
-    width: auto;
-}
-
-.hljs-ln td {
-    border: 0;
-}
-
-.hljs-ln td.hljs-ln-numbers {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-
-    text-align: right;
-    color: #ccc;
-    border-right: 1px solid #CCC;
-    vertical-align: top;
-    padding-right: 5px;
-}
-
-.hljs-ln td.hljs-ln-code {
-    padding-left: 10px;
-    padding-right: 16px;
-}
-
-blockquote {
-    border-left: 3px solid #d1d1d1;
-    margin-left: 0;
-    margin-right: 0;
-    margin-bottom: 25px;
-    padding: 0 1em;
-}
-
-blockquote *:last-child {
-    margin-bottom: 0;
 }
 
 table {
@@ -188,6 +117,15 @@ input[type='submit'] {
     white-space: nowrap;
 }
 
+.btn:hover {
+    background-color: rgba(60, 64, 67, 0.08);
+    border-radius: 50%;
+}
+
+.mobi .btn:hover {
+    background-color: transparent;
+}
+
 img {
     max-width: 100%;
 }
@@ -203,15 +141,9 @@ img {
 .show {
     display: block !important;
 }
+/* </editor-fold> */
 
-.scroll_table {
-    overflow: auto;
-}
-
-.scroll_table table {
-    white-space: pre;
-}
-
+/* <editor-fold desc="布局"> */
 .container {
     background: #fff;
     max-width: 60em;
@@ -231,6 +163,76 @@ img {
     width: 100%;
 }
 
+.main {
+    border-radius: 0;
+    box-shadow: none;
+    padding: 1em;
+}
+
+.sitemap {
+    padding: 0 1em 2em;
+}
+
+.content {
+    font-size: 1em;
+    box-sizing: border-box;
+    padding-bottom: 1em;
+}
+
+.page .page_content {
+    /*max-width: 44em;*/
+}
+
+.page .search_str {
+    font-style: normal;
+    background-color: #ff9;
+}
+
+.content .heading a.anchor {
+    color: rgba(0, 0, 0, .2);
+    font-weight: normal;
+    text-decoration: none;
+}
+
+.content .heading a.anchor:before {
+    content: '#';
+}
+
+.desktop .content .heading a.anchor {
+    display: inline-block;
+    margin-left: -21px;
+    padding-right: 5px;
+    width: 16px;
+    text-align: right;
+    visibility: hidden;
+}
+
+.desktop .content .heading:hover a.anchor {
+    visibility: visible;
+}
+
+.desktop .content .heading a.anchor:hover {
+    color: #097dff;
+}
+
+.mobi .content .heading a.anchor {
+    margin-left: 10px;
+    opacity: .5;
+}
+
+.footer {
+    border-top: 4px solid #000;
+    margin: 1em;
+    padding: 1em 0;
+    text-align: right;
+}
+
+.footer .powered {
+    color: #666;
+}
+/* </editor-fold> */
+
+/* <editor-fold desc="Header"> */
 .header {
     padding: 0 1em;
 }
@@ -245,6 +247,10 @@ img {
 
 .show_sidebar .column.sidebar {
     display: block;
+}
+
+.header__row_1 {
+    position: relative;
 }
 
 .header__row_1__heading {
@@ -293,28 +299,21 @@ input.header__row_1__search_input {
     border: 1px solid #dfe1e5;
 }
 
-.btn_clear_search {
+ul.header__row_1__tools {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.header__row_1__tools li {
+    display: inline-block;
+    padding-left: .5em;
+}
+
+.header__row_1__right {
     position: absolute;
-    right: 40px;
-    top: 4px;
-    font-size: 1.5em;
-    cursor: pointer;
-    display: none;
-    padding: 0 .5em;
-}
-
-.btn:hover {
-    background-color: rgba(60, 64, 67, 0.08);
-    border-radius: 50%;
-}
-
-.mobi .btn:hover {
-    background-color: transparent;
-}
-
-.btn_clear_search:before {
-    content: '×';
-    opacity: .54;
+    text-align: right;
+    flex: 0 0 12em;
 }
 
 .sidebar_toggle {
@@ -330,13 +329,9 @@ input.header__row_1__search_input {
 .mobi .action_toggle:hover {
     text-decoration: none;
 }
+/* </editor-fold> */
 
-.main {
-    border-radius: 0;
-    box-shadow: none;
-    padding: 1em;
-}
-
+/* <editor-fold desc="Tree"> */
 .tree_box {
     padding-right: 1em;
     margin-top: 1em;
@@ -397,58 +392,9 @@ input.header__row_1__search_input {
 .tree_node_header_selected {
     background: bisque;
 }
+/* </editor-fold> */
 
-.sitemap {
-    padding: 0 1em 2em;
-}
-
-.content {
-    font-size: 1em;
-    box-sizing: border-box;
-    padding-bottom: 1em;
-}
-
-.page .page_content {
-    /*max-width: 44em;*/
-}
-
-.page .search_str {
-    font-style: normal;
-    background-color: #ff9;
-}
-
-.content .heading a.anchor {
-    color: rgba(0, 0, 0, .2);
-    font-weight: normal;
-    text-decoration: none;
-}
-
-.content .heading a.anchor:before {
-    content: '#';
-}
-
-.desktop .content .heading a.anchor {
-    display: inline-block;
-    margin-left: -21px;
-    padding-right: 5px;
-    width: 16px;
-    text-align: right;
-    visibility: hidden;
-}
-
-.desktop .content .heading:hover a.anchor {
-    visibility: visible;
-}
-
-.desktop .content .heading a.anchor:hover {
-    color: #097dff;
-}
-
-.mobi .content .heading a.anchor {
-    margin-left: 10px;
-    opacity: .5;
-}
-
+/* <editor-fold desc="TOC"> */
 .toc {
     margin-bottom: 1em;
 }
@@ -483,7 +429,9 @@ input.header__row_1__search_input {
     margin: 0;
     list-style-type: none;
 }
+/* </editor-fold> */
 
+/* <editor-fold desc="搜索结果"> */
 .sr_stats {
     font-size: 14px;
     color: #808080;
@@ -528,7 +476,9 @@ input.header__row_1__search_input {
 .sr_page_body .search_str {
     color: #6a6a6a;
 }
+/* </editor-fold> */
 
+/* <editor-fold desc="登录表单"> */
 .login_box {
     max-width: 300px;
     min-width: 100px;
@@ -552,10 +502,29 @@ input.header__row_1__search_input {
     color: #721c24;
     background-color: #f8d7da;
 }
+/* </editor-fold> */
 
+/* <editor-fold desc="首页"> */
 .recently_modified i {
     font-size: small;
     color: #808080;
+}
+/* </editor-fold> */
+
+/* <editor-fold desc="搜索框"> */
+.btn_clear_search {
+    position: absolute;
+    right: 40px;
+    top: 4px;
+    font-size: 1.5em;
+    cursor: pointer;
+    display: none;
+    padding: 0 .5em;
+}
+
+.btn_clear_search:before {
+    content: '×';
+    opacity: .54;
 }
 
 .search_box__ct {
@@ -698,28 +667,9 @@ input.header__row_1__search_input {
 .qsr__close:before {
     content: 'X';
 }
+/* </editor-fold> */
 
-ul.header__row_1__tools {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.header__row_1__tools li {
-    display: inline-block;
-    padding-left: .5em;
-}
-
-.header__row_1 {
-    position: relative;
-}
-
-.header__row_1__right {
-    position: absolute;
-    text-align: right;
-    flex: 0 0 12em;
-}
-
+/* <editor-fold desc="分页"> */
 .pagination {
     margin-bottom: 26px;
 }
@@ -736,7 +686,9 @@ ul.header__row_1__tools {
 .pagination a:hover .pn {
     text-decoration: underline;
 }
+/* </editor-fold> */
 
+/* <editor-fold desc="面包屑"> */
 .breadcrumb {
     padding: 0;
     list-style: none;
@@ -755,17 +707,208 @@ ul.header__row_1__tools {
 .breadcrumb li:first-child .separator {
     margin-left: 0;
 }
+/* </editor-fold> */
 
-.footer {
-    border-top: 4px solid #000;
-    margin: 1em;
-    padding: 1em 0;
+/* <editor-fold desc="代码块"> */
+code {
+    background: #f4f5f6;
+    border-radius: 4px;
+    font-size: 86%;
+    margin: 0 2px;
+    padding: 2px 5px;
+    white-space: nowrap;
+    word-break: normal;
+    tab-size: 4;
+}
+
+pre {
+    background: #f4f5f6;
+    border-radius: 3px;
+    overflow-y: hidden;
+}
+
+pre > code {
+    margin: 0;
+    border-radius: 0;
+    display: block;
+    padding: 10px 16px;
+    white-space: pre;
+    overflow-y: hidden;
+    -webkit-font-smoothing: inherit;
+}
+
+pre > code.hljs {
+    padding: 10px 16px;
+}
+
+.hljs-ln {
+    margin: 0;
+    width: auto;
+}
+
+.hljs-ln td {
+    border: 0;
+}
+
+.hljs-ln td.hljs-ln-numbers {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
     text-align: right;
+    color: #ccc;
+    border-right: 1px solid #CCC;
+    vertical-align: top;
+    padding-right: 5px;
 }
 
-.footer .powered {
-    color: #666;
+.hljs-ln td.hljs-ln-code {
+    padding-left: 10px;
+    padding-right: 16px;
 }
+/* </editor-fold> */
+
+/* <editor-fold desc="引用块"> */
+/*blockquote {
+    border-left: 3px solid #d1d1d1;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 25px;
+    padding: 0 1em;
+}
+
+blockquote *:last-child {
+    margin-bottom: 0;
+}*/
+
+.quoteblock {
+    margin: 0 1em 1.25em 1.5em;
+    display: table
+}
+
+.quoteblock:not(.excerpt) > .title {
+    margin-left: -1.5em;
+    margin-bottom: .75em
+}
+
+.quoteblock blockquote, .quoteblock p {
+    color: rgba(0, 0, 0, .85);
+    font-size: 1.15rem;
+    line-height: 1.75;
+    word-spacing: .1em;
+    letter-spacing: 0;
+    font-style: italic;
+    text-align: justify
+}
+
+.quoteblock blockquote {
+    margin: 0;
+    padding: 0;
+    border: 0
+}
+
+.quoteblock blockquote::before {
+    content: "\201c";
+    float: left;
+    font-size: 2.75em;
+    font-weight: bold;
+    line-height: .6em;
+    margin-left: -.6em;
+    color: #7a2518;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .1)
+}
+
+.quoteblock blockquote > .paragraph:last-child p {
+    margin-bottom: 0
+}
+
+.quoteblock .attribution {
+    margin-top: .75em;
+    margin-right: .5ex;
+    text-align: right
+}
+
+.verseblock {
+    margin: 0 1em 1.25em
+}
+
+.verseblock pre {
+    font-family: "Open Sans", "DejaVu Sans", sans-serif;
+    font-size: 1.15rem;
+    color: rgba(0, 0, 0, .85);
+    font-weight: 300;
+    text-rendering: optimizeLegibility
+}
+
+.verseblock pre strong {
+    font-weight: 400
+}
+
+.verseblock .attribution {
+    margin-top: 1.25rem;
+    margin-left: .5ex
+}
+
+.quoteblock .attribution, .verseblock .attribution {
+    font-size: .9375em;
+    line-height: 1.45;
+    font-style: italic
+}
+
+.quoteblock .attribution br, .verseblock .attribution br {
+    display: none
+}
+
+.quoteblock .attribution cite, .verseblock .attribution cite {
+    display: block;
+    letter-spacing: -.025em;
+    color: rgba(0, 0, 0, .6)
+}
+
+.quoteblock.abstract blockquote::before, .quoteblock.excerpt blockquote::before, .quoteblock .quoteblock blockquote::before {
+    display: none
+}
+
+.quoteblock.abstract blockquote, .quoteblock.abstract p, .quoteblock.excerpt blockquote, .quoteblock.excerpt p, .quoteblock .quoteblock blockquote, .quoteblock .quoteblock p {
+    line-height: 1.6;
+    word-spacing: 0
+}
+
+.quoteblock.abstract {
+    margin: 0 1em 1.25em;
+    display: block
+}
+
+.quoteblock.abstract > .title {
+    margin: 0 0 .375em;
+    font-size: 1.15em;
+    text-align: center
+}
+
+.quoteblock.excerpt > blockquote, .quoteblock .quoteblock {
+    padding: 0 0 .25em 1em;
+    border-left: .25em solid #dddddf
+}
+
+.quoteblock.excerpt, .quoteblock .quoteblock {
+    margin-left: 0
+}
+
+.quoteblock.excerpt blockquote, .quoteblock.excerpt p, .quoteblock .quoteblock blockquote, .quoteblock .quoteblock p {
+    color: inherit;
+    font-size: 1.0625rem
+}
+
+.quoteblock.excerpt .attribution, .quoteblock .quoteblock .attribution {
+    color: inherit;
+    font-size: .85rem;
+    text-align: left;
+    margin-right: 0
+}
+/* </editor-fold> */
 
 @media (min-width: 640000px) {
 
