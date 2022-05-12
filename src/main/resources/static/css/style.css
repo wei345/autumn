@@ -148,7 +148,7 @@ img {
     background: #fff;
     max-width: 60em;
     min-width: 23em;
-    margin: 0 auto;
+    margin: 0 1em;
 }
 
 .row {
@@ -796,10 +796,6 @@ blockquote *:last-child {
 
 .quoteblock blockquote, .quoteblock p {
     color: rgba(0, 0, 0, .85);
-    font-size: 1.15rem;
-    line-height: 1.75;
-    word-spacing: .1em;
-    letter-spacing: 0;
     font-style: italic;
     text-align: justify
 }
