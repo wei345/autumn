@@ -10,23 +10,24 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 /**
  * @author liuwei
  * @since 2020-06-01 18:45
  */
 @Component
 public class AsciidocArticleHtmlConverter implements ArticleHtmlConverter {
+    // 默认 2，2 表示到 h3
+    protected static final String ATTRIBUTE_TOC_LEVELS = "toclevels";
 
-    private final OptionsBuilder optionsBuilder = OptionsBuilder.options()
-            .attributes(AttributesBuilder.attributes()
-                    .showTitle(true)
-                    .setAnchors(true)
-                    .tableOfContents(true));
+    private final OptionsBuilder optionsBuilder;
 
     private final Asciidoctor asciidoctor;
 
     public AsciidocArticleHtmlConverter(Asciidoctor asciidoctor) {
         this.asciidoctor = asciidoctor;
+        this.optionsBuilder = optionsBuilder();
     }
 
     @Override
@@ -75,5 +76,16 @@ public class AsciidocArticleHtmlConverter implements ArticleHtmlConverter {
         }
 
         return new ArticleHtml(title, titleHtml, tocHtml, contentHtml);
+    }
+
+    protected OptionsBuilder optionsBuilder() {
+        Map<String, Object> attributeMap = AttributesBuilder
+                .attributes()
+                .showTitle(true)
+                .setAnchors(true)
+                .tableOfContents(true)
+                .asMap();
+
+        return OptionsBuilder.options().attributes(attributeMap);
     }
 }

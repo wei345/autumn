@@ -100,7 +100,7 @@ public class AsciidocArticleParser {
 
     private String parseContent(LineReader lineReader) {
         for (String line : lineReader) {
-            if (StringUtils.isNotBlank(line) && !line.startsWith(attrPrefix)) {
+            if (StringUtils.isNotBlank(line)) {
                 lineReader.back();
                 break;
             }
