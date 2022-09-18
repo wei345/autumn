@@ -10,8 +10,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 /**
  * @author liuwei
  * @since 2020-06-01 18:45
@@ -79,13 +77,12 @@ public class AsciidocArticleHtmlConverter implements ArticleHtmlConverter {
     }
 
     protected OptionsBuilder optionsBuilder() {
-        Map<String, Object> attributeMap = AttributesBuilder
+        AttributesBuilder attributesBuilder = AttributesBuilder
                 .attributes()
                 .showTitle(true)
                 .setAnchors(true)
-                .tableOfContents(true)
-                .asMap();
+                .tableOfContents(true);
 
-        return OptionsBuilder.options().attributes(attributeMap);
+        return OptionsBuilder.options().attributes(attributesBuilder);
     }
 }

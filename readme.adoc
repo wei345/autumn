@@ -38,7 +38,7 @@ bin/start.sh
 # /path/to/data
 autumn.data.dir=<your data directory>
 autumn.data.reload-interval-seconds=0
-autumn.resource.reload-interval-seconds=0
+autumn.static.reload-interval-seconds=0
 # id username password salt; id ...
 autumn.users=<your users>
 autumn.remember-me.aes-key=<your aes key>
