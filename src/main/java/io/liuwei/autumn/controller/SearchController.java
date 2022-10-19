@@ -1,6 +1,7 @@
 package io.liuwei.autumn.controller;
 
 import io.liuwei.autumn.annotation.ViewCache;
+import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.constant.CacheKeys;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Pagination;
@@ -8,9 +9,9 @@ import io.liuwei.autumn.search.model.SearchResult;
 import io.liuwei.autumn.service.SearchService;
 import io.liuwei.autumn.util.RateLimiter;
 import io.liuwei.autumn.util.WebUtil;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -29,20 +30,19 @@ import java.util.Map;
  */
 @SuppressWarnings("FieldCanBeLocal")
 @Controller
+@RequiredArgsConstructor
 public class SearchController {
 
     private final int maxSearchStrLength = 120;
 
-    @Autowired
-    private SearchService searchService;
+    private final SearchService searchService;
 
     @Autowired(required = false)
     private StringRedisTemplate stringRedisTemplate;
 
     private RateLimiter rateLimiter;
 
-    @Value("${autumn.search.page-size}")
-    private int pageSize;
+    private final AppProperties.Search search;
 
     @PostConstruct
     public void init() {
@@ -74,6 +74,8 @@ public class SearchController {
             response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(), "稍后再试");
             return null;
         }
+
+        int pageSize = search.getPageSize();
 
         SearchResult sr = searchService.search(q, accessLevel, offset, pageSize);
 

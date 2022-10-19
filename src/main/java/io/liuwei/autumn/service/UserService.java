@@ -8,19 +8,20 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 import com.vip.vjtools.vjkit.security.CryptoUtil;
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
+import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.User;
 import io.liuwei.autumn.util.WebUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.util.CookieGenerator;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
@@ -44,22 +45,27 @@ public class UserService {
     private static final String SEPARATOR = "|";
     private static final User NULL_USER = new User();
     private static final String REQUEST_ATTRIBUTE_CURRENT_USER = UserService.class.getName() + ".CURRENT_USER";
+
     private final int rememberMeSeconds = 3600 * 24 * 365;
     private final String rememberMeCookieName;
-    private byte[] aesKey;
+    private final AppProperties.Access access;
+    private final byte[] aesKey;
+
     private Map<String, User> users;
     private Map<Long, User> userMap;
-
-    @Value("${autumn.access.owner-user-id}")
-    private Long ownerUserId;
 
     private final Cache<String, User> rememberMe2UserCache = CacheBuilder.newBuilder()
             .expireAfterWrite(30, TimeUnit.SECONDS)
             .maximumSize(10_000)
             .build();
 
-    public UserService(String rememberMeCookieName) {
+    public UserService(String rememberMeCookieName,
+                       AppProperties.Access access,
+                       AppProperties.RememberMe rememberMe) {
         this.rememberMeCookieName = rememberMeCookieName;
+        this.access = access;
+        this.aesKey = decodeHex(rememberMe.getAesKey());
+        setUsers(access.getUsers());
     }
 
     @VisibleForTesting
@@ -169,7 +175,7 @@ public class UserService {
             throw new RuntimeException(e);
         }
         if (user != null && user != NULL_USER) {
-            user.setIsOwner(user.getId().equals(ownerUserId));
+            user.setIsOwner(user.getId().equals(access.getOwnerUserId()));
             return user;
         }
 
@@ -221,18 +227,10 @@ public class UserService {
         return users.get(username);
     }
 
-    @Value("${autumn.remember-me.aes-key}")
-    private void setAesKey(String aesKey) {
-        this.aesKey = decodeHex(aesKey);
-    }
-
-    @VisibleForTesting
-    @Value("${autumn.users}")
-    void setUsers(String input) {
-        Validate.notBlank(input, "config 'autumn.users' is blank");
+    private void setUsers(List<String> lines) {
         users = Maps.newHashMapWithExpectedSize(2);
         userMap = Maps.newHashMapWithExpectedSize(2);
-        for (String s : input.trim().split("\\s*;\\s*")) {
+        for (String s : lines) {
             if (StringUtils.isBlank(s)) {
                 continue;
             }

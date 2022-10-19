@@ -1,24 +1,25 @@
 autumn:
   site-title: Autumn
-  # 用户名和密码，可以用 io.liuwei.autumn.service.UserServiceTest.generateUser 生成。
-  # 格式：id username password salt; id ...
-  # 示例，用户名: user，密码: 123456
-  users: >
-    1 user 748E0A260678FDF702911DF2C0E899680AB2F49DDCCA5932C2D110B0C516E2F2C4367564A1F78E55FBD23453B98669E25C4D696C80D6C99D16530004DD549D5F 2747F124D4C580EE777E114B03578BAB;
   access:
-    # 所有者用户 ID，有最高访问权限，可以看到 owner 级别的文章
+    # 用户名和密码，可以用 io.liuwei.autumn.service.UserServiceTest.generateUser 生成。
+    # 格式：id username password salt
+    users:
+      # 示例，用户名: user，密码: 123456
+      - 1 user 748E0A260678FDF702911DF2C0E899680AB2F49DDCCA5932C2D110B0C516E2F2C4367564A1F78E55FBD23453B98669E25C4D696C80D6C99D16530004DD549D5F 2747F124D4C580EE777E114B03578BAB
+    # 网站所有者用户 ID，有最高访问权限，可以看到 owner 级别的文章
     owner-user-id: 1
   remember-me:
     # AES key，可以用 io.liuwei.autumn.AesTest.generateKey 生成。
     aes-key: 91A97D3979C440AC7FA09EAD3AD7B3DF
   data:
     dir: src/test/data
-    # 逗号分隔文件名或目录名. e.g. /a/b,/a/c.adoc
+    # 排除的目录或文件名. e.g. /a/b,/a/c.adoc
     excludes: ''
     # 数据刷新间隔，0 表示禁用。
     # 还可以通过 HTTP 接口触发数据刷新，例如 curl -s -X POST http://localhost:8601/data/reload
     reload-interval-seconds: 86400
-  static:
+  static-resource:
+    # 网站静态资源文件目录
     # 开发时可设为 file:src/main/resources/static，修改不需要重新编译
     dir: classpath:/static
     # 静态资源刷新间隔，0 表示禁用。
@@ -45,7 +46,9 @@ autumn:
   search:
     # 搜索结果每页条数
     page-size: 10
-  google-analytics-id: ''
+  analytics:
+    google-analytics-id:
+    google-analytics4-measurement-id:
 server:
   port: 8601
   servlet:

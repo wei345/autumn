@@ -12,11 +12,13 @@ import io.liuwei.autumn.manager.RevisionContentManager;
 import io.liuwei.autumn.model.ArticleHtml;
 import io.liuwei.autumn.model.ResourceFile;
 import io.liuwei.autumn.model.RevisionContent;
-import io.liuwei.autumn.util.*;
+import io.liuwei.autumn.util.HtmlUtil;
+import io.liuwei.autumn.util.IOUtil;
+import io.liuwei.autumn.util.JsCompressor;
+import io.liuwei.autumn.util.MediaTypeUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
@@ -33,33 +35,23 @@ import java.util.stream.Stream;
 @SuppressWarnings("UnusedReturnValue")
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class StaticService {
     private static final StringBuilderHolder STRING_BUILDER_HOLDER = new StringBuilderHolder(1024);
 
-    @Autowired
-    private ResourceFileManager resourceFileManager;
+    private final ResourceFileManager resourceFileManager;
 
-    @Autowired
-    private RevisionContentManager revisionContentManager;
+    private final RevisionContentManager revisionContentManager;
 
-    @Autowired
-    private ArticleHtmlConverter articleHtmlConverter;
+    private final ArticleHtmlConverter articleHtmlConverter;
 
-    @Autowired
-    private AsciidocArticleParser asciidocArticleParser;
+    private final AsciidocArticleParser asciidocArticleParser;
 
-    @Value("${autumn.google-analytics-id}")
-    private String googleAnalyticsId;
+    private final AppProperties.StaticResource staticResource;
 
-    @Value("${autumn.static.js-compression-enabled}")
-    private boolean jsCompressEnabled;
+    private final AppProperties.Analytics analytics;
 
-    private AppProperties.CodeBlock codeBlock;
-
-    @Autowired
-    private void setAppProperties(AppProperties appProperties) {
-        this.codeBlock = appProperties.getCodeBlock();
-    }
+    private final AppProperties.CodeBlock codeBlock;
 
     @Cacheable(value = CacheNames.STATIC, key = CacheKeys.JS_ALL_DOT_JS)
     public RevisionContent getAllJs() {
@@ -77,9 +69,9 @@ public class StaticService {
         builder.append("(function () {\n");
         jsList.forEach(js ->
                 builder.append(
-                        js.getContentAsString()
-                                .replaceFirst("\"use strict\";\n", "")
-                                .trim())
+                                js.getContentAsString()
+                                        .replaceFirst("\"use strict\";\n", "")
+                                        .trim())
                         .append("\n"));
         builder.append("})();\n");
 
@@ -98,15 +90,20 @@ public class StaticService {
         }
 
         // Google 分析
-        if (StringUtils.isNotBlank(googleAnalyticsId)) {
+        if (StringUtils.isNotBlank(analytics.getGoogleAnalyticsId())) {
             builder
                     .append(getGoogleAnalyticsJs())
+                    .append("\n");
+        }
+        if (StringUtils.isNotBlank(analytics.getGoogleAnalytics4MeasurementId())) {
+            builder
+                    .append(getGoogleAnalytics4Js())
                     .append("\n");
         }
 
         // 压缩
         String content = builder.toString();
-        if (jsCompressEnabled) {
+        if (staticResource.isJsCompressionEnabled()) {
             String depend = "var autumn = {ctx: '', prefix: '', treeVersionKeyValue: ''}";
             content = JsCompressor.compressJs(depend, content);
         }
@@ -220,9 +217,24 @@ public class StaticService {
 
     private String getGoogleAnalyticsJs() {
         return "window['GoogleAnalyticsObject'] = 'ga'; window.ga = {" +
-                "q: [['create', '" + googleAnalyticsId + "', 'auto'], ['send', 'pageview']], " +
+                "q: [['create', '" + analytics.getGoogleAnalyticsId() + "', 'auto'], ['send', 'pageview']], " +
                 "l: 1 * new Date()};\n" +
                 getStaticResourceFile("/js/lib/google-analytics.js").getContentAsString();
+    }
+
+    private String getGoogleAnalytics4Js() {
+        String measurementId = analytics.getGoogleAnalytics4MeasurementId();
+        return "(function(){\n" +
+                "  var script = document.createElement('script');\n" +
+                "  script.async = true;\n" +
+                "  script.src = 'https://www.googletagmanager.com/gtag/js?id=" + measurementId + "'\n" +
+                "  document.getElementsByTagName('head')[0].append(script);\n" +
+                "  \n" +
+                "  window.dataLayer = window.dataLayer || [];\n" +
+                "  function gtag(){dataLayer.push(arguments);}\n" +
+                "  gtag('js', new Date());\n" +
+                "  gtag('config', '" + measurementId + "');\n" +
+                "})();";
     }
 
     private ResourceFile getStaticResourceFile(String path) {

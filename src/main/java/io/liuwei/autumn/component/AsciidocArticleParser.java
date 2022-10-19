@@ -1,6 +1,5 @@
 package io.liuwei.autumn.component;
 
-import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.util.LineReader;

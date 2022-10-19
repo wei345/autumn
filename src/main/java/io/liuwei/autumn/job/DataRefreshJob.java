@@ -1,9 +1,9 @@
 package io.liuwei.autumn.job;
 
+import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.manager.MediaManager;
 import io.liuwei.autumn.util.ScheduledJob;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -14,20 +14,19 @@ import java.util.concurrent.ScheduledExecutorService;
  * @since 2021-07-11 17:42
  */
 @Component
+@RequiredArgsConstructor
 public class DataRefreshJob {
 
-    @Autowired
-    private MediaManager mediaManager;
+    private final MediaManager mediaManager;
 
-    @Value("${autumn.data.reload-interval-seconds}")
-    private int reloadIntervalSeconds;
+    private final AppProperties.SiteData data;
 
-    @Autowired
-    private ScheduledExecutorService scheduledExecutorService;
+    private final ScheduledExecutorService scheduledExecutorService;
 
     @PostConstruct
     private void init() {
-        new ScheduledJob(reloadIntervalSeconds, mediaManager::reload, scheduledExecutorService)
+        new ScheduledJob(data.getReloadIntervalSeconds(), mediaManager::reload,
+                scheduledExecutorService)
                 .start();
     }
 }

@@ -1,6 +1,7 @@
 package io.liuwei.autumn.manager;
 
 import io.liuwei.autumn.component.MediaRevisionResolver;
+import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.enums.RevisionErrorEnum;
 import io.liuwei.autumn.model.Media;
 import io.liuwei.autumn.model.RevisionContent;
@@ -8,13 +9,10 @@ import io.liuwei.autumn.model.RevisionEtag;
 import io.liuwei.autumn.util.IOUtil;
 import io.liuwei.autumn.util.Md5Util;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.util.unit.DataSize;
 
 /**
  * @author liuwei
@@ -24,18 +22,23 @@ import org.springframework.util.unit.DataSize;
 @Slf4j
 public class RevisionContentManager {
 
-    @Autowired
-    private MediaManager mediaManager;
+    private final MediaManager mediaManager;
 
-    @Autowired
-    private MediaRevisionResolver mediaRevisionResolver;
+    private final MediaRevisionResolver mediaRevisionResolver;
 
-    @Autowired
-    @Qualifier("mediaCache")
-    private Cache mediaCache;
+    private final Cache mediaCache;
 
-    @Value("${autumn.cache.maxMediaSize}")
-    private DataSize cacheMaxMediaSize;
+    private final AppProperties.Cache cache;
+
+    public RevisionContentManager(MediaManager mediaManager,
+                                  MediaRevisionResolver mediaRevisionResolver,
+                                  @Qualifier("mediaCache") Cache mediaCache,
+                                  AppProperties.Cache cache) {
+        this.mediaManager = mediaManager;
+        this.mediaRevisionResolver = mediaRevisionResolver;
+        this.mediaCache = mediaCache;
+        this.cache = cache;
+    }
 
     public String toRevisionUrl(String path) {
         Media media = mediaManager.getMedia(path);
@@ -54,7 +57,7 @@ public class RevisionContentManager {
      */
     public RevisionEtag getRevisionEtag(Media media) {
         // 大文件，使用 lastModified
-        if (media.getFile().length() > cacheMaxMediaSize.toBytes()) {
+        if (media.getFile().length() > cache.getMaxMediaSize().toBytes()) {
             long lastModified = media.getFile().lastModified();
             if (lastModified == 0) {
                 log.warn("media_file_not_found. media={}", media);

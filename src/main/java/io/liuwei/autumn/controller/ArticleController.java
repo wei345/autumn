@@ -2,6 +2,7 @@ package io.liuwei.autumn.controller;
 
 import io.liuwei.autumn.annotation.CheckModified;
 import io.liuwei.autumn.annotation.ViewCache;
+import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
@@ -9,8 +10,7 @@ import io.liuwei.autumn.model.ArticleVO;
 import io.liuwei.autumn.service.ArticleService;
 import io.liuwei.autumn.service.SearchService;
 import io.liuwei.autumn.util.WebUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,16 +30,14 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping
+@RequiredArgsConstructor
 public class ArticleController {
 
-    @Autowired
-    private ArticleService articleService;
+    private final ArticleService articleService;
 
-    @Autowired
-    private SearchService searchService;
+    private final SearchService searchService;
 
-    @Value("${autumn.breadcrumb.enabled:false}")
-    private boolean isBreadcrumbEnabled;
+    private final AppProperties.Breadcrumb breadcrumb;
 
     @ViewCache
     @GetMapping("")
@@ -101,7 +99,7 @@ public class ArticleController {
         ArticleVO articleVO = articleService.toVO(article);
         highlight(h, articleVO);
 
-        if (isBreadcrumbEnabled) {
+        if (breadcrumb.isEnabled()) {
             model.put("breadcrumb", articleService.getBreadcrumbLinks(article, accessLevel));
         }
         model.put("sitemapPath", path);

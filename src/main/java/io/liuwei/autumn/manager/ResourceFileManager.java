@@ -1,6 +1,7 @@
 package io.liuwei.autumn.manager;
 
 import com.google.common.collect.Maps;
+import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.model.ResourceFile;
@@ -25,7 +26,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.Map;
 
-import static java.nio.file.FileVisitResult.CONTINUE;
+import static java.nio.file.FileVisitResult.*;
 
 /**
  * @author liuwei
@@ -36,23 +37,27 @@ import static java.nio.file.FileVisitResult.CONTINUE;
 @Slf4j
 public class ResourceFileManager {
 
-    @Autowired
-    @Qualifier("viewCache")
-    private Cache viewCache;
-
-    @Autowired
-    private ResourceFileManager aopProxy;
-
     @Getter
-    @Value("${autumn.static.dir}")
-    private String staticRoot;
+    private final String staticRoot;
 
-    @Value("${spring.thymeleaf.prefix}")
-    private String templateRoot;
+    private final String templateRoot;
+
+    private final Cache viewCache;
+
+    @Autowired
+    private ResourceFileManager proxy;
 
     private volatile Map<String, ResourceFile> resourceFileMap = Collections.emptyMap();
 
     private volatile long templateLastModified;
+
+    public ResourceFileManager(AppProperties.StaticResource staticResource,
+                               @Value("${spring.thymeleaf.prefix}") String templateRoot,
+                               @Qualifier("viewCache") Cache viewCache) {
+        this.templateRoot = templateRoot;
+        this.staticRoot = staticResource.getDir();
+        this.viewCache = viewCache;
+    }
 
     @PostConstruct
     private void init() {
@@ -71,7 +76,7 @@ public class ResourceFileManager {
         ResourceWalker.walk(staticRoot, visitor);
         if (visitor.isChanged()) {
             resourceFileMap = visitor.getResourceFileMap();
-            aopProxy.clearStaticCache();
+            proxy.clearStaticCache();
             viewCache.clear();
             log.info("static changed. {}", staticRoot);
         }

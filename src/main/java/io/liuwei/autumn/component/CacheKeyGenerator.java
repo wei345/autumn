@@ -17,21 +17,18 @@ import java.util.stream.Stream;
 public class CacheKeyGenerator implements KeyGenerator {
     @Override
     public Object generate(Object target, Method method, Object... params) {
-        return generateKey(params);
+        Object obj =  SimpleKeyGenerator
+                .generateKey(Stream
+                        .of(params)
+                        .map(param -> {
+                            if (param instanceof Article) {
+                                return ((Article) param).getSnapshotId();
+                            } else {
+                                return param;
+                            }
+                        })
+                        .toArray());
+        return obj;
     }
 
-    public static Object generateKey(Object... params) {
-        return SimpleKeyGenerator.generateKey(convert(params));
-    }
-
-    private static Object[] convert(Object... params) {
-        return Stream.of(params).map(CacheKeyGenerator::convert).toArray();
-    }
-
-    private static Object convert(Object param) {
-        if (param instanceof Article) {
-            return ((Article) param).getSnapshotId();
-        }
-        return param;
-    }
 }

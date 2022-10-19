@@ -38,23 +38,23 @@ bin/start.sh
 # /path/to/data
 autumn.data.dir=<your data directory>
 autumn.data.reload-interval-seconds=0
-autumn.static.reload-interval-seconds=0
+autumn.static-resource.reload-interval-seconds=0
 # id username password salt; id ...
-autumn.users=<your users>
+autumn.access.users=<your users>
 autumn.remember-me.aes-key=<your aes key>
 # 启用 Redis
 spring.autoconfigure.exclude=
 ----
 
-最重要的几项配置是：`autumn.data.dir`，`autumn.users` 和 `autumn.remember-me.aes-key`。
+最重要的几项配置是：`autumn.data.dir`，`autumn.access.users` 和 `autumn.remember-me.aes-key`。
 
 === autumn.data.dir
 
 一个包含 .adoc 文件的目录路径。
 
-`.adoc` 文件会被转为 HTML，映射为网页。例如 `${autumn.data.dir}/a/b/c.adoc` 会被映射为 `+http://localhost:8601/a/b/c+`。
+`.adoc` 文件会被转为 HTML，映射为网页。例如 `${autumn.data.dir}/a/b/c.adoc` 会被映射为 `http://localhost:8601/a/b/c`。
 
-其他文件会被视为静态文件。例如 `${autumn.data.dir}/a/b/c.png` 会被映射为 `+http://localhost:8601/a/b/c.png+`。
+其他文件会被视为静态文件。例如 `${autumn.data.dir}/a/b/c.png` 会被映射为 `http://localhost:8601/a/b/c.png`。
 
 .adoc 文件格式示例：
 [source,asciidoc]
@@ -73,7 +73,7 @@ spring.autoconfigure.exclude=
 
 如果不符合以上格式，系统会自动设置默认值。`created` 和 `modified` 默认值是文件修改时间，`access` 默认值是 `owner`。
 
-=== autumn.users
+=== autumn.access.users
 
 生成密码:
 

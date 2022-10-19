@@ -2,11 +2,15 @@ package io.liuwei.autumn.service;
 
 import com.google.common.hash.Hashing;
 import com.vip.vjtools.vjkit.number.RandomUtil;
+import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.model.User;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -22,6 +26,9 @@ import static org.assertj.core.api.Assertions.*;
 @SuppressWarnings({"UnusedReturnValue", "UnstableApiUsage"})
 public class UserServiceTest {
 
+    @Autowired
+    private AppProperties.RememberMe rememberMe;
+
     @Test
     public void generateUser() {
         // generate
@@ -32,17 +39,19 @@ public class UserServiceTest {
         String password = encodeHex(passwordDigest2(passwordDigest1(plainPassword, saltBytes), saltBytes));
 
         // print
-        String userString = 1 + " " + username + " " + password + " " + salt + ";";
+        String userString = 1 + " " + username + " " + password + " " + salt;
         System.out.println(userString);
         System.out.println("password: " + plainPassword);
+        AppProperties.Access access = new AppProperties.Access();
+        access.setUsers(Collections.singletonList(userString));
 
         // check password
-        UserService userService = new UserService("autumn.");
-        userService.setUsers(userString);
-        assertThat(userService.getUser(username)).isNotNull();
+        UserService userService = new UserService("autumn.", access, rememberMe);
+
         User user = userService.getUser(username);
-        userService.checkPlainPassword(user, plainPassword);
         assertThat(user.getUsername()).isEqualTo(username);
+        assertThat(userService.checkPlainPassword(user, plainPassword)).isTrue();
+        assertThat(userService.checkPlainPassword(user, plainPassword + "1")).isFalse();
     }
 
     @Test
