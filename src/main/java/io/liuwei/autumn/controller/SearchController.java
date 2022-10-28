@@ -16,6 +16,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.annotation.PostConstruct;
@@ -51,9 +52,9 @@ public class SearchController {
 
     @ViewCache
     @GetMapping("/search")
-    public Object search(String q,
-                         Integer offset,
-                         AccessLevelEnum accessLevel,
+    public Object search(@RequestParam(required = false) String q,
+                         @RequestParam(required = false) Integer offset,
+                         @RequestParam(required = false) AccessLevelEnum accessLevel,
                          Map<String, Object> model,
                          HttpServletRequest request,
                          HttpServletResponse response) throws IOException {
