@@ -40,11 +40,12 @@ public class WebInitJob {
                 serverProperties.getPort(), serverProperties.getServlet().getContextPath());
         log.info("Initializing Homepage, url: {}", url);
         long start = System.currentTimeMillis();
-        try {
-            HttpURLConnectionUtil.getForText(url);
+        HttpURLConnectionUtil.Response response = HttpURLConnectionUtil
+                .request("get", url, null, null);
+        if (response.isOk()) {
             log.info("Homepage OK. {}ms", System.currentTimeMillis() - start);
-        } catch (HttpURLConnectionUtil.ErrorResponseException e) {
-            log.warn("Homepage {}, responseText: {}", e.getStatus(), e.getResponseText());
+        } else {
+            log.warn("Homepage ERROR. {}", response);
         }
     }
 

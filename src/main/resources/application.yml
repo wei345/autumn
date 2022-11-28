@@ -77,6 +77,8 @@ logging:
   logback:
     rollingpolicy:
       max-history: 100
+  level:
+    io.liuwei.autumn.util.HttpURLConnectionUtil: debug
 spring:
   profiles:
     # 如果指定多个 profile, Spring 采用 last-wins 策略. 也就是说后面的 profile 优先级更高。
