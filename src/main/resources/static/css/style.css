@@ -148,7 +148,7 @@ img {
     background: #fff;
     max-width: 60em;
     min-width: 23em;
-    margin: 0 1em;
+    margin: 0 auto;
 }
 
 .row {
