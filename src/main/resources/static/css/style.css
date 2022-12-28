@@ -122,6 +122,11 @@ input[type='submit'] {
     border-radius: 50%;
 }
 
+li p, ul dd, ol dd {
+    margin-top: 0;
+    margin-bottom: .625em;
+}
+
 .mobi .btn:hover {
     background-color: transparent;
 }
@@ -141,6 +146,7 @@ img {
 .show {
     display: block !important;
 }
+
 /* </editor-fold> */
 
 /* <editor-fold desc="布局"> */
@@ -230,6 +236,7 @@ img {
 .footer .powered {
     color: #666;
 }
+
 /* </editor-fold> */
 
 /* <editor-fold desc="Header"> */
@@ -329,6 +336,7 @@ ul.header__row_1__tools {
 .mobi .action_toggle:hover {
     text-decoration: none;
 }
+
 /* </editor-fold> */
 
 /* <editor-fold desc="Tree"> */
@@ -392,6 +400,7 @@ ul.header__row_1__tools {
 .tree_node_header_selected {
     background: bisque;
 }
+
 /* </editor-fold> */
 
 /* <editor-fold desc="TOC"> */
@@ -429,6 +438,7 @@ ul.header__row_1__tools {
     margin: 0;
     list-style-type: none;
 }
+
 /* </editor-fold> */
 
 /* <editor-fold desc="搜索结果"> */
@@ -476,6 +486,7 @@ ul.header__row_1__tools {
 .sr_page_body .search_str {
     color: #6a6a6a;
 }
+
 /* </editor-fold> */
 
 /* <editor-fold desc="登录表单"> */
@@ -502,6 +513,7 @@ ul.header__row_1__tools {
     color: #721c24;
     background-color: #f8d7da;
 }
+
 /* </editor-fold> */
 
 /* <editor-fold desc="首页"> */
@@ -509,6 +521,7 @@ ul.header__row_1__tools {
     font-size: small;
     color: #808080;
 }
+
 /* </editor-fold> */
 
 /* <editor-fold desc="搜索框"> */
@@ -667,6 +680,7 @@ ul.header__row_1__tools {
 .qsr__close:before {
     content: 'X';
 }
+
 /* </editor-fold> */
 
 /* <editor-fold desc="分页"> */
@@ -686,6 +700,7 @@ ul.header__row_1__tools {
 .pagination a:hover .pn {
     text-decoration: underline;
 }
+
 /* </editor-fold> */
 
 /* <editor-fold desc="面包屑"> */
@@ -707,6 +722,7 @@ ul.header__row_1__tools {
 .breadcrumb li:first-child .separator {
     margin-left: 0;
 }
+
 /* </editor-fold> */
 
 /* <editor-fold desc="代码块"> */
@@ -769,6 +785,7 @@ pre > code.hljs {
     padding-left: 10px;
     padding-right: 16px;
 }
+
 /* </editor-fold> */
 
 /* <editor-fold desc="引用块"> */
@@ -904,6 +921,7 @@ blockquote *:last-child {
     text-align: left;
     margin-right: 0
 }
+
 /* </editor-fold> */
 
 @media (min-width: 640000px) {
