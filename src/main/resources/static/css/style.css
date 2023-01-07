@@ -50,6 +50,10 @@ th:last-child {
     padding-right: 0;
 }
 
+td p {
+    margin: 0;
+}
+
 hr {
     border: 0;
     border-top: 1px solid #f4f5f6;
