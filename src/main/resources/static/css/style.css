@@ -1,7 +1,8 @@
 /* <editor-fold desc="一般样式"> */
 body {
     line-height: 1.8;
-    font-family: Arial, x-locale-body, sans-serif;
+    font-family: "Helvetica Neue", sans-serif;
+    font-weight: 300;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -848,7 +849,7 @@ blockquote *:last-child {
 }
 
 .verseblock pre {
-    font-family: "Open Sans", "DejaVu Sans", sans-serif;
+    font-family: "Gill Sans", sans-serif;
     font-size: 1.15rem;
     color: rgba(0, 0, 0, .85);
     font-weight: 300;

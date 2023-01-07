@@ -17,7 +17,7 @@ autumn:
     excludes: ''
     # 数据刷新间隔，0 表示禁用。
     # 还可以通过 HTTP 接口触发数据刷新，例如 curl -s -X POST http://localhost:8601/data/reload
-    reload-interval-seconds: 86400
+    reload-interval-seconds: 5
   static-resource:
     # 网站静态资源文件目录
     # 开发时可设为 file:src/main/resources/static，修改不需要重新编译
