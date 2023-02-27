@@ -2,27 +2,34 @@ package io.liuwei.autumn.service;
 
 import com.google.common.hash.Hashing;
 import com.vip.vjtools.vjkit.number.RandomUtil;
+import io.liuwei.autumn.Application;
 import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.model.User;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import static com.vip.vjtools.vjkit.text.EncodeUtil.*;
-import static io.liuwei.autumn.service.UserService.*;
-import static java.nio.charset.StandardCharsets.*;
-import static org.assertj.core.api.Assertions.*;
+import static com.vip.vjtools.vjkit.text.EncodeUtil.decodeHex;
+import static com.vip.vjtools.vjkit.text.EncodeUtil.encodeHex;
+import static io.liuwei.autumn.service.UserService.passwordDigest1;
+import static io.liuwei.autumn.service.UserService.passwordDigest2;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author liuwei
  * Created by liuwei on 2018/11/22.
  */
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = Application.class)
 @SuppressWarnings({"UnusedReturnValue", "UnstableApiUsage"})
 public class UserServiceTest {
 
