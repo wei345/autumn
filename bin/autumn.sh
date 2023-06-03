@@ -62,7 +62,7 @@ java_major_version() {
 
 prepare_java_opts() {
     # JVM 选项参考 https://github.com/vipshop/vjtools/blob/master/vjstar/src/main/script/jvm-options/jvm-options.sh
-    readonly MEM_OPTS="-Xms150m -Xmx150m -XX:NewRatio=1"
+    readonly MEM_OPTS="-Xms256m -Xmx256m -XX:NewRatio=1"
     readonly OPTIMIZE_OPTS="-XX:-UseBiasedLocking -XX:AutoBoxCacheMax=20000 -Djava.security.egd=file:/dev/./urandom"
     readonly SHOOTING_OPTS="-XX:+PrintCommandLineFlags -XX:-OmitStackTraceInFastThrow -XX:ErrorFile=${LOG_DIR}/hs_err_%p.log"
     readonly OTHER_OPTS="-Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8"
