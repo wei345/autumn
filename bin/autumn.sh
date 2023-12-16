@@ -18,7 +18,7 @@ prepare_java_opts() {
       # --add-opens 避免出现 "illegal reflective access" 警告，见 https://stackoverflow.com/questions/52185626/illegal-reflective-access-when-i-stop-springboot-web-application-with-tomcat-9-a
       JAVA_OPTS="${JAVA_OPTS} --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED"
     fi
-    JAVA_OPTS="${JAVA_OPTS} -Xms256m -Xmx256m -XX:NewRatio=1"
+    JAVA_OPTS="${JAVA_OPTS} -Xms128m -Xmx128m"
     JAVA_OPTS="${JAVA_OPTS} -XX:-UseBiasedLocking -XX:AutoBoxCacheMax=20000 -Djava.security.egd=file:/dev/./urandom"
     JAVA_OPTS="${JAVA_OPTS} -XX:+PrintCommandLineFlags -XX:-OmitStackTraceInFastThrow -XX:ErrorFile=${LOG_DIR}/hs_err_%p.log"
     JAVA_OPTS="${JAVA_OPTS} -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8"
