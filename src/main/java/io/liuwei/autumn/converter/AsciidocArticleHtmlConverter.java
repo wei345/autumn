@@ -1,6 +1,8 @@
 package io.liuwei.autumn.converter;
 
+import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.model.ArticleHtml;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.StringEscapeUtils;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.AttributesBuilder;
@@ -10,21 +12,23 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+
 /**
  * @author liuwei
  * @since 2020-06-01 18:45
  */
 @Component
+@RequiredArgsConstructor
 public class AsciidocArticleHtmlConverter implements ArticleHtmlConverter {
-    // 默认 2，2 表示到 h3
-    protected static final String ATTRIBUTE_TOC_LEVELS = "toclevels";
-
-    private final OptionsBuilder optionsBuilder;
+    private OptionsBuilder optionsBuilder;
 
     private final Asciidoctor asciidoctor;
 
-    public AsciidocArticleHtmlConverter(Asciidoctor asciidoctor) {
-        this.asciidoctor = asciidoctor;
+    private final AppProperties appProperties;
+
+    @PostConstruct
+    public void init() {
         this.optionsBuilder = optionsBuilder();
     }
 
@@ -77,12 +81,17 @@ public class AsciidocArticleHtmlConverter implements ArticleHtmlConverter {
     }
 
     protected OptionsBuilder optionsBuilder() {
-        AttributesBuilder attributesBuilder = AttributesBuilder
+        AttributesBuilder ab = AttributesBuilder
                 .attributes()
                 .showTitle(true)
-                .setAnchors(true)
-                .tableOfContents(true);
+                .setAnchors(true);
 
-        return OptionsBuilder.options().attributes(attributesBuilder);
+        if (appProperties.getToc().isEnabled())
+            ab.tableOfContents(true);
+        if (appProperties.getToc().getLevel() != null)
+            ab.attribute("toclevels",
+                    appProperties.getToc().getLevel());
+
+        return OptionsBuilder.options().attributes(ab);
     }
 }

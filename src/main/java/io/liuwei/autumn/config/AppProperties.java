@@ -35,6 +35,8 @@ public class AppProperties {
 
     private final Analytics analytics = new Analytics();
 
+    private final Toc toc = new Toc();
+
     @Data
     public static class Access {
         /**
@@ -152,6 +154,17 @@ public class AppProperties {
          * G-xxxxxxxxxx
          */
         private String googleAnalytics4MeasurementId;
+    }
+
+    @Data
+    public static class Toc {
+        private volatile boolean enabled;
+        /**
+         * The TOC level, the default is 2 that is h3 in html
+         *
+         * @see <a href="https://github.com/asciidoctor/asciidoctor/blob/9302213ea29e2efa75a7b3f9124ce4bbcd738174/lib/asciidoctor/converter/html5.rb#L337">Asciidoctor Source</a>
+         */
+        private volatile Integer level;
     }
 
 }
