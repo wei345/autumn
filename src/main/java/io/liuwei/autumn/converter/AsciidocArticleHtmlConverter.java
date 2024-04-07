@@ -21,15 +21,25 @@ import javax.annotation.PostConstruct;
 @Component
 @RequiredArgsConstructor
 public class AsciidocArticleHtmlConverter implements ArticleHtmlConverter {
-    private OptionsBuilder optionsBuilder;
 
     private final Asciidoctor asciidoctor;
 
     private final AppProperties appProperties;
 
+    private OptionsBuilder optionsBuilder;
+
     @PostConstruct
     public void init() {
-        this.optionsBuilder = optionsBuilder();
+        AttributesBuilder ab = AttributesBuilder
+                .attributes()
+                .showTitle(true)
+                .setAnchors(true);
+        if (appProperties.getToc().isEnabled())
+            ab.tableOfContents(true);
+        if (appProperties.getToc().getLevel() != null)
+            ab.attribute("toclevels",
+                    appProperties.getToc().getLevel());
+        this.optionsBuilder = OptionsBuilder.options().attributes(ab);
     }
 
     @Override
@@ -78,20 +88,5 @@ public class AsciidocArticleHtmlConverter implements ArticleHtmlConverter {
         }
 
         return new ArticleHtml(title, titleHtml, tocHtml, contentHtml);
-    }
-
-    protected OptionsBuilder optionsBuilder() {
-        AttributesBuilder ab = AttributesBuilder
-                .attributes()
-                .showTitle(true)
-                .setAnchors(true);
-
-        if (appProperties.getToc().isEnabled())
-            ab.tableOfContents(true);
-        if (appProperties.getToc().getLevel() != null)
-            ab.attribute("toclevels",
-                    appProperties.getToc().getLevel());
-
-        return OptionsBuilder.options().attributes(ab);
     }
 }
