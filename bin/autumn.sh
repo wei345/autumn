@@ -1,37 +1,27 @@
 #!/bin/bash
 
-before_start() {
-    mvn -v || exit 1
+readonly COMMAND="$1"
+readonly TAIL_LOG="$2"
 
-    if [[ ! -d "${LOG_DIR}" ]]; then
-        mkdir "${LOG_DIR}" || exit 1
+cd "$(dirname $0)/.."
+readonly WORKING_DIR="$(pwd)"
+readonly LOG_DIR="./logs"
+readonly LOG_FILE_NAME="autumn.log"
+readonly JAR_FILE="${WORKING_DIR}/target/autumn.jar"
+readonly MAIN_CLASS="io.liuwei.autumn.Application"
+readonly APP_ARGS="--spring.profiles.active=logfile,prod"
+
+prepare_java_opts() {
+    # JVM 选项参考 https://github.com/vipshop/vjtools/blob/master/vjstar/src/main/script/jvm-options/jvm-options.sh
+    JAVA_OPTS=""
+    if [[ "$(java_major_version)" -ge 9 ]]; then
+      # --add-opens 避免出现 "illegal reflective access" 警告，见 https://stackoverflow.com/questions/52185626/illegal-reflective-access-when-i-stop-springboot-web-application-with-tomcat-9-a
+      JAVA_OPTS="${JAVA_OPTS} --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED"
     fi
-
-    touch "${LOG_DIR}/out.log" "${LOG_DIR}/${LOG_FILE_NAME}" || exit 1
-}
-
-quick_start() {
-    local classpath_file="target/classpath.txt"
-
-    mvn clean compile dependency:build-classpath -DincludeScope=runtime -Dmdep.outputFile=${classpath_file} || exit 1
-
-    local classpath="${WORKING_DIR}/target/classes:$(cat ${classpath_file})" || exit 1
-
-    nohup java ${JAVA_OPTS} -classpath "${classpath}" ${MAIN_CLASS} ${APP_ARGS} &>"${LOG_DIR}/out.log" &
-}
-
-jar_start() {
-    mvn clean package || exit 1
-
-    nohup java ${JAVA_OPTS} -jar "${JAR_FILE}" ${APP_ARGS} &>"${LOG_DIR}/out.log" &
-}
-
-after_start() {
-    ps -ef | grep "${WORKING_DIR}" | grep -v grep
-
-    if [[ "${TAIL_LOG}" != "" ]]; then
-        tail -f "${LOG_DIR}/out.log" "${LOG_DIR}/${LOG_FILE_NAME}"
-    fi
+    JAVA_OPTS="${JAVA_OPTS} -Xms128m -Xmx128m"
+    JAVA_OPTS="${JAVA_OPTS} -XX:-UseBiasedLocking -XX:AutoBoxCacheMax=20000 -Djava.security.egd=file:/dev/./urandom"
+    JAVA_OPTS="${JAVA_OPTS} -XX:+PrintCommandLineFlags -XX:-OmitStackTraceInFastThrow -XX:ErrorFile=${LOG_DIR}/hs_err_%p.log"
+    JAVA_OPTS="${JAVA_OPTS} -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8"
 }
 
 start() {
@@ -50,6 +40,40 @@ stop() {
     done
 }
 
+before_start() {
+    mvn -v || exit 1
+
+    if [[ ! -d "${LOG_DIR}" ]]; then
+        mkdir "${LOG_DIR}" || exit 1
+    fi
+
+    touch "${LOG_DIR}/out.log" "${LOG_DIR}/${LOG_FILE_NAME}" || exit 1
+}
+
+after_start() {
+    ps -ef | grep "${WORKING_DIR}" | grep -v grep
+
+    if [[ "${TAIL_LOG}" != "" ]]; then
+        tail -f "${LOG_DIR}/out.log" "${LOG_DIR}/${LOG_FILE_NAME}"
+    fi
+}
+
+quick_start() {
+    local classpath_file="target/classpath.txt"
+
+    mvn clean compile dependency:build-classpath -DincludeScope=runtime -Dmdep.outputFile=${classpath_file} || exit 1
+
+    local classpath="${WORKING_DIR}/target/classes:$(cat ${classpath_file})" || exit 1
+
+    nohup java ${JAVA_OPTS} -classpath "${classpath}" ${MAIN_CLASS} ${APP_ARGS} &>"${LOG_DIR}/out.log" &
+}
+
+jar_start() {
+    mvn clean package || exit 1
+
+    nohup java ${JAVA_OPTS} -jar "${JAR_FILE}" ${APP_ARGS} &>"${LOG_DIR}/out.log" &
+}
+
 # e.g. 1.8.0_131 -> 8, 9 -> 9, 10.0.1 -> 10 ...
 java_major_version() {
     local version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
@@ -59,32 +83,6 @@ java_major_version() {
     fi
     echo "${major_version}"
 }
-
-prepare_java_opts() {
-    # JVM 选项参考 https://github.com/vipshop/vjtools/blob/master/vjstar/src/main/script/jvm-options/jvm-options.sh
-    readonly MEM_OPTS="-Xms150m -Xmx150m -XX:NewRatio=1"
-    readonly OPTIMIZE_OPTS="-XX:-UseBiasedLocking -XX:AutoBoxCacheMax=20000 -Djava.security.egd=file:/dev/./urandom"
-    readonly SHOOTING_OPTS="-XX:+PrintCommandLineFlags -XX:-OmitStackTraceInFastThrow -XX:ErrorFile=${LOG_DIR}/hs_err_%p.log"
-    readonly OTHER_OPTS="-Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8"
-    if [[ "$(java_major_version)" -ge 9 ]]; then
-      # --add-opens 避免出现 "illegal reflective access" 警告，见 https://stackoverflow.com/questions/52185626/illegal-reflective-access-when-i-stop-springboot-web-application-with-tomcat-9-a
-      readonly ADD_OPENS="--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED"
-    else
-      readonly ADD_OPENS=""
-    fi
-    readonly JAVA_OPTS="${ADD_OPENS} ${MEM_OPTS} ${OPTIMIZE_OPTS} ${SHOOTING_OPTS} ${OTHER_OPTS}"
-}
-
-readonly COMMAND="$1"
-readonly TAIL_LOG="$2"
-
-cd "$(dirname $0)/.."
-readonly WORKING_DIR="$(pwd)"
-readonly LOG_DIR="./logs"
-readonly LOG_FILE_NAME="autumn.log"
-readonly JAR_FILE="${WORKING_DIR}/target/autumn.jar"
-readonly MAIN_CLASS="io.liuwei.autumn.Application"
-readonly APP_ARGS="--spring.profiles.active=logfile,prod"
 
 case "${COMMAND}" in
   start)

@@ -37,7 +37,7 @@ public class LoginController {
 
     @PostConstruct
     public void init() {
-        this.rateLimiter = new RateLimiter(3, 86400, 1_000_000, stringRedisTemplate);
+        this.rateLimiter = new RateLimiter(6, 86400, 1_000_000, stringRedisTemplate);
     }
 
     @ViewCache
