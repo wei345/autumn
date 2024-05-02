@@ -119,6 +119,8 @@ body {
     font-family: "Helvetica Neue", sans-serif;
     font-weight: 300;
     -webkit-overflow-scrolling: touch;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
