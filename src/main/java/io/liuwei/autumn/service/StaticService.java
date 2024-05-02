@@ -117,7 +117,7 @@ public class StaticService {
         log.info("building {}", Constants.CSS_ALL_DOT_CSS);
 
         List<ResourceFile> cssList = Stream
-                .of("/css/lib/normalize.css", "/css/style.css")
+                .of("/css/lib/asciidoctor.css", "/css/style.css")
                 .map(this::getStaticResourceFile)
                 .collect(Collectors.toList());
 

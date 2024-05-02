@@ -5,18 +5,34 @@
 <body>
 <div layout:fragment="basic_layout_fragment">
     <div class="header">
-        <div class="header__row_1 row">
-            <div class="header__row_1__heading column">
-                <h1>
-                    <a th:href="@{/}" th:text="${siteTitle}"></a>
-                </h1>
+        <div class="header_nav row">
+            <div class="header_menu_row">
+                <table>
+                    <tr>
+                        <td class="left">
+                            <h1 class="site_title">
+                                <a th:href="@{/}" th:text="${siteTitle}"></a>
+                            </h1>
+                        </td>
+                        <td class="right">
+                            <ul class="header_nav__tools no_selection">
+                                <!--/* sitemap has been moved to a separate page
+                                <li><span class="sitemap_toggle action_toggle">Sitemap</span></li> */-->
+                                <li><a th:href="@{/sitemap} + (${sitemapPath} == null ? '' : '#' + ${sitemapPath})">Sitemap</a></li>
+                                <li><a th:href="@{/help}">Help</a></li>
+                                <li th:if="${user} != null"><a class="header_nav__right__logout" th:href="@{/logout}">Logout</a></li>
+                                <li th:if="${user} == null"><a class="header_nav__right__logout" th:href="${loginReturnUrl} == null ? @{/login} : @{/login(returnUrl=${loginReturnUrl})}">Login</a></li>
+                            </ul>
+                        </td>
+                    </tr>
+                </table>
             </div>
-            <div class="header__row_1__search_box column">
-                <form class="header__row_1__search_form" method="GET" th:action="@{/search}">
+            <div class="header_nav__search_box column">
+                <form class="header_nav__search_form" method="GET" th:action="@{/search}">
                     <span class="search_icon btn"></span>
                     <span class="search_box__ct_toggle btn"></span>
                     <span class="btn_clear_search btn"></span>
-                    <input class="header__row_1__search_input" type="search" name="q" th:value="${param.q}"
+                    <input class="header_nav__search_input" type="search" name="q" th:value="${param.q}"
                            autocomplete="off" placeholder="Search"/>
                     <div class="search_box__ct no_selection"></div>
                     <div class="qsr">
@@ -25,21 +41,6 @@
                         <ul class="qsr__list"></ul>
                     </div>
                 </form>
-            </div>
-            <div class="header__row_1__right column">
-                <ul class="header__row_1__tools no_selection">
-                    <!--/* sitemap 移至单独的页面
-                    <li><span class="sitemap_toggle action_toggle">Sitemap</span></li> */-->
-                    <li><a th:href="@{/sitemap} + (${sitemapPath} == null ? '' : '#' + ${sitemapPath})">Sitemap</a></li>
-                    <li><a th:href="@{/help}">Help</a></li>
-                    <li th:if="${user} != null"><a class="header__row_1__right__logout" th:href="@{/logout}">Logout</a></li>
-                    <li th:if="${user} == null">
-                        <a class="header__row_1__right__logout"
-                           th:href="${loginReturnUrl} == null ? @{/login} : @{/login(returnUrl=${loginReturnUrl})}">
-                            Login
-                        </a>
-                    </li>
-                </ul>
             </div>
         </div>
     </div>

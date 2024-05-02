@@ -43,6 +43,9 @@ autumn:
   breadcrumb:
     # 是否显示面包屑
     enabled: false
+  toc:
+    enabled: true
+    level: 6
   search:
     # 搜索结果每页条数
     page-size: 10

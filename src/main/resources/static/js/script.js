@@ -133,7 +133,7 @@ function bindTocToggle() {
 }
 
 function bindShortcut() {
-    var searchInput = au.el('.header__row_1__search_input');
+    var searchInput = au.el('.header_nav__search_input');
     document.addEventListener('keydown', function (event) {
         if (event.target === document.body && !event.altKey && !event.ctrlKey && !event.metaKey) {
             switch (event.key) {

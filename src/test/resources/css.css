@@ -51,11 +51,11 @@ th {
 }*/
 
 /* sidebar 和 page 独立滚动
-.header__row_1__search_box {
+.header_nav__search_box {
     padding-top: .1em;
 }
 
-.header__row_1 {
+.header_nav {
     line-height: 1;
 }
 

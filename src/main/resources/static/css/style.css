@@ -1,32 +1,6 @@
-/* <editor-fold desc="一般样式"> */
-body {
-    line-height: 1.8;
-    font-family: "Helvetica Neue", sans-serif;
-    font-weight: 300;
-    -webkit-overflow-scrolling: touch;
-}
+/* <editor-fold desc="common"> */
 
-h1, h2, h3, h4, h5, h6 {
-    margin: 0;
-    padding: 0;
-    color: #000;
-    cursor: text;
-    font-weight: 700;
-}
-
-h2, h3, h4, h5, h6 {
-    margin: 1em 0 0;
-}
-
-a {
-    color: #086dc3;
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
+/* asciidoctor.css was added on Thu May 2 2024
 table {
     border-spacing: 0;
     width: 100%;
@@ -65,6 +39,107 @@ legend {
     display: block;
     font-weight: 700;
     margin-bottom: 5px;
+}
+
+li p, ul dd, ol dd {
+    margin-top: 0;
+    margin-bottom: .625em;
+}*/
+
+/* <editor-fold desc="adjusting with asciidoctor.css"> */
+#toctitle {
+    color: unset;
+    font-size: unset;
+}
+
+#toctitle:hover {
+    font-weight: bold;
+}
+
+#toc ul.sectlevel0 > li > a {
+    font-style: unset;
+}
+
+#toc a:hover {
+    text-decoration: underline;
+}
+
+h1 {
+    font-size: 2em;
+}
+
+h2 {
+    font-size: 1.5em;
+}
+
+h3 {
+    font-size: 1.17em;
+}
+
+h4, h5, h6 {
+    font-size: 1em;
+}
+
+#content h1 > a.anchor,
+h2 > a.anchor,
+h3 > a.anchor,
+#toctitle > a.anchor,
+.sidebarblock > .content > .title > a.anchor,
+h4 > a.anchor,
+h5 > a.anchor,
+h6 > a.anchor {
+    position: unset;
+    z-index: unset;
+    width: unset;
+    margin-left: unset;
+    display: unset;
+    text-decoration: unset;
+    visibility: unset;
+    text-align: unset;
+    font-weight: unset;
+}
+
+#content h1 > a.anchor::before,
+h2 > a.anchor::before,
+h3 > a.anchor::before,
+#toctitle > a.anchor::before,
+.sidebarblock > .content > .title > a.anchor::before,
+h4 > a.anchor::before,
+h5 > a.anchor::before,
+h6 > a.anchor::before {
+    content: unset;
+    font-size: unset;
+    display: unset;
+    padding-top: unset;
+}
+/* </editor-fold> */
+
+body {
+    line-height: 1.8;
+    font-family: "Helvetica Neue", sans-serif;
+    font-weight: 300;
+    -webkit-overflow-scrolling: touch;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    padding: 0;
+    color: #000;
+    cursor: text;
+    font-weight: 700;
+}
+
+h2, h3, h4, h5, h6 {
+    margin: 1em 0;
+}
+
+a {
+    color: #086dc3;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
 }
 
 /* 阻止手机浏览器修改搜索框样式 */
@@ -124,11 +199,6 @@ input[type='submit'] {
 .btn:hover {
     background-color: rgba(60, 64, 67, 0.08);
     border-radius: 50%;
-}
-
-li p, ul dd, ol dd {
-    margin-top: 0;
-    margin-bottom: .625em;
 }
 
 .mobi .btn:hover {
@@ -260,28 +330,39 @@ img {
     display: block;
 }
 
-.header__row_1 {
-    position: relative;
+.header_menu_row {
+    padding-top: .25rem;
 }
 
-.header__row_1__heading {
-    flex: 0 0 8em;
-}
-
-.header__row_1__heading h1 {
-    display: inline-block;
-}
-
-.header__row_1__heading h1 a:hover {
+.header_menu_row .site_title a:hover {
     text-decoration: none;
 }
 
-.header__row_1__search_box {
+.header_menu_row table {
+    width: 100%;
+    background: unset;
+    margin: 0;
+    border: none;
+}
+
+.header_menu_row table td {
+    padding: 0;
+}
+
+.header_menu_row table .left {
+
+}
+
+.header_menu_row table .right {
+    text-align: right;
+}
+
+.header_nav__search_box {
     box-sizing: border-box;
     padding-top: .2em;
 }
 
-.header__row_1__search_box .search_icon {
+.header_nav__search_box .search_icon {
     background: url('data:image/svg+xml;utf8,<svg class="search_icon" focusable="false" height="24px" viewBox="0 0 24 24" width="24px" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg>') no-repeat center;
     width: 38px;
     height: 38px;
@@ -291,11 +372,11 @@ img {
     cursor: pointer;
 }
 
-.header__row_1__search_form {
+.header_nav__search_form {
     position: relative;
 }
 
-input.header__row_1__search_input {
+input.header_nav__search_input {
     background-color: rgba(0, 0, 0, 0.04);
     line-height: 1.6;
     border-width: 0;
@@ -304,27 +385,21 @@ input.header__row_1__search_input {
     padding-right: 3em;
 }
 
-.qs_opened input.header__row_1__search_input_focus, input.header__row_1__search_input:focus {
+.qs_opened input.header_nav__search_input_focus, input.header_nav__search_input:focus {
     background-color: transparent;
     border-radius: 4px;
     border: 1px solid #dfe1e5;
 }
 
-ul.header__row_1__tools {
+ul.header_nav__tools {
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.header__row_1__tools li {
+.header_nav__tools li {
     display: inline-block;
     padding-left: .5em;
-}
-
-.header__row_1__right {
-    position: absolute;
-    text-align: right;
-    flex: 0 0 12em;
 }
 
 .sidebar_toggle {
@@ -334,7 +409,7 @@ ul.header__row_1__tools {
 
 .action_toggle:hover {
     cursor: pointer;
-    text-decoration: underline;
+    font-weight: bold;
 }
 
 .mobi .action_toggle:hover {
@@ -805,6 +880,7 @@ blockquote *:last-child {
     margin-bottom: 0;
 }*/
 
+/* asciidoctor.css was added on Thu May 2 2024
 .quoteblock {
     margin: 0 1em 1.25em 1.5em;
     display: table
@@ -925,6 +1001,7 @@ blockquote *:last-child {
     text-align: left;
     margin-right: 0
 }
+*/
 
 /* </editor-fold> */
 
@@ -953,37 +1030,24 @@ blockquote *:last-child {
         padding: 0 1em;
     }
 
-    .row .column.header__row_1__heading {
-        flex: 10000 1 8em;
-        max-width: 10em;
-        min-width: 8em;
-    }
-
-    .row .column.header__row_1__search_box {
+    .row .column.header_nav__search_box {
         flex: 1 1 38em;
         height: 51px;
     }
 
-    .row .column.header__row_1__right {
-        position: inherit;
-        flex: 100 100 11em;
-        max-width: 15em;
-        min-width: 7em;
-    }
-
-    .header__row_1__search_form {
+    .header_nav__search_form {
         /* 快速搜索面板阴影 */
         border-radius: 4px;
         max-width: 38em;
     }
 
-    .show_ct .header__row_1__search_form, .qs_opened .header__row_1__search_form {
+    .show_ct .header_nav__search_form, .qs_opened .header_nav__search_form {
         box-shadow: 0 4px 6px 0 rgba(32, 33, 36, 0.28);
         padding-bottom: 1em;
         background: #fff;
     }
 
-    .show_ct .header__row_1__search_form .header__row_1__search_input, .qs_opened .header__row_1__search_form .header__row_1__search_input {
+    .show_ct .header_nav__search_form .header_nav__search_input, .qs_opened .header_nav__search_form .header_nav__search_input {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
         border-left-width: 0;
@@ -1138,11 +1202,11 @@ blockquote *:last-child {
             background: transparent;
         }
 
-        .multiple_columns .fixed .header__row_1__search_box {
+        .multiple_columns .fixed .header_nav__search_box {
             height: 51px;
         }
 
-        .multiple_columns .fixed.qsr_more .header__row_1__search_box {
+        .multiple_columns .fixed.qsr_more .header_nav__search_box {
             height: auto;
         }
 

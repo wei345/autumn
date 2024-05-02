@@ -3,8 +3,8 @@ var allPages;
 var pathToPage;
 
 function setupQuickSearch(treeRoot) {
-    var searchForm = au.el('.header__row_1__search_form');
-    var searchInput = au.el('.header__row_1__search_input');
+    var searchForm = au.el('.header_nav__search_form');
+    var searchInput = au.el('.header_nav__search_input');
     var ctToggle = au.el('.search_box__ct_toggle');
     var btnClearSearch = au.el('.btn_clear_search');
     var qsrClose = au.el('.qsr__close');
@@ -165,11 +165,11 @@ function setupQuickSearch(treeRoot) {
     }
 
     function isSearchInputFocusing() {
-        return searchInput.classList.contains('header__row_1__search_input_focus');
+        return searchInput.classList.contains('header_nav__search_input_focus');
     }
 
     function setSearchInputFocusing(isFocusing) {
-        searchInput.classList.toggle('header__row_1__search_input_focus', isFocusing);
+        searchInput.classList.toggle('header_nav__search_input_focus', isFocusing);
     }
 
     function updateBtnClearSearchVisible() {
