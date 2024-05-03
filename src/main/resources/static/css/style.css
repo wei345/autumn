@@ -46,7 +46,7 @@ li p, ul dd, ol dd {
     margin-bottom: .625em;
 }*/
 
-/* <editor-fold desc="adjusting with asciidoctor.css"> */
+/* <editor-fold desc="adjusting to asciidoctor.css"> */
 #toctitle {
     color: unset;
     font-size: unset;
@@ -221,6 +221,14 @@ img {
 
 .show {
     display: block !important;
+}
+
+.scrollable {
+    overflow-x: auto;
+}
+
+.scrollable > .content {
+    padding-bottom: unset;
 }
 
 /* </editor-fold> */
