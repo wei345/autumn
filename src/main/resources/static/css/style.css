@@ -139,15 +139,9 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    margin: 0;
-    padding: 0;
-    color: #000;
+    color: black;
     cursor: text;
     font-weight: 700;
-}
-
-h2, h3, h4, h5, h6 {
-    margin: 1em 0;
 }
 
 a {
@@ -300,10 +294,11 @@ img {
 }
 
 .desktop .content .heading a.anchor {
+    box-sizing: border-box;
     display: inline-block;
     margin-left: -21px;
     padding-right: 5px;
-    width: 16px;
+    width: 21px;
     text-align: right;
     visibility: hidden;
 }
@@ -353,6 +348,11 @@ img {
 
 .header_menu_row {
     padding-top: .25rem;
+}
+
+.header_menu_row h1.site_title {
+    margin: 0;
+    padding: 0;
 }
 
 .header_menu_row .site_title a:hover {
