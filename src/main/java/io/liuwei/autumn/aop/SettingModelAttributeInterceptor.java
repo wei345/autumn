@@ -64,6 +64,7 @@ public class SettingModelAttributeInterceptor implements HandlerInterceptor {
             model.put("treeJsonUrl", toRevisionUrl(Constants.TREE_DOT_JSON, articleService.getTreeJson(accessLevel)));
             model.put("prefix", prefix);
             model.put("user", user);
+            model.put("copyright", appProperties.getCopyright());
         }
     }
 

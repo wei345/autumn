@@ -182,7 +182,7 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 input:focus {
-    border: 1px solid #9b4dca;
+    border: 1px solid #086dc3;
     outline: 0;
 }
 
@@ -191,8 +191,8 @@ button,
 input[type='button'],
 input[type='reset'],
 input[type='submit'] {
-    background-color: #9b4dca;
-    border: 0.1em solid #9b4dca;
+    background-color: #086dc3;
+    border: 0.1em solid #086dc3;
     border-radius: .4em;
     color: #fff;
     cursor: pointer;
@@ -316,17 +316,33 @@ img {
     opacity: .5;
 }
 
+/* </editor-fold> */
+
+/* <editor-fold desc="Footer"> */
+html, body {
+    height: 100%;
+}
+
+.container {
+    position: relative;
+    min-height: 100%;
+    padding-bottom: 4em;
+}
+
 .footer {
-    border-top: 4px solid #000;
-    margin: 1em;
-    padding: 1em 0;
-    text-align: right;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 0 1em 1em;
 }
 
-.footer .powered {
-    color: #666;
+.footer hr {
+    margin: 0;
 }
 
+.footer .copyright {
+    text-align: center;
+}
 /* </editor-fold> */
 
 /* <editor-fold desc="Header"> */
@@ -591,9 +607,10 @@ ul.header_nav__tools {
 
 /* <editor-fold desc="登录表单"> */
 .login_box {
+    margin: 0 auto;
+    padding-top: 2em;
     max-width: 300px;
     min-width: 100px;
-    margin: 2em auto;
 }
 
 .login_box input {

@@ -38,6 +38,8 @@ public class AppProperties {
 
     private final Toc toc = new Toc();
 
+    private String copyright;
+
     @Data
     public static class Access {
         /**
@@ -111,7 +113,7 @@ public class AppProperties {
     public static class CodeBlock {
         private CodeBlockHighlighterEnum highlighter = CodeBlockHighlighterEnum.ROUGE;
 
-        private Highlightjs highlightjs = new Highlightjs();
+        private final Highlightjs highlightjs = new Highlightjs();
 
         @Data
         public static class Highlightjs {
