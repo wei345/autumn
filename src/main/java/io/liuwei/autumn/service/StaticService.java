@@ -57,23 +57,7 @@ public class StaticService {
     public RevisionContent getAllJs() {
         log.info("building {}", Constants.JS_ALL_DOT_JS);
 
-        List<ResourceFile> jsList = Stream
-                .of("/js/script.js", "/js/quick_search.js", "/js/util.js")
-                .map(this::getStaticResourceFile)
-                .collect(Collectors.toList());
-
         StringBuilder builder = STRING_BUILDER_HOLDER.get();
-
-        // 我们的 js，包到一个 function 里
-        builder.append("\"use strict\";\n");
-        builder.append("(function () {\n");
-        jsList.forEach(js ->
-                builder.append(
-                                js.getContentAsString()
-                                        .replaceFirst("\"use strict\";\n", "")
-                                        .trim())
-                        .append("\n"));
-        builder.append("})();\n");
 
         // 代码块高亮
         if (codeBlock.isHighlightingEnabled()) {
@@ -101,6 +85,21 @@ public class StaticService {
                     .append("\n");
         }
 
+        // 我们的 js，包到一个 function 里
+        builder.append("\"use strict\";\n");
+        builder.append("(function () {\n");
+        List<ResourceFile> jsList = Stream
+                .of("/js/script.js", "/js/quick_search.js", "/js/util.js")
+                .map(this::getStaticResourceFile)
+                .collect(Collectors.toList());
+        jsList.forEach(js ->
+                builder.append(
+                                js.getContentAsString()
+                                        .replaceFirst("\"use strict\";\n", "")
+                                        .trim())
+                        .append("\n"));
+        builder.append("})();\n");
+
         // 压缩
         String content = builder.toString();
         if (staticResource.isJsCompressionEnabled()) {
@@ -116,18 +115,7 @@ public class StaticService {
     public RevisionContent getAllCss() {
         log.info("building {}", Constants.CSS_ALL_DOT_CSS);
 
-        List<ResourceFile> cssList = Stream
-                .of("/css/lib/asciidoctor.css", "/css/style.css")
-                .map(this::getStaticResourceFile)
-                .collect(Collectors.toList());
-
         StringBuilder build = STRING_BUILDER_HOLDER.get();
-
-        // 我们的 css
-        cssList.forEach(css ->
-                build
-                        .append(css.getContentAsString())
-                        .append("\n"));
 
         // 代码块高亮
         if (codeBlock.isHighlightingEnabled()) {
@@ -135,6 +123,16 @@ public class StaticService {
                     .append(IOUtil.resourceToString(getHighlightJsCssPath()))
                     .append("\n");
         }
+
+        // 我们的 css
+        List<ResourceFile> cssList = Stream
+                .of("/css/lib/asciidoctor.css", "/css/style.css")
+                .map(this::getStaticResourceFile)
+                .collect(Collectors.toList());
+        cssList.forEach(css ->
+                build
+                        .append(css.getContentAsString())
+                        .append("\n"));
 
         byte[] bytes = build.toString().getBytes(StandardCharsets.UTF_8);
         return revisionContentManager.toRevisionContent(bytes, MediaTypeUtil.TEXT_CSS_UTF8);
