@@ -1,5 +1,6 @@
 package io.liuwei.autumn.config;
 
+import io.liuwei.autumn.enums.CodeBlockHighlighterEnum;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.unit.DataSize;
@@ -108,19 +109,24 @@ public class AppProperties {
 
     @Data
     public static class CodeBlock {
-        private boolean highlightingEnabled = true;
+        private CodeBlockHighlighterEnum highlighter = CodeBlockHighlighterEnum.ROUGE;
 
-        private String highlightingStyle = "default";
+        private Highlightjs highlightjs = new Highlightjs();
 
-        private List<String> highlightingLanguages = Arrays.asList(
-                "bash,clojure,css,java,javascript,json,lisp,lua,nginx,php,python,ruby,sql,xml,yaml".split(","));
+        @Data
+        public static class Highlightjs {
+            private String theme = "default";
 
-        /**
-         * Maven org.webjars:highlightjs version
-         */
-        private String highlightjsVersion;
+            private List<String> languages = Arrays.asList(
+                    "bash,clojure,css,java,javascript,json,lisp,lua,nginx,php,python,ruby,sql,xml,yaml".split(","));
 
-        private boolean lineNumberEnabled = false;
+            /**
+             * Maven org.webjars:highlightjs version
+             */
+            private String version;
+
+            private boolean lineNumberEnabled = false;
+        }
     }
 
     @Data

@@ -23,9 +23,13 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static io.liuwei.autumn.enums.CodeBlockHighlighterEnum.HIGHLIGHTJS;
+import static io.liuwei.autumn.enums.CodeBlockHighlighterEnum.ROUGE;
 
 
 /**
@@ -60,17 +64,10 @@ public class StaticService {
         StringBuilder builder = STRING_BUILDER_HOLDER.get();
 
         // 代码块高亮
-        if (codeBlock.isHighlightingEnabled()) {
-            builder
-                    .append(getHighlightJs())
-                    .append("\n");
-        }
-
-        // 代码块行号
-        if (codeBlock.isLineNumberEnabled()) {
-            builder
-                    .append(getLineNumberJs())
-                    .append("\n");
+        if (codeBlock.getHighlighter() == HIGHLIGHTJS) {
+            builder.append(getHighlightJs()).append("\n");
+            if (codeBlock.getHighlightjs().isLineNumberEnabled())
+                builder.append(getLineNumberJs()).append("\n");
         }
 
         // Google 分析
@@ -114,25 +111,21 @@ public class StaticService {
     @Cacheable(value = CacheNames.STATIC, key = CacheKeys.CSS_ALL_DOT_CSS)
     public RevisionContent getAllCss() {
         log.info("building {}", Constants.CSS_ALL_DOT_CSS);
-
         StringBuilder build = STRING_BUILDER_HOLDER.get();
 
-        // 代码块高亮
-        if (codeBlock.isHighlightingEnabled()) {
-            build
-                    .append(IOUtil.resourceToString(getHighlightJsCssPath()))
-                    .append("\n");
-        }
+        if (codeBlock.getHighlighter() == HIGHLIGHTJS)
+            build.append(IOUtil.resourceToString(getHighlightJsCssPath())).append("\n");
 
-        // 我们的 css
-        List<ResourceFile> cssList = Stream
-                .of("/css/lib/asciidoctor.css", "/css/style.css")
+        List<String> cssFiles = new ArrayList<>();
+        cssFiles.add("/css/lib/asciidoctor.css");
+        if (codeBlock.getHighlighter() == ROUGE)
+            cssFiles.add("/css/lib/rouge-solarized.css");
+        cssFiles.add("/css/style.css");
+
+        cssFiles.stream()
                 .map(this::getStaticResourceFile)
-                .collect(Collectors.toList());
-        cssList.forEach(css ->
-                build
-                        .append(css.getContentAsString())
-                        .append("\n"));
+                .forEach(css ->
+                        build.append(css.getContentAsString()).append("\n"));
 
         byte[] bytes = build.toString().getBytes(StandardCharsets.UTF_8);
         return revisionContentManager.toRevisionContent(bytes, MediaTypeUtil.TEXT_CSS_UTF8);
@@ -169,7 +162,7 @@ public class StaticService {
                 .append("\n");
 
         codeBlock
-                .getHighlightingLanguages()
+                .getHighlightjs().getLanguages()
                 .forEach(language -> {
                     String content = IOUtil.resourceToString(getHighlightJsLanguagePath(language));
                     String function = content.substring(content.indexOf("function"));
@@ -206,11 +199,11 @@ public class StaticService {
     }
 
     private String getHighlightJsCssPath() {
-        return getHighlightJsBasePath() + "/styles/" + codeBlock.getHighlightingStyle() + ".css";
+        return getHighlightJsBasePath() + "/styles/" + codeBlock.getHighlightjs().getTheme() + ".css";
     }
 
     private String getHighlightJsBasePath() {
-        return "/META-INF/resources/webjars/highlightjs/" + codeBlock.getHighlightjsVersion();
+        return "/META-INF/resources/webjars/highlightjs/" + codeBlock.getHighlightjs().getVersion();
     }
 
     private String getGoogleAnalyticsJs() {

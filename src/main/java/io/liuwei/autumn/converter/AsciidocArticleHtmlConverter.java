@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
+import static io.liuwei.autumn.enums.CodeBlockHighlighterEnum.ROUGE;
+
 /**
  * @author liuwei
  * @since 2020-06-01 18:45
@@ -30,16 +32,20 @@ public class AsciidocArticleHtmlConverter implements ArticleHtmlConverter {
 
     @PostConstruct
     public void init() {
-        AttributesBuilder ab = AttributesBuilder
+        AttributesBuilder attr = AttributesBuilder
                 .attributes()
                 .showTitle(true)
                 .setAnchors(true);
-        if (appProperties.getToc().isEnabled())
-            ab.tableOfContents(true);
-        if (appProperties.getToc().getLevel() != null)
-            ab.attribute("toclevels",
-                    appProperties.getToc().getLevel());
-        this.optionsBuilder = OptionsBuilder.options().attributes(ab);
+
+        if (appProperties.getCodeBlock().getHighlighter() == ROUGE)
+            attr.sourceHighlighter("rouge");
+        if (appProperties.getToc().isEnabled()) {
+            attr.tableOfContents(true);
+            if (appProperties.getToc().getLevel() != null)
+                attr.attribute("toclevels", appProperties.getToc().getLevel());
+        }
+
+        this.optionsBuilder = OptionsBuilder.options().attributes(attr);
     }
 
     @Override

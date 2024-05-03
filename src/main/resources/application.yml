@@ -28,18 +28,22 @@ autumn:
   cache:
     maxMediaSize: 1MB
   code-block:
-    # 是否高亮代码块。启用后，js 和 css 中会自动增加 highlight.js 内容
-    highlighting-enabled: true
-    # highlightjs version，用于构造 highlightjs 完整资源路径，会被 Maven 自动替换为 pom 里的 highlightjs.version 属性值
-    highlightjs-version: '@highlightjs.version@'
-    # 设置对哪些语言启用高亮，多个值以英文逗号分隔，每个值对应
-    # highlightjs-9.8.0.jar!/META-INF/resources/webjars/highlightjs/9.8.0/languages 里的文件名，不含扩展名
-    highlighting-languages: bash,clojure,css,java,javascript,json,lisp,lua,nginx,php,python,ruby,sql,xml,yaml
-    # 代码块高亮样式，对应 highlightjs-9.8.0.jar!/META-INF/resources/webjars/highlightjs/9.8.0/styles
-    # 里的文件名，不含扩展名。这个几个都不错：default, atom-one-light, solarized-light 和 solarized-dark
-    highlighting-style: default
-    # 是否显示代码块行号
-    line-number-enabled: false
+    # highlighter highlight_js runs on client side.
+    # highlighter rouge runs on server side.
+    # js 和 css 中会自动增加相应内容
+    # see https://docs.asciidoctor.org/asciidoc/latest/verbatim/source-highlighter/
+    highlighter: rouge
+    highlightjs:
+      # highlightjs version，用于构造 highlightjs 完整资源路径，会被 Maven 自动替换为 pom 里的 highlightjs.version 属性值
+      version: '@highlightjs.version@'
+      # 设置对哪些语言启用高亮，多个值以英文逗号分隔，每个值对应
+      # highlightjs-9.8.0.jar!/META-INF/resources/webjars/highlightjs/9.8.0/languages 里的文件名，不含扩展名
+      languages: bash,clojure,css,java,javascript,json,lisp,lua,nginx,php,python,ruby,sql,xml,yaml
+      # 代码块高亮样式，对应 highlightjs-9.8.0.jar!/META-INF/resources/webjars/highlightjs/9.8.0/styles
+      # 里的文件名，不含扩展名。这个几个都不错：default, atom-one-light, solarized-light 和 solarized-dark
+      theme: default
+      # 是否显示代码块行号
+      line-number-enabled: false
   breadcrumb:
     # 是否显示面包屑
     enabled: false
