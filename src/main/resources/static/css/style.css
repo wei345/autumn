@@ -2,9 +2,6 @@
 #toctitle {
     color: unset;
     font-size: unset;
-}
-
-#toctitle:hover {
     font-weight: bold;
 }
 

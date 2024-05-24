@@ -173,6 +173,8 @@ public class AppProperties {
          * @see <a href="https://github.com/asciidoctor/asciidoctor/blob/9302213ea29e2efa75a7b3f9124ce4bbcd738174/lib/asciidoctor/converter/html5.rb#L337">Asciidoctor Source</a>
          */
         private volatile Integer level;
+
+        private volatile String title = "Table of Contents";
     }
 
 }

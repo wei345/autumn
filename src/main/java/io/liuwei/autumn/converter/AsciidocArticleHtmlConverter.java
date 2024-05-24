@@ -75,7 +75,7 @@ public class AsciidocArticleHtmlConverter implements ArticleHtmlConverter {
                     .first()
                     .replaceWith(new Element("h3")
                             .attr("id", "toctitle")
-                            .text("TOC"));
+                            .text(appProperties.getToc().getTitle()));
 
             // 在 toc 第一行插入文章标题，点击可以跳到标题
             Element oldUl = tocEl.selectFirst("ul.sectlevel1");
