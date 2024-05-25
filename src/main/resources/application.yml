@@ -50,6 +50,7 @@ autumn:
   toc:
     enabled: true
     level: 5
+  table-stripes: hover
   search:
     # 搜索结果每页条数
     page-size: 10

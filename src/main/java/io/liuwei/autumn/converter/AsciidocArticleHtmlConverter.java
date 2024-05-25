@@ -44,6 +44,8 @@ public class AsciidocArticleHtmlConverter implements ArticleHtmlConverter {
             if (appProperties.getToc().getLevel() != null)
                 attr.attribute("toclevels", appProperties.getToc().getLevel());
         }
+        if (appProperties.getTableStripes() != null)
+            attr.attribute("table-stripes", appProperties.getTableStripes().name());
 
         this.optionsBuilder = OptionsBuilder.options().attributes(attr);
     }

@@ -40,6 +40,12 @@ public class AppProperties {
 
     private String copyright;
 
+    private TableStripe tableStripes;
+
+    public enum TableStripe {
+        none, even, odd, all, hover
+    }
+
     @Data
     public static class Access {
         /**
