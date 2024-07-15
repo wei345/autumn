@@ -7,18 +7,29 @@ import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.ArticleVO;
+import io.liuwei.autumn.model.Media;
+import io.liuwei.autumn.model.RevisionEtag;
 import io.liuwei.autumn.service.ArticleService;
+import io.liuwei.autumn.service.MediaService;
 import io.liuwei.autumn.service.SearchService;
 import io.liuwei.autumn.util.WebUtil;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.IOUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -31,13 +42,17 @@ import java.util.Map;
 @Controller
 @RequestMapping
 @RequiredArgsConstructor
-public class ArticleController {
+public class ContentController {
 
     private final ArticleService articleService;
 
     private final SearchService searchService;
 
     private final AppProperties.Breadcrumb breadcrumb;
+
+    private final MediaService mediaService;
+
+    private final MediaType TEXT_PLAIN_UTF8 = new MediaType(MediaType.TEXT_PLAIN, StandardCharsets.UTF_8);
 
     @ViewCache
     @GetMapping("")
@@ -120,4 +135,53 @@ public class ArticleController {
         }
     }
 
+    @GetMapping("/**/*.*")
+    @ResponseBody
+    public ResponseEntity<byte[]> getFile(AccessLevelEnum accessLevel,
+                                          @RequestParam(defaultValue = "false") boolean raw,
+                                          HttpServletRequest request,
+                                          HttpServletResponse response) throws IOException {
+        String path = WebUtil.getInternalPath(request);
+        Media media = mediaService.getMedia(path);
+        RevisionEtag re;
+
+        if (media == null
+                || !media.getAccessLevel().allow(accessLevel)
+                || (re = mediaService.getRevisionEtag(media)) == null) {
+            response.sendError(404);
+            return null;
+        }
+
+        if (WebUtil.checkNotModified(re.getRevision(), re.getEtag(), request, response)) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_MODIFIED)
+                    .eTag(re.getEtag())
+                    .build();
+        }
+
+        if (re.getRevisionContent() != null) {
+            MediaType ct = decideContentType(re.getRevisionContent().getMediaType(), raw);
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .eTag(re.getEtag())
+                    .contentType(ct)
+                    .body(re.getRevisionContent().getContent());
+        } else {
+            String ct = decideContentType(media.getMediaType(), raw).toString();
+            WebUtil.setEtag(re.getEtag(), response);
+            response.setContentType(ct);
+            OutputStream out = response.getOutputStream();
+            try (FileInputStream in = new FileInputStream(media.getFile())) {
+                IOUtils.copy(in, out);
+            }
+            out.flush();
+            return null;
+        }
+    }
+
+    private MediaType decideContentType(MediaType contentType, boolean raw) {
+        if (raw && WebUtil.isText(contentType))
+            return TEXT_PLAIN_UTF8;
+        return contentType;
+    }
 }

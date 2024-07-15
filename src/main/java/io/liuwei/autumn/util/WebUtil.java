@@ -4,6 +4,7 @@ import com.vip.vjtools.vjkit.text.EscapeUtil;
 import io.liuwei.autumn.constant.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.util.CookieGenerator;
@@ -23,6 +24,9 @@ import java.util.regex.Pattern;
 public class WebUtil {
 
     private static final long DEFAULT_EXPIRES_SECONDS = 86400 * 365 * 16; // 16 年
+
+    static final Pattern TEXT_CONTENT_TYPE_KEYWORDS = Pattern
+            .compile("\\b(text|xml|json|html|xhtml|htm|urlencoded)\\b", Pattern.CASE_INSENSITIVE);
 
     public static String getClientIpAddress(HttpServletRequest request) {
         String clientIp;
@@ -164,6 +168,11 @@ public class WebUtil {
             return scheme;
         }
         return request.getScheme();
+    }
+
+    public static boolean isText(MediaType contentType) {
+        return contentType != null &&
+                TEXT_CONTENT_TYPE_KEYWORDS.matcher(contentType.toString()).find();
     }
 
 }
