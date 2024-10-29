@@ -188,6 +188,8 @@ public class AppProperties {
 
     @Data
     public static class Clipboard {
+        private volatile String namespaceForRedisKeys = "clipboard";
+        private volatile int digestLength = 6;
         private volatile Duration maxAge = Duration.ofDays(1);
     }
 

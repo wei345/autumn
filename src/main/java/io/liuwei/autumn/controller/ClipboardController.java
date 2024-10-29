@@ -56,28 +56,42 @@ public class ClipboardController {
 
         if (StringUtils.isBlank(content))
             return "redirect:" + PATH;
-        String key = getKey(content);
+        String id = getContentId(content);
         Duration maxAge = appProperties.getClipboard().getMaxAge();
+        String key = getRedisKeyOfContentId(id);
         stringRedisTemplate.opsForValue().set(key, content, maxAge);
-        return "redirect:" + PATH + "/" + key;
+        return "redirect:" + PATH + "/" + id;
     }
 
-    String getKey(String content) {
+    String getContentId(String content) {
         byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
-        return Md5Util.md5DigestAsHex(bytes).substring(0, 8);
+        String md5 = Md5Util.md5DigestAsHex(bytes);
+        int digestLength = Math.min(appProperties.getClipboard()
+                .getDigestLength(), md5.length());
+        return md5.substring(0, digestLength);
+    }
+
+    String getRedisKeyOfContentId(String contentId) {
+        String namespace = appProperties.getClipboard().getNamespaceForRedisKeys();
+        return String.format("%s:%s", namespace, contentId);
     }
 
     @GetMapping("{id}")
     public ResponseEntity<String> read(@PathVariable String id) {
         if (StringUtils.isNotBlank(id)) {
-            String content = stringRedisTemplate.opsForValue().get(id);
-            if (content != null)
+            String key = getRedisKeyOfContentId(id);
+            String value = stringRedisTemplate.opsForValue().get(key);
+            if (value != null)
                 return ResponseEntity.ok()
                         .contentType(TEXT_PLAIN_UTF_8)
-                        .body(content);
+                        .body(value);
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body("Page Not Found");
     }
+
+    // todo save content time, size
+    // todo list all ids
+    // todo delete content
 
 }
