@@ -5,6 +5,7 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.unit.DataSize;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,6 +42,8 @@ public class AppProperties {
     private String copyright;
 
     private TableStripe tableStripes;
+
+    private final Clipboard clipboard = new Clipboard();
 
     public enum TableStripe {
         none, even, odd, all, hover
@@ -181,6 +184,11 @@ public class AppProperties {
         private volatile Integer level;
 
         private volatile String title = "Table of Contents";
+    }
+
+    @Data
+    public static class Clipboard {
+        private volatile Duration maxAge = Duration.ofDays(1);
     }
 
 }

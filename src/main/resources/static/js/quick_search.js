@@ -26,8 +26,8 @@ function setupQuickSearch(treeRoot) {
     var btnClearSearchVisible = false;
 
     // 如果这里 return，JS 压缩器 Closure Compiler 会报错
+    getAllPages(treeRoot); // also required by updateVisitList in script.js
     if (searchForm) {
-        getAllPages(treeRoot);
         setupCt();
         bindSearchInputEvent();
         bindQuickSearchCloseEvent();

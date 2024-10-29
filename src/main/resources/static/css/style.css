@@ -1039,6 +1039,25 @@ blockquote *:last-child {
 
 /* </editor-fold> */
 
+/* region paste */
+.clipboard {
+    padding: 1rem;
+}
+.clipboard textarea {
+    width: 100%;
+    padding: .3rem;
+}
+.clipboard .info {
+    height: 2rem;
+}
+.clipboard .info .error {
+    color: indianred;
+}
+.clipboard button {
+    width: 100%;
+}
+/* endregion */
+
 @media (min-width: 640000px) {
 
     /* layout */

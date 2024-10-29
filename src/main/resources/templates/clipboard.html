@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{basic_layout}" th:with="pageTitle='Login'">
+<body>
+<div layout:fragment="basic_layout_fragment" class="clipboard">
+    <form method="POST" action="" onsubmit="return checkForm()">
+        <textarea name="content" rows="20"></textarea>
+        <div class="info"></div>
+        <button type="submit">Submit</button>
+    </form>
+    <script>
+        let contentEl = document.querySelector('textarea[name=content]');
+        let submitButton = document.querySelector('button[type=submit]');
+        let infoEl = document.querySelector('.info');
+        let failedCheckingForm = false;
+
+        document.addEventListener('visible', (function () {
+            contentEl.focus();
+        }));
+
+        contentEl.addEventListener('keyup', updateInfo);
+        contentEl.addEventListener('change', updateInfo);
+        contentEl.addEventListener('paste', function () {
+            setTimeout(updateInfo, 0);
+        });
+
+        function updateInfo() {
+            if (failedCheckingForm)
+                checkForm();
+            if (!failedCheckingForm)
+                infoEl.innerText = contentEl.value.length + ' chars';
+        }
+
+        contentEl.addEventListener('keydown', function (event) {
+            switch (event.keyCode) {
+                case 13:// 回车
+                    if (event.metaKey || event.ctrlKey) {
+                        submitButton.click();
+                    }
+                    break;
+            }
+        });
+
+        function checkForm() {
+            let length = contentEl.value.length;
+            let empty = (length === 0 || contentEl.value.trim().length === 0);
+            if (empty) {
+                infoEl.innerHTML = '<span class="error">Please enter content</span>';
+                failedCheckingForm = true;
+                return false;
+            }
+            failedCheckingForm = false;
+            return true;
+        }
+    </script>
+</div>
+</body>
+</html>

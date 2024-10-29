@@ -58,6 +58,8 @@ autumn:
     google-analytics-id:
     google-analytics4-measurement-id:
   copyright: ©2024 liuwei.io
+  clipboard:
+    max-age: 1d
 server:
   port: 8601
   servlet:
