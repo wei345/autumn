@@ -10,6 +10,7 @@ import io.liuwei.autumn.model.User;
 import io.liuwei.autumn.service.ArticleService;
 import io.liuwei.autumn.service.StaticService;
 import io.liuwei.autumn.service.UserService;
+import io.liuwei.autumn.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -17,7 +18,10 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * @author liuwei
@@ -45,6 +49,8 @@ public class CommonModelAttributeInterceptor implements HandlerInterceptor {
 
     private final String prefix;
 
+    private final Pattern copyrightPlaceholderPattern = Pattern.compile("\\{(.+?)\\}");
+
     public CommonModelAttributeInterceptor(String prefix) {
         this.prefix = prefix;
     }
@@ -65,10 +71,17 @@ public class CommonModelAttributeInterceptor implements HandlerInterceptor {
             model.put("treeJsonUrl", toRevisionUrl(Constants.TREE_DOT_JSON, articleService.getTreeJson(accessLevel)));
             model.put("prefix", prefix);
             model.put("user", user);
-            model.put("copyright", String.format("©%s %s",
-                    Calendar.getInstance().get(Calendar.YEAR),
-                    appProperties.getCopyrightProducer()));
+            model.put("copyright", getCopyright());
         }
+    }
+
+    String getCopyright() {
+        Map<String, Object> copyrightCtx = Collections.singletonMap("year", Calendar.getInstance().get(Calendar.YEAR));
+        return StringUtil.replaceAll(appProperties.getCopyrightTemplate(), copyrightPlaceholderPattern,
+                matcher -> {
+                    String k = matcher.group(1).toLowerCase();
+                    return copyrightCtx.getOrDefault(k, matcher.group()).toString();
+                });
     }
 
     private String toRevisionUrl(String path, RevisionContent revisionContent) {

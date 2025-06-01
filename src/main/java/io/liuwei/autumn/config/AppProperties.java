@@ -39,7 +39,13 @@ public class AppProperties {
 
     private final Toc toc = new Toc();
 
-    private String copyrightProducer;
+    /**
+     * Supported placeholders
+     * <ul>
+     *     <li><i>{year}</i> will be replaced with four-digit year, e.g. 2025</li>
+     * </ul>
+     */
+    private String copyrightTemplate;
 
     private TableStripe tableStripes;
 
