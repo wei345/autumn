@@ -42,7 +42,7 @@ public class WebInitJob {
         long start = System.currentTimeMillis();
         try {
             HttpURLConnectionUtil.get(url);
-            log.info("Homepage OK. {}ms", System.currentTimeMillis() - start);
+            log.info("Tested visiting homepage, having received response in {}ms", System.currentTimeMillis() - start);
         } catch (HttpURLConnectionUtil.ErrorResponseException e) {
             log.warn("Homepage {}, responseText: {}", e.getStatus(), e.getResponseText());
         }

@@ -16,13 +16,14 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Calendar;
 import java.util.Map;
 
 /**
  * @author liuwei
  * @since 2018-12-19
  */
-public class SettingModelAttributeInterceptor implements HandlerInterceptor {
+public class CommonModelAttributeInterceptor implements HandlerInterceptor {
 
     @Autowired
     private RevisionContentManager revisionContentManager;
@@ -44,7 +45,7 @@ public class SettingModelAttributeInterceptor implements HandlerInterceptor {
 
     private final String prefix;
 
-    public SettingModelAttributeInterceptor(String prefix) {
+    public CommonModelAttributeInterceptor(String prefix) {
         this.prefix = prefix;
     }
 
@@ -64,7 +65,9 @@ public class SettingModelAttributeInterceptor implements HandlerInterceptor {
             model.put("treeJsonUrl", toRevisionUrl(Constants.TREE_DOT_JSON, articleService.getTreeJson(accessLevel)));
             model.put("prefix", prefix);
             model.put("user", user);
-            model.put("copyright", appProperties.getCopyright());
+            model.put("copyright", String.format("©%s %s",
+                    Calendar.getInstance().get(Calendar.YEAR),
+                    appProperties.getCopyrightProducer()));
         }
     }
 

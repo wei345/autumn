@@ -64,7 +64,7 @@ import java.util.Map;
  * <p>
  * 要正确缓存页面，需要检查模版文件访问的每个属性，确保当缓存 key 相等时，这些属性也相等。
  * <p>
- * {@link SettingModelAttributeInterceptor} 设置了一些 "全局" 属性，当它们发生变化时，需要清除所有页面缓存。
+ * {@link CommonModelAttributeInterceptor} 设置了一些 "全局" 属性，当它们发生变化时，需要清除所有页面缓存。
  *
  * @author liuwei
  * @since 2021-07-15 00:06

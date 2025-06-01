@@ -46,8 +46,8 @@ public class JsCompressor {
         String compressed = compiler.toSource();
 
         double percent = 100d * (source.length() - compressed.length()) / source.length();
-        log.info("{} ms. 减少了 {}% 字符 ({} -> {}).", System.currentTimeMillis() - start,
-                (int) percent, source.length(), compressed.length());
+        log.info("Compressed javascript in {} ms with {}% characters reduced ({} -> {})",
+                System.currentTimeMillis() - start, (int) percent, source.length(), compressed.length());
 
         return compressed;
     }

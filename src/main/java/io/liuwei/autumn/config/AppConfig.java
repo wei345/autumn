@@ -4,7 +4,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.io.BaseEncoding;
 import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
 import com.vip.vjtools.vjkit.mapper.JsonMapper;
-import io.liuwei.autumn.aop.SettingModelAttributeInterceptor;
+import io.liuwei.autumn.aop.CommonModelAttributeInterceptor;
 import io.liuwei.autumn.component.AsciidocArticleParser;
 import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.service.UserService;
@@ -61,8 +61,8 @@ public class AppConfig {
     }
 
     @Bean
-    public SettingModelAttributeInterceptor settingModelAttributeInterceptor() {
-        return new SettingModelAttributeInterceptor(prefix);
+    public CommonModelAttributeInterceptor settingModelAttributeInterceptor() {
+        return new CommonModelAttributeInterceptor(prefix);
     }
 
     @Bean

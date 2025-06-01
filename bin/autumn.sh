@@ -16,7 +16,7 @@ prepare_java_opts() {
     JAVA_OPTS=""
     if [[ "$(java_major_version)" -ge 9 ]]; then
       # --add-opens 避免出现 "illegal reflective access" 警告，见 https://stackoverflow.com/questions/52185626/illegal-reflective-access-when-i-stop-springboot-web-application-with-tomcat-9-a
-      JAVA_OPTS="${JAVA_OPTS} --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED"
+      JAVA_OPTS="${JAVA_OPTS} --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
     fi
     JAVA_OPTS="${JAVA_OPTS} -Xms128m -Xmx128m"
     JAVA_OPTS="${JAVA_OPTS} -XX:-UseBiasedLocking -XX:AutoBoxCacheMax=20000 -Djava.security.egd=file:/dev/./urandom"

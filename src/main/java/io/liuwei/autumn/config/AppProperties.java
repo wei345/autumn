@@ -39,7 +39,7 @@ public class AppProperties {
 
     private final Toc toc = new Toc();
 
-    private String copyright;
+    private String copyrightProducer;
 
     private TableStripe tableStripes;
 

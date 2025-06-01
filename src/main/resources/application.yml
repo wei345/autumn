@@ -57,7 +57,7 @@ autumn:
   analytics:
     google-analytics-id:
     google-analytics4-measurement-id:
-  copyright: ©2024 liuwei.io
+  copyright-producer: liuwei.io
   clipboard:
     max-age: 1d
 server:
