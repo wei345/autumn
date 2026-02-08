@@ -122,6 +122,10 @@ public class AppProperties {
     @Data
     public static class Cache {
         private DataSize maxMediaSize;
+        private int defaultEntries;
+        private int maxHtmlViewEntries;
+        private int maxMediaEntries;
+        private int maxSearchHitArticleEntries;
     }
 
     @Data

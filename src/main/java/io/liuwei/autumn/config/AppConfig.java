@@ -35,8 +35,12 @@ public class AppConfig {
      */
     private final String prefix;
 
-    public AppConfig(@Value("${server.servlet.context-path:}") String contextPath) {
+    private final AppProperties appProperties;
+
+    public AppConfig(@Value("${server.servlet.context-path:}") String contextPath,
+                     AppProperties appProperties) {
         this.prefix = buildPrefix(contextPath);
+        this.appProperties = appProperties;
     }
 
     private String buildPrefix(String contextPath) {
@@ -91,7 +95,7 @@ public class AppConfig {
     public Caffeine<?, ?> caffeine() {
         return Caffeine
                 .newBuilder()
-                .maximumSize(10_000);
+                .maximumSize(appProperties.getCache().getDefaultEntries());
     }
 
     @Bean
@@ -100,7 +104,7 @@ public class AppConfig {
                 CacheNames.ARTICLE_HIT,
                 Caffeine
                         .newBuilder()
-                        .maximumSize(50_000) // 约每篇文章缓存 100 个词的匹配结果
+                        .maximumSize(appProperties.getCache().getMaxSearchHitArticleEntries())
                         .build());
     }
 
@@ -110,7 +114,7 @@ public class AppConfig {
                 CacheNames.MEDIA_CONTENT,
                 Caffeine
                         .newBuilder()
-                        .maximumSize(1000)
+                        .maximumSize(appProperties.getCache().getMaxMediaEntries())
                         .build());
     }
 
@@ -120,52 +124,52 @@ public class AppConfig {
                 CacheNames.VIEW_HTML,
                 Caffeine
                         .newBuilder()
-                        .maximumSize(10_000)
+                        .maximumSize(appProperties.getCache().getMaxHtmlViewEntries())
                         .build());
     }
 
     @Bean
-    public AppProperties.Access appAccess(AppProperties appProperties) {
+    public AppProperties.Access appAccess() {
         return appProperties.getAccess();
     }
 
     @Bean
-    public AppProperties.RememberMe appRememberMe(AppProperties appProperties) {
+    public AppProperties.RememberMe appRememberMe() {
         return appProperties.getRememberMe();
     }
 
     @Bean
-    public AppProperties.SiteData appData(AppProperties appProperties) {
+    public AppProperties.SiteData appData() {
         return appProperties.getData();
     }
 
     @Bean
-    public AppProperties.StaticResource appStaticResource(AppProperties appProperties) {
+    public AppProperties.StaticResource appStaticResource() {
         return appProperties.getStaticResource();
     }
 
     @Bean
-    public AppProperties.Cache appCache(AppProperties appProperties) {
+    public AppProperties.Cache appCache() {
         return appProperties.getCache();
     }
 
     @Bean
-    public AppProperties.CodeBlock appCodeBlock(AppProperties appProperties) {
+    public AppProperties.CodeBlock appCodeBlock() {
         return appProperties.getCodeBlock();
     }
 
     @Bean
-    public AppProperties.Breadcrumb appBreadcrumb(AppProperties appProperties) {
+    public AppProperties.Breadcrumb appBreadcrumb() {
         return appProperties.getBreadcrumb();
     }
 
     @Bean
-    public AppProperties.Search appSearch(AppProperties appProperties) {
+    public AppProperties.Search appSearch() {
         return appProperties.getSearch();
     }
 
     @Bean
-    public AppProperties.Analytics appAnalytics(AppProperties appProperties) {
+    public AppProperties.Analytics appAnalytics() {
         return appProperties.getAnalytics();
     }
 
