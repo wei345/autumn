@@ -15,14 +15,16 @@ import io.liuwei.autumn.service.SearchService;
 import io.liuwei.autumn.util.WebUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.HandlerExecutionChain;
+import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -53,6 +55,10 @@ public class ContentController {
     private final MediaService mediaService;
 
     private final MediaType TEXT_PLAIN_UTF8 = new MediaType(MediaType.TEXT_PLAIN, StandardCharsets.UTF_8);
+
+    @Autowired
+    @Qualifier("resourceHandlerMapping") // necessary for getting the correct one injected
+    private HandlerMapping resourceHandlerMapping;
 
     @ViewCache
     @GetMapping("")
@@ -85,6 +91,20 @@ public class ContentController {
         String treeHtml = articleService.getTreeHtml(accessLevel);
         model.put("treeHtml", treeHtml);
         return "sitemap";
+    }
+
+    @GetMapping("/webjars/**")
+    public void webjars(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        // 1. Ask the Resource mapping if it knows this path
+        HandlerExecutionChain chain = resourceHandlerMapping.getHandler(request);
+
+        if (chain != null && chain.getHandler() instanceof ResourceHttpRequestHandler) {
+            // 2. It found a match! Manually trigger the handler
+            ((ResourceHttpRequestHandler) chain.getHandler()).handleRequest(request, response);
+            return;
+        }
+
+        response.sendError(404);
     }
 
     // 不带扩展名，访问文章

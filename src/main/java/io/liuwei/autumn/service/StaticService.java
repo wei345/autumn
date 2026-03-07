@@ -112,17 +112,6 @@ public class StaticService {
                                         .trim())
                         .append("\n"));
 
-        // MathJax
-        sb.append("window.MathJax = {\n" +
-                "    tex: {\n" +
-                "      inlineMath: [['$', '$'], ['\\\\(', '\\\\)']]\n" +
-                "    },\n" +
-                "    svg: {\n" +
-                "      fontCache: 'global'\n" +
-                "    }\n" +
-                "  };");
-
-
         sb.append("})();\n");
 
         // 压缩
@@ -216,11 +205,30 @@ public class StaticService {
         return stringBuilder.toString();
     }
 
+    private String getMathJaxConfig() {
+        return "window.MathJax = {\n" +
+//                "    chtml: {\n" +
+//                "      fontURL: '/webjars/mathjax/3.2.2/es5/output/chtml/fonts/woff-v2',\n" +
+//                "      adaptiveCSS: true\n" + // Makes sure the styles match your page's font metrics
+//                "    },\n" +
+//                "    options: {\n" +
+//                "      enableMenu: false,\n" + // This turns off the right-click context menu
+//                "    },\n" +
+//                "    tex: {\n" +
+//                "      inlineMath: [['$', '$'], ['\\\\(', '\\\\)']]\n" + // enable the single dollar sign
+//                "    },\n" +
+                "    svg: {\n" +
+                "      fontCache: 'global'\n" +
+                "    }\n" +
+                "  };";
+    }
+
     private String getMathJaxJs() {
-        String path = "/META-INF/resources/webjars/mathjax/" +
-                appProperties.getMathJaxVersion() + "/es5/tex-svg.js";
+        String basepath = "/META-INF/resources/webjars/mathjax/" +
+                appProperties.getMathJaxVersion() + "/es5/";
         return StringBuilderHolder.getGlobal()
-                .append(IOUtil.resourceToString(path))
+                .append(getMathJaxConfig())
+                .append(IOUtil.resourceToString(basepath + "tex-svg.js"))
                 .append("\n")
                 .toString();
     }
