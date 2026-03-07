@@ -56,6 +56,7 @@ public class StaticService {
     private final AppProperties.Analytics analytics;
 
     private final AppProperties.CodeBlock codeBlock;
+    private final AppProperties appProperties;
 
     @Cacheable(value = CacheNames.STATIC, key = CacheKeys.JS_ALL_DOT_JS)
     public RevisionContent getAllJs() {
@@ -82,30 +83,55 @@ public class StaticService {
                     .append("\n");
         }
 
+        // MathJax
+        builder.append(getMathJaxJs()).append("\n");
+
+        // Project JS
+        builder.append(getProjectJS());
+
+        return revisionContentManager.toRevisionContent(
+                builder.toString().getBytes(StandardCharsets.UTF_8),
+                MediaTypeUtil.TEXT_JAVASCRIPT_UTF8);
+    }
+
+    private String getProjectJS() {
+        StringBuilder sb = StringBuilderHolder.getGlobal();
         // 我们的 js，包到一个 function 里
-        builder.append("\"use strict\";\n");
-        builder.append("(function () {\n");
+        sb.append("\"use strict\";\n");
+        sb.append("(function () {\n");
+
+        // Project JS files
         List<ResourceFile> jsList = Stream
                 .of("/js/script.js", "/js/quick_search.js", "/js/util.js")
                 .map(this::getStaticResourceFile)
                 .collect(Collectors.toList());
         jsList.forEach(js ->
-                builder.append(
+                sb.append(
                                 js.getContentAsString()
                                         .replaceFirst("\"use strict\";\n", "")
                                         .trim())
                         .append("\n"));
-        builder.append("})();\n");
+
+        // MathJax
+        sb.append("window.MathJax = {\n" +
+                "    tex: {\n" +
+                "      inlineMath: [['$', '$'], ['\\\\(', '\\\\)']]\n" +
+                "    },\n" +
+                "    svg: {\n" +
+                "      fontCache: 'global'\n" +
+                "    }\n" +
+                "  };");
+
+
+        sb.append("})();\n");
 
         // 压缩
-        String content = builder.toString();
+        String content = sb.toString();
         if (staticResource.isJsCompressionEnabled()) {
             String depend = "var autumn = {ctx: '', prefix: '', treeVersionKeyValue: ''}";
             content = JsCompressor.compressJs(depend, content);
         }
-
-        return revisionContentManager.toRevisionContent(
-                content.getBytes(StandardCharsets.UTF_8), MediaTypeUtil.TEXT_JAVASCRIPT_UTF8);
+        return content;
     }
 
     @Cacheable(value = CacheNames.STATIC, key = CacheKeys.CSS_ALL_DOT_CSS)
@@ -188,6 +214,15 @@ public class StaticService {
                 .append("});\n");
 
         return stringBuilder.toString();
+    }
+
+    private String getMathJaxJs() {
+        String path = "/META-INF/resources/webjars/mathjax/" +
+                appProperties.getMathJaxVersion() + "/es5/tex-svg.js";
+        return StringBuilderHolder.getGlobal()
+                .append(IOUtil.resourceToString(path))
+                .append("\n")
+                .toString();
     }
 
     private String getHighlightJsPath() {

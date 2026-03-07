@@ -49,6 +49,8 @@ public class AppProperties {
 
     private TableStripe tableStripes;
 
+    private String mathJaxVersion;
+
     private final Clipboard clipboard = new Clipboard();
 
     public enum TableStripe {

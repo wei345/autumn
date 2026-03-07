@@ -12,6 +12,7 @@
     <version>3.0.0-SNAPSHOT</version>
     <properties>
         <highlightjs.version>9.8.0</highlightjs.version>
+        <mathjax.version>3.2.2</mathjax.version>
         <skipTests>true</skipTests>
     </properties>
     <scm>
@@ -103,6 +104,11 @@
             <groupId>org.webjars</groupId>
             <artifactId>highlightjs</artifactId>
             <version>${highlightjs.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>mathjax</artifactId>
+            <version>${mathjax.version}</version>
         </dependency>
         <!-- JS Compress -->
         <dependency>

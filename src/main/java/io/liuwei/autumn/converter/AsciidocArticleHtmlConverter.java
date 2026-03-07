@@ -47,6 +47,9 @@ public class AsciidocArticleHtmlConverter implements ArticleHtmlConverter {
         if (appProperties.getTableStripes() != null)
             attr.attribute("table-stripes", appProperties.getTableStripes().name());
 
+        // Enables LaTeX support
+        attr.attribute("stem", "latexmath");
+
         this.optionsBuilder = OptionsBuilder.options().attributes(attr);
     }
 

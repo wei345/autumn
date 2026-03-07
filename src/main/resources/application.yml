@@ -64,6 +64,7 @@ autumn:
   copyright-template: ©{year} liuwei.io
   clipboard:
     max-age: 1d
+  math-jax-version: '@mathjax.version@'
 server:
   port: 8601
   servlet:
