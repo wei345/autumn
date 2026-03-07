@@ -11,6 +11,7 @@
     <artifactId>autumn</artifactId>
     <version>3.0.0-SNAPSHOT</version>
     <properties>
+        <java.version>17</java.version>
         <highlightjs.version>9.8.0</highlightjs.version>
         <mathjax.version>3.2.2</mathjax.version>
         <skipTests>true</skipTests>

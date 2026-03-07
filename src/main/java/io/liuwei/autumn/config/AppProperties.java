@@ -149,6 +149,38 @@ public class AppProperties {
             private String version;
 
             private boolean lineNumberEnabled = false;
+
+            /**
+             * @return The highlightjs base resource path, for example
+             * /META-INF/resources/webjars/highlightjs/9.8.0
+             */
+            public String basePath() {
+                return "/META-INF/resources/webjars/highlightjs/" + version;
+            }
+
+            /**
+             * @return The highlightjs resource path, for example
+             * /META-INF/resources/webjars/highlightjs/9.8.0/highlight.js
+             */
+            public String hljsPath() {
+                return basePath() + "/highlight.js";
+            }
+
+            /**
+             * @return The highlightjs css resource path, for example
+             * /META-INF/resources/webjars/highlightjs/9.8.0/styles/default.css
+             */
+            public String cssPath() {
+                return basePath() + "/styles/" + theme + ".css";
+            }
+
+            /**
+             * @return The language resource path for <code>lang</code>, for example
+             * /META-INF/resources/webjars/highlightjs/9.8.0/languages/bash.js
+             */
+            public String languagePath(String lang) {
+                return basePath() + "/languages/" + lang + ".js";
+            }
         }
     }
 

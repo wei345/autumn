@@ -28,8 +28,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.liuwei.autumn.enums.CodeBlockHighlighterEnum.HIGHLIGHTJS;
-import static io.liuwei.autumn.enums.CodeBlockHighlighterEnum.ROUGE;
+import static io.liuwei.autumn.enums.CodeBlockHighlighterEnum.*;
 
 
 /**
@@ -104,7 +103,7 @@ public class StaticService {
         List<ResourceFile> jsList = Stream
                 .of("/js/script.js", "/js/quick_search.js", "/js/util.js")
                 .map(this::getStaticResourceFile)
-                .collect(Collectors.toList());
+                .toList();
         jsList.forEach(js ->
                 sb.append(
                                 js.getContentAsString()
@@ -114,7 +113,7 @@ public class StaticService {
 
         sb.append("})();\n");
 
-        // 压缩
+        // Compress
         String content = sb.toString();
         if (staticResource.isJsCompressionEnabled()) {
             String depend = "var autumn = {ctx: '', prefix: '', treeVersionKeyValue: ''}";
@@ -128,8 +127,10 @@ public class StaticService {
         log.info("building {}", Constants.CSS_ALL_DOT_CSS);
         StringBuilder build = STRING_BUILDER_HOLDER.get();
 
-        if (codeBlock.getHighlighter() == HIGHLIGHTJS)
-            build.append(IOUtil.resourceToString(getHighlightJsCssPath())).append("\n");
+        if (codeBlock.getHighlighter() == HIGHLIGHTJS) {
+            String p = codeBlock.getHighlightjs().cssPath();
+            build.append(IOUtil.resourceToString(p)).append("\n");
+        }
 
         List<String> cssFiles = new ArrayList<>();
         cssFiles.add("/css/lib/asciidoctor.css");
@@ -157,11 +158,11 @@ public class StaticService {
     }
 
     private String getLineNumberJs() {
-        StringBuilder stringBuilder = new StringBuilder(7000);
-        ResourceFile js = getStaticResourceFile("/js/lib/highlightjs-line-numbers.js");
-        // 不依赖 highlight.js
-        return stringBuilder.append("if(!window.hljs) window.hljs = {};\n")
-                .append(js.getContentAsString()).append("\n")
+        StringBuilder sb = StringBuilderHolder.getGlobal();
+        String js = getStaticResourceFile("/js/lib/highlightjs-line-numbers.js")
+                .getContentAsString();
+        return sb.append("if(!window.hljs) window.hljs = {};\n")
+                .append(js).append("\n")
                 .append("window.addEventListener('load', function () {\n")
                 .append("    Array.prototype.map.call(document.querySelectorAll('pre code'), el => el)\n")
                 .append("        .forEach(block => hljs.lineNumbersBlock(block));\n")
@@ -170,28 +171,29 @@ public class StaticService {
     }
 
     private String getHighlightJs() {
-        StringBuilder stringBuilder = StringBuilderHolder.getGlobal();
+        AppProperties.CodeBlock.Highlightjs h = codeBlock.getHighlightjs();
+        StringBuilder sb = StringBuilderHolder.getGlobal();
 
-        stringBuilder
-                .append(IOUtil.resourceToString(getHighlightJsPath()))
+        sb
+                .append(IOUtil.resourceToString(h.hljsPath()))
                 .append("\n");
 
         codeBlock
                 .getHighlightjs().getLanguages()
-                .forEach(language -> {
-                    String content = IOUtil.resourceToString(getHighlightJsLanguagePath(language));
+                .forEach(lang -> {
+                    String content = IOUtil.resourceToString(h.languagePath(lang));
                     String function = content.substring(content.indexOf("function"));
 
                     // hljs.registerLanguage('language', function(hljs){...});
-                    stringBuilder
+                    sb
                             .append("hljs.registerLanguage('")
-                            .append(language)
+                            .append(lang)
                             .append("', ")
                             .append(function)
                             .append(");\n");
                 });
 
-        stringBuilder
+        sb
                 .append("window.addEventListener('load', function () {\n")
                 .append("    Array.prototype.map.call(document.querySelectorAll('pre code'), el => el)\n")
                 .append("        .forEach(block => {\n")
@@ -202,51 +204,33 @@ public class StaticService {
                 .append("        });\n")
                 .append("});\n");
 
-        return stringBuilder.toString();
-    }
-
-    private String getMathJaxConfig() {
-        return "window.MathJax = {\n" +
-//                "    chtml: {\n" +
-//                "      fontURL: '/webjars/mathjax/3.2.2/es5/output/chtml/fonts/woff-v2',\n" +
-//                "      adaptiveCSS: true\n" + // Makes sure the styles match your page's font metrics
-//                "    },\n" +
-//                "    options: {\n" +
-//                "      enableMenu: false,\n" + // This turns off the right-click context menu
-//                "    },\n" +
-//                "    tex: {\n" +
-//                "      inlineMath: [['$', '$'], ['\\\\(', '\\\\)']]\n" + // enable the single dollar sign
-//                "    },\n" +
-                "    svg: {\n" +
-                "      fontCache: 'global'\n" +
-                "    }\n" +
-                "  };";
+        return sb.toString();
     }
 
     private String getMathJaxJs() {
-        String basepath = "/META-INF/resources/webjars/mathjax/" +
-                appProperties.getMathJaxVersion() + "/es5/";
+        String v = appProperties.getMathJaxVersion();
+        String basePath = "/META-INF/resources/webjars/mathjax/" + v + "/es5";
+        String baseUrl = "/webjars/mathjax/" + v + "/es5";
+
+        String config = "window.MathJax = {\n" +
+                /*"  options: {\n" +
+                "    enableMenu: false,\n" + // This turns off the right-click context menu
+                "  },\n" +*/
+                /*"  loader: {\n" +
+                "    paths: {\n" +
+                "      mathjax: '" + baseUrl + "'\n" +
+                "    }\n" +
+                "  },\n" +*/
+                "  svg: {\n" +
+                "    fontCache: 'global'\n" +
+                "  }\n" +
+                "};";
+
         return StringBuilderHolder.getGlobal()
-                .append(getMathJaxConfig())
-                .append(IOUtil.resourceToString(basepath + "tex-svg.js"))
+                .append(config)
+                .append(IOUtil.resourceToString(basePath + "/tex-svg.js"))
                 .append("\n")
                 .toString();
-    }
-
-    private String getHighlightJsPath() {
-        return getHighlightJsBasePath() + "/highlight.js";
-    }
-
-    private String getHighlightJsLanguagePath(String language) {
-        return getHighlightJsBasePath() + "/languages/" + language + ".js";
-    }
-
-    private String getHighlightJsCssPath() {
-        return getHighlightJsBasePath() + "/styles/" + codeBlock.getHighlightjs().getTheme() + ".css";
-    }
-
-    private String getHighlightJsBasePath() {
-        return "/META-INF/resources/webjars/highlightjs/" + codeBlock.getHighlightjs().getVersion();
     }
 
     private String getGoogleAnalyticsJs() {
