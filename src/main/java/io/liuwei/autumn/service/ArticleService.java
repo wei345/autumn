@@ -1,6 +1,5 @@
 package io.liuwei.autumn.service;
 
-import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.converter.ArticleHtmlConverter;
@@ -9,6 +8,7 @@ import io.liuwei.autumn.manager.MediaManager;
 import io.liuwei.autumn.manager.RevisionContentManager;
 import io.liuwei.autumn.model.*;
 import io.liuwei.autumn.util.HtmlUtil;
+import io.liuwei.autumn.util.JsonMapper;
 import io.liuwei.autumn.util.TreeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -41,9 +41,6 @@ public class ArticleService {
 
     @Autowired
     private JsonMapper jsonMapper;
-
-    @Autowired
-    private ArticleService aopProxy;
 
     @Value("${server.servlet.context-path}")
     private String contextPath;
@@ -129,23 +126,4 @@ public class ArticleService {
         return articleHtml;
     }
 
-    public ArticleVO toVO(Article article) {
-        ArticleHtml articleHtml = aopProxy.getArticleHtml(article);
-        ArticleVO vo = new ArticleVO();
-        vo.setPath(article.getPath());
-        vo.setTitle(article.getTitle());
-        vo.setName(article.getName());
-        vo.setCreated(article.getCreated());
-        vo.setModified(article.getModified());
-        vo.setCategory(article.getCategory());
-        vo.setTags(article.getTags());
-        vo.setAccessLevel(article.getAccessLevel());
-        vo.setContent(article.getContent());
-        vo.setSource(article.getSource());
-        vo.setSourceMd5(article.getSourceMd5());
-        vo.setTitleHtml(articleHtml.getTitleHtml());
-        vo.setContentHtml(articleHtml.getContentHtml());
-        vo.setTocHtml(articleHtml.getTocHtml());
-        return vo;
-    }
 }

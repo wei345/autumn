@@ -3,8 +3,9 @@ package io.liuwei.autumn.converter;
 import io.liuwei.autumn.model.ArticleHtml;
 import org.apache.commons.io.IOUtils;
 import org.asciidoctor.Asciidoctor;
-import org.asciidoctor.AttributesBuilder;
-import org.asciidoctor.OptionsBuilder;
+import org.asciidoctor.Attributes;
+import org.asciidoctor.Options;
+import org.asciidoctor.SafeMode;
 import org.asciidoctor.jruby.internal.JRubyAsciidoctor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -32,8 +33,13 @@ public class AsciidocArticleHtmlConverterTest {
         Asciidoctor asciidoctor = new JRubyAsciidoctor();
 
         String bodyHtml = asciidoctor.convert(body,
-                OptionsBuilder.options()
-                        .attributes(AttributesBuilder.attributes().showTitle(true).tableOfContents(true)));
+                Options.builder()
+                        .attributes(Attributes.builder()
+                                .showTitle(true)
+                                .tableOfContents(true)
+                                .build())
+                        .safe(SafeMode.SAFE) // Explicit safe mode is recommended in 3.0
+                        .build());
 
         Document document = Jsoup.parse(bodyHtml);
         bodyHtml = document.body().html(); // pretty print HTML

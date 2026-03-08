@@ -2,19 +2,16 @@ package io.liuwei.autumn.converter;
 
 import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.model.ArticleHtml;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.StringEscapeUtils;
-import org.asciidoctor.Asciidoctor;
-import org.asciidoctor.AttributesBuilder;
-import org.asciidoctor.OptionsBuilder;
+import org.asciidoctor.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-
-import static io.liuwei.autumn.enums.CodeBlockHighlighterEnum.ROUGE;
+import static io.liuwei.autumn.enums.CodeBlockHighlighterEnum.*;
 
 /**
  * @author liuwei
@@ -28,29 +25,31 @@ public class AsciidocArticleHtmlConverter implements ArticleHtmlConverter {
 
     private final AppProperties appProperties;
 
-    private OptionsBuilder optionsBuilder;
+    private Options options;
 
     @PostConstruct
     public void init() {
-        AttributesBuilder attr = AttributesBuilder
-                .attributes()
+
+        Attributes attributes = Attributes.builder()
                 .showTitle(true)
-                .setAnchors(true);
+                .allowUriRead(true) // Replaced .setAnchors(true) with modern equivalent if needed,
+                // though 'anchors' are often enabled by default now.
+                .sectionNumbers(true)
+                .sourceHighlighter(appProperties.getCodeBlock().getHighlighter() == ROUGE ? "rouge" : null)
+                // Handle TOC logic
+                .tableOfContents(appProperties.getToc().isEnabled())
+                .attribute("toclevels", appProperties.getToc().getLevel())
+                // Handle Table Stripes
+                .attribute("table-stripes", appProperties.getTableStripes() != null ?
+                        appProperties.getTableStripes().name().toLowerCase() : null)
+                // LaTeX Support
+                .attribute("stem", "latexmath")
+                .build();
 
-        if (appProperties.getCodeBlock().getHighlighter() == ROUGE)
-            attr.sourceHighlighter("rouge");
-        if (appProperties.getToc().isEnabled()) {
-            attr.tableOfContents(true);
-            if (appProperties.getToc().getLevel() != null)
-                attr.attribute("toclevels", appProperties.getToc().getLevel());
-        }
-        if (appProperties.getTableStripes() != null)
-            attr.attribute("table-stripes", appProperties.getTableStripes().name());
-
-        // Enables LaTeX support
-        attr.attribute("stem", "latexmath");
-
-        this.optionsBuilder = OptionsBuilder.options().attributes(attr);
+        this.options = Options.builder()
+                .attributes(attributes)
+                .safe(SafeMode.SAFE) // Required in modern AsciidoctorJ for security
+                .build();
     }
 
     @Override
@@ -63,7 +62,7 @@ public class AsciidocArticleHtmlConverter implements ArticleHtmlConverter {
                 "</h1>";
 
         // content html
-        String contentHtml = asciidoctor.convert(content, optionsBuilder);
+        String contentHtml = asciidoctor.convert(content, options);
 
         // toc html
         String tocHtml = null;

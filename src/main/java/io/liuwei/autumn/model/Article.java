@@ -4,7 +4,7 @@ import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import lombok.Data;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.io.File;
 import java.util.Date;
 import java.util.Set;

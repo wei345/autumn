@@ -3,7 +3,7 @@ package io.liuwei.autumn.search.model;
 import lombok.Getter;
 import lombok.ToString;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import java.util.List;
 
 /**

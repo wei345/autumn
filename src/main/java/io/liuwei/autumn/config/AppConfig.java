@@ -3,16 +3,17 @@ package io.liuwei.autumn.config;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.io.BaseEncoding;
 import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
-import com.vip.vjtools.vjkit.mapper.JsonMapper;
 import io.liuwei.autumn.aop.CommonModelAttributeInterceptor;
 import io.liuwei.autumn.component.AsciidocArticleParser;
 import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.service.UserService;
+import io.liuwei.autumn.util.JsonMapper;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.jruby.internal.JRubyAsciidoctor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.Cache;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +28,7 @@ import static java.nio.charset.StandardCharsets.*;
  * Created by liuwei on 2018/11/23.
  */
 @Configuration
+@EnableCaching
 @EnableConfigurationProperties(AppProperties.class)
 public class AppConfig {
 

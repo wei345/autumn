@@ -2,16 +2,16 @@ package io.liuwei.autumn.util;
 
 import com.vip.vjtools.vjkit.text.EscapeUtil;
 import io.liuwei.autumn.constant.Constants;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.lang.Nullable;
 import org.springframework.web.context.request.ServletWebRequest;
-import org.springframework.web.util.CookieGenerator;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -23,10 +23,17 @@ import java.util.regex.Pattern;
  */
 public class WebUtil {
 
-    private static final long DEFAULT_EXPIRES_SECONDS = 86400 * 365 * 16; // 16 年
-
     static final Pattern TEXT_CONTENT_TYPE_KEYWORDS = Pattern
             .compile("\\b(text|xml|json|html|xhtml|htm|urlencoded)\\b", Pattern.CASE_INSENSITIVE);
+
+    private static final long DEFAULT_EXPIRES_SECONDS = 86400 * 365 * 16; // 16 年
+
+    /**
+     * Pattern matching ETag multiple field values in headers such as "If-Match", "If-None-Match".
+     *
+     * @see <a href="https://tools.ietf.org/html/rfc7232#section-2.3">Section 2.3 of RFC 7232</a>
+     */
+    private static final Pattern ETAG_HEADER_VALUE_PATTERN = Pattern.compile("\\*|\\s*((W\\/)?(\"[^\"]*\"))\\s*,?");
 
     public static String getClientIpAddress(HttpServletRequest request) {
         String clientIp;
@@ -45,12 +52,12 @@ public class WebUtil {
         return clientIp;
     }
 
+    // ---- ETag ----
+
     public static String getInternalPath(HttpServletRequest request) {
         return EscapeUtil.urlDecode(request.getRequestURI())
                 .substring(request.getContextPath().length());
     }
-
-    // ---- ETag ----
 
     /**
      * 检查 request Header ETag 跟指定的 <code>etag</code> 是否匹配。
@@ -70,13 +77,6 @@ public class WebUtil {
         }
         return checkNotModified(etag, request);
     }
-
-    /**
-     * Pattern matching ETag multiple field values in headers such as "If-Match", "If-None-Match".
-     *
-     * @see <a href="https://tools.ietf.org/html/rfc7232#section-2.3">Section 2.3 of RFC 7232</a>
-     */
-    private static final Pattern ETAG_HEADER_VALUE_PATTERN = Pattern.compile("\\*|\\s*((W\\/)?(\"[^\"]*\"))\\s*,?");
 
     /**
      * 不同于 {@link ServletWebRequest#checkNotModified(String)}，
@@ -145,17 +145,31 @@ public class WebUtil {
     }
 
     public static void deleteCookie(String name, HttpServletRequest request, HttpServletResponse response) {
-        CookieGenerator cg = new CookieGenerator();
-        cg.setCookieName(name);
-        cg.setCookieMaxAge(0);
-        cg.setCookieHttpOnly(true);
-        addCookie(cg, null, request, response);
+        // In modern Spring, we build a cookie with maxAge(0) to trigger deletion
+        ResponseCookie cookie = ResponseCookie.from(name, "")
+                .path(request.getContextPath() + "/")
+                .maxAge(0)              // This tells the browser to expire it immediately
+                .httpOnly(true)
+                .secure(request.isSecure())
+                .sameSite("Lax")        // Match the SameSite policy of the original cookie
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
-    public static void addCookie(CookieGenerator cg, String value, HttpServletRequest request, HttpServletResponse response) {
-        cg.setCookiePath(request.getContextPath() + "/");
-        cg.setCookieSecure(WebUtil.isSecure(request));
-        cg.addCookie(response, value);
+    public static void addCookie(String cookieName, String value, int maxAge,
+                                 boolean httpOnly, HttpServletRequest request, HttpServletResponse response) {
+        // 1. Build the cookie using the fluent API
+        ResponseCookie cookie = ResponseCookie.from(cookieName, value)
+                .path(request.getContextPath() + "/")
+                // Modern replacement for WebUtil.isSecure logic
+                .secure(request.isSecure())
+                .httpOnly(true) // Recommended default for security
+                .sameSite("Lax") // Essential for modern browser compatibility
+                .build();
+
+        // 2. Add the "Set-Cookie" header to the response
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
     private static boolean isSecure(HttpServletRequest request) {

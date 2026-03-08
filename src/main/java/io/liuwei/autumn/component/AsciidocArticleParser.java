@@ -6,7 +6,9 @@ import io.liuwei.autumn.util.LineReader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.asciidoctor.Asciidoctor;
-import org.asciidoctor.ast.DocumentHeader;
+import org.asciidoctor.Options;
+import org.asciidoctor.SafeMode;
+import org.asciidoctor.ast.Document;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -51,9 +53,15 @@ public class AsciidocArticleParser {
     }
 
     private void parseHeader(LineReader lineReader, Article article) {
-        DocumentHeader dh = asciidoctor.readDocumentHeader(lineReader.getText());
+        // Use the builder to load only the header (fast and modern)
+        Options options = Options.builder()
+                .parseHeaderOnly(true)
+                .safe(SafeMode.SAFE)
+                .build();
 
-        Map<String, Object> attributes = dh.getAttributes();
+        Document document = asciidoctor.load(lineReader.getText(), options);
+
+        Map<String, Object> attributes = document.getAttributes();
         if (attributes.get(attrCreated) != null) {
             article.setCreated(parseDate((String) attributes.get(attrCreated)));
         }

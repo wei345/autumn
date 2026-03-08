@@ -15,11 +15,10 @@ import io.liuwei.autumn.util.WebUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.springframework.web.util.CookieGenerator;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -125,10 +124,7 @@ public class UserService {
 
         // 设置 logout cookie，JavaScript 检查该 cookie，清理客户端用户数据，然后删除该 cookie
         String value = String.valueOf(System.currentTimeMillis());
-        CookieGenerator cg = new CookieGenerator();
-        cg.setCookieName(LOGOUT_COOKIE_NAME);
-        cg.setCookieMaxAge(-1);
-        WebUtil.addCookie(cg, value, request, response);
+        WebUtil.addCookie(LOGOUT_COOKIE_NAME, value, -1, false, request, response);
     }
 
     private void setRememberMe(User user, String plainPassword, HttpServletRequest request, HttpServletResponse response) {
@@ -143,11 +139,7 @@ public class UserService {
                 .append(System.currentTimeMillis() / 1000)
                 .toString();
         String encrypted = encodeBase64UrlSafe(aesEncrypt(raw.getBytes(UTF_8), aesKey));
-        CookieGenerator cg = new CookieGenerator();
-        cg.setCookieName(rememberMeCookieName);
-        cg.setCookieMaxAge(rememberMeSeconds);
-        cg.setCookieHttpOnly(true);
-        WebUtil.addCookie(cg, encrypted, request, response);
+        WebUtil.addCookie(rememberMeCookieName, encrypted, rememberMeSeconds, true, request, response);
     }
 
     /**

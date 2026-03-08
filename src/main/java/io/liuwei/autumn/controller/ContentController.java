@@ -5,10 +5,7 @@ import io.liuwei.autumn.annotation.ViewCache;
 import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.constant.Constants;
 import io.liuwei.autumn.enums.AccessLevelEnum;
-import io.liuwei.autumn.model.Article;
-import io.liuwei.autumn.model.ArticleVO;
-import io.liuwei.autumn.model.Media;
-import io.liuwei.autumn.model.RevisionEtag;
+import io.liuwei.autumn.model.*;
 import io.liuwei.autumn.service.ArticleService;
 import io.liuwei.autumn.service.MediaService;
 import io.liuwei.autumn.service.SearchService;
@@ -26,8 +23,8 @@ import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -131,7 +128,7 @@ public class ContentController {
             return null;
         }
 
-        ArticleVO articleVO = articleService.toVO(article);
+        ArticleVO articleVO = toVO(article);
         highlight(h, articleVO);
 
         if (breadcrumb.isEnabled()) {
@@ -140,6 +137,26 @@ public class ContentController {
         model.put("sitemapPath", path);
         model.put("article", articleVO);
         return "article";
+    }
+
+    private ArticleVO toVO(Article article) {
+        ArticleHtml articleHtml = articleService.getArticleHtml(article);
+        ArticleVO vo = new ArticleVO();
+        vo.setPath(article.getPath());
+        vo.setTitle(article.getTitle());
+        vo.setName(article.getName());
+        vo.setCreated(article.getCreated());
+        vo.setModified(article.getModified());
+        vo.setCategory(article.getCategory());
+        vo.setTags(article.getTags());
+        vo.setAccessLevel(article.getAccessLevel());
+        vo.setContent(article.getContent());
+        vo.setSource(article.getSource());
+        vo.setSourceMd5(article.getSourceMd5());
+        vo.setTitleHtml(articleHtml.getTitleHtml());
+        vo.setContentHtml(articleHtml.getContentHtml());
+        vo.setTocHtml(articleHtml.getTocHtml());
+        return vo;
     }
 
     private void highlight(String[] h, ArticleVO articleVO) {

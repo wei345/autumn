@@ -8,16 +8,17 @@ import io.liuwei.autumn.model.ResourceFile;
 import io.liuwei.autumn.util.IOUtil;
 import io.liuwei.autumn.util.ResourceWalker;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
@@ -44,8 +45,7 @@ public class ResourceFileManager {
 
     private final Cache viewCache;
 
-    @Autowired
-    private ResourceFileManager proxy;
+    private final CacheManager cacheManager;
 
     private volatile Map<String, ResourceFile> resourceFileMap = Collections.emptyMap();
 
@@ -53,10 +53,16 @@ public class ResourceFileManager {
 
     public ResourceFileManager(AppProperties.StaticResource staticResource,
                                @Value("${spring.thymeleaf.prefix}") String templateRoot,
-                               @Qualifier("viewCache") Cache viewCache) {
+                               @Qualifier("viewCache") Cache viewCache,
+                               CacheManager cacheManager) {
         this.templateRoot = templateRoot;
         this.staticRoot = staticResource.getDir();
         this.viewCache = viewCache;
+        this.cacheManager = cacheManager;
+    }
+
+    private static boolean isHidden(Path file) {
+        return file.getFileName().toString().startsWith(".");
     }
 
     @PostConstruct
@@ -76,14 +82,16 @@ public class ResourceFileManager {
         ResourceWalker.walk(staticRoot, visitor);
         if (visitor.isChanged()) {
             resourceFileMap = visitor.getResourceFileMap();
-            proxy.clearStaticCache();
+            clearStaticCache();
             viewCache.clear();
             log.info("static changed. {}", staticRoot);
         }
     }
 
-    @CacheEvict(value = CacheNames.STATIC, allEntries = true)
     public void clearStaticCache() {
+        Cache cache = cacheManager.getCache(CacheNames.STATIC);
+        if (cache != null)
+            cache.clear();
     }
 
     private void refreshTemplateLastModified() {
@@ -101,10 +109,6 @@ public class ResourceFileManager {
      */
     public ResourceFile getResourceFile(String path) {
         return resourceFileMap.get(path);
-    }
-
-    private static boolean isHidden(Path file) {
-        return file.getFileName().toString().startsWith(".");
     }
 
     static class GetLastModifiedVisitor extends SimpleFileVisitor<Path> {

@@ -19,7 +19,7 @@ public class ResourceWalkerTest {
 
     @Test
     public void walk() {
-        ResourceWalker.walk("/static", new SimpleFileVisitor<Path>() {
+        ResourceWalker.walk("classpath:/static", new SimpleFileVisitor<Path>() {
 
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {

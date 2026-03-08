@@ -2,8 +2,9 @@ package io.liuwei.autumn.job;
 
 import io.liuwei.autumn.util.HttpURLConnectionUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -36,8 +37,9 @@ public class WebInitJob {
      * 访问首页可以触发构建 all.js 和 all.css
      */
     private void getHomepage() {
+        String ctx = StringUtils.trimToEmpty(serverProperties.getServlet().getContextPath());
         String url = String.format("http://localhost:%s%s",
-                serverProperties.getPort(), serverProperties.getServlet().getContextPath());
+                serverProperties.getPort(), ctx);
         log.info("Initializing Homepage, url: {}", url);
         long start = System.currentTimeMillis();
         try {

@@ -3,7 +3,7 @@ package io.liuwei.autumn.search.matcher;
 import io.liuwei.autumn.search.model.SearchingPage;
 import org.apache.commons.lang3.Validate;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import java.util.Set;
 import java.util.stream.Collectors;
 
