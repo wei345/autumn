@@ -230,6 +230,14 @@ img {
     -ms-user-select: none;
 }
 
+.stemblock {
+    margin-bottom: 0;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+    margin: 0 !important;
+}
+
 .show {
     display: block !important;
 }

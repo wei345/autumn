@@ -126,14 +126,14 @@ public class HtmlUtil {
         }
         Document document = Jsoup.parse(tocHtml);
         Elements topLis = document.select("div > ul > li");
-        if (topLis == null || topLis.size() == 0 || document.select("li").size() < 3) {
+        if (topLis == null || topLis.isEmpty() || document.select("li").size() < 3) {
             return "";
         }
 
         Elements startLis;
         if (topLis.size() == 1) {
             Elements uls = topLis.select("ul");
-            if (uls == null || uls.size() == 0) {
+            if (uls == null || uls.isEmpty()) {
                 return tocHtml;
             }
             startLis = uls.first().children();
@@ -141,7 +141,7 @@ public class HtmlUtil {
             startLis = topLis;
         }
 
-        if (startLis == null || startLis.size() == 0) {
+        if (startLis == null || startLis.isEmpty()) {
             return tocHtml;
         }
 
@@ -150,7 +150,7 @@ public class HtmlUtil {
     }
 
     private static void toNumberedLis(Elements lis, String prefix) {
-        if (lis == null || lis.size() == 0) {
+        if (lis == null || lis.isEmpty()) {
             return;
         }
         int i = 1;
@@ -167,7 +167,7 @@ public class HtmlUtil {
                     .insertChildren(0, new Element("span").addClass("tocnumber").text(num));
             // 递归子节点
             Elements uls = li.select("ul");
-            if (uls != null && uls.size() > 0) {
+            if (uls != null && !uls.isEmpty()) {
                 toNumberedLis(uls.first().children(), num + ".");
             }
         }

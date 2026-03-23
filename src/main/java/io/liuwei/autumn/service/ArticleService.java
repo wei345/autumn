@@ -116,7 +116,6 @@ public class ArticleService {
     @Cacheable(value = CacheNames.ARTICLE_HTML, keyGenerator = "cacheKeyGenerator")
     public ArticleHtml getArticleHtml(Article article) {
         ArticleHtml articleHtml = articleHtmlConverter.convert(article.getTitle(), article.getContent());
-        articleHtml.setTocHtml(HtmlUtil.toNumberedTocHtml(articleHtml.getTocHtml()));
         articleHtml.setContentHtml(
                 HtmlUtil.addHeadingClass(
                         HtmlUtil.rewriteImgSrcToRevisionUrl(
