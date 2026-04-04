@@ -17,28 +17,18 @@ import java.util.List;
 @ConfigurationProperties(prefix = "autumn")
 public class AppProperties {
 
-    private String siteTitle = "Autumn";
-
     private final Access access = new Access();
-
     private final RememberMe rememberMe = new RememberMe();
-
     private final SiteData data = new SiteData();
-
     private final StaticResource staticResource = new StaticResource();
-
     private final Cache cache = new Cache();
-
     private final CodeBlock codeBlock = new CodeBlock();
-
     private final Breadcrumb breadcrumb = new Breadcrumb();
-
     private final Search search = new Search();
-
     private final Analytics analytics = new Analytics();
-
     private final Toc toc = new Toc();
-
+    private final Clipboard clipboard = new Clipboard();
+    private String siteTitle = "Autumn";
     /**
      * Supported placeholders
      * <ul>
@@ -46,12 +36,8 @@ public class AppProperties {
      * </ul>
      */
     private String copyrightTemplate;
-
     private TableStripe tableStripes;
-
     private String mathJaxVersion;
-
-    private final Clipboard clipboard = new Clipboard();
 
     public enum TableStripe {
         none, even, odd, all, hover
@@ -99,6 +85,10 @@ public class AppProperties {
          * 还可以通过 HTTP 接口触发数据刷新，例如 curl -s -X POST http://localhost:8601/data/reload
          */
         private Integer reloadIntervalSeconds;
+
+        public boolean isExcluded(String filepath) {
+            return excludes.stream().anyMatch(filepath::matches);
+        }
     }
 
     @Data
@@ -132,16 +122,20 @@ public class AppProperties {
 
     @Data
     public static class CodeBlock {
-        private CodeBlockHighlighterEnum highlighter = CodeBlockHighlighterEnum.ROUGE;
-
         private final Highlightjs highlightjs = new Highlightjs();
+        private CodeBlockHighlighterEnum highlighter = CodeBlockHighlighterEnum.ROUGE;
 
         @Data
         public static class Highlightjs {
-            private String theme = "default";
 
-            private List<String> languages = Arrays.asList(
-                    "bash,clojure,css,java,javascript,json,lisp,lua,nginx,php,python,ruby,sql,xml,yaml".split(","));
+            private String themeCss = "default.css";
+
+            private String hljs = "highlight.js";
+
+            private List<String> languageJs = Arrays.asList(
+                    ("bash.js,clojure.js,css.js,java.js,javascript.js," +
+                            "json.js,lisp.js,lua.js,nginx.js,php.js,python.js," +
+                            "ruby.js,sql.js,xml.js,yaml.js").split(","));
 
             /**
              * Maven org.webjars:highlightjs version
@@ -149,6 +143,11 @@ public class AppProperties {
             private String version;
 
             private boolean lineNumberEnabled = false;
+
+            /**
+             * Set to true for highlightjs 9.8, set to false for highlightjs 11.11.1
+             */
+            private boolean registerLangFunctions = false;
 
             /**
              * @return The highlightjs base resource path, for example
@@ -163,7 +162,7 @@ public class AppProperties {
              * /META-INF/resources/webjars/highlightjs/9.8.0/highlight.js
              */
             public String hljsPath() {
-                return basePath() + "/highlight.js";
+                return basePath() + "/" + hljs;
             }
 
             /**
@@ -171,7 +170,7 @@ public class AppProperties {
              * /META-INF/resources/webjars/highlightjs/9.8.0/styles/default.css
              */
             public String cssPath() {
-                return basePath() + "/styles/" + theme + ".css";
+                return basePath() + "/styles/" + themeCss;
             }
 
             /**
@@ -179,7 +178,7 @@ public class AppProperties {
              * /META-INF/resources/webjars/highlightjs/9.8.0/languages/bash.js
              */
             public String languagePath(String lang) {
-                return basePath() + "/languages/" + lang + ".js";
+                return basePath() + "/languages/" + lang;
             }
         }
     }

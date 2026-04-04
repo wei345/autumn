@@ -2,11 +2,11 @@ package io.liuwei.autumn.service;
 
 import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.constant.Constants;
-import io.liuwei.autumn.converter.ArticleHtmlConverter;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.manager.MediaManager;
 import io.liuwei.autumn.manager.RevisionContentManager;
 import io.liuwei.autumn.model.*;
+import io.liuwei.autumn.parser.CompositeArticleParser;
 import io.liuwei.autumn.util.HtmlUtil;
 import io.liuwei.autumn.util.JsonMapper;
 import io.liuwei.autumn.util.TreeUtil;
@@ -37,7 +37,7 @@ public class ArticleService {
     private RevisionContentManager revisionContentManager;
 
     @Autowired
-    private ArticleHtmlConverter articleHtmlConverter;
+    private CompositeArticleParser articleParser;
 
     @Autowired
     private JsonMapper jsonMapper;
@@ -115,7 +115,7 @@ public class ArticleService {
 
     @Cacheable(value = CacheNames.ARTICLE_HTML, keyGenerator = "cacheKeyGenerator")
     public ArticleHtml getArticleHtml(Article article) {
-        ArticleHtml articleHtml = articleHtmlConverter.convert(article.getTitle(), article.getContent());
+        ArticleHtml articleHtml = articleParser.toHtml(article);
         articleHtml.setContentHtml(
                 HtmlUtil.addHeadingClass(
                         HtmlUtil.rewriteImgSrcToRevisionUrl(

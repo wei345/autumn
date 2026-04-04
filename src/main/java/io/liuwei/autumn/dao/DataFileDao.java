@@ -10,9 +10,7 @@ import org.apache.commons.io.filefilter.IOFileFilter;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -27,13 +25,11 @@ public class DataFileDao {
     @Getter
     private final String dataDir;
 
-    private final Set<String> excludes;
+    private final AppProperties.SiteData dataConfig;
 
     public DataFileDao(AppProperties.SiteData data) {
         this.dataDir = Files.simplifyPath(data.getDir());
-        this.excludes = data.getExcludes() == null
-                ? Collections.emptySet()
-                : data.getExcludes().stream().map(Files::simplifyPath).collect(Collectors.toSet());
+        this.dataConfig = data;
     }
 
     public Map<String, File> getAllFileMap() {
@@ -55,7 +51,7 @@ public class DataFileDao {
             if (file.isHidden() ||
                     file.getName().startsWith(".") ||
                     file.getName().startsWith("_") ||
-                    excludes.contains(toRelativePath(file))) {
+                    dataConfig.isExcluded(toRelativePath(file))) {
                 return false;
             }
 

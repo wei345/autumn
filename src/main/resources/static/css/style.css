@@ -238,6 +238,10 @@ mjx-container[jax="SVG"][display="true"] {
     margin: 0 !important;
 }
 
+pre {
+    background-color: #f7f7f8;
+}
+
 .show {
     display: block !important;
 }
@@ -539,10 +543,6 @@ ul.header_nav__tools {
 
 .toc > ul {
     padding-left: 0;
-}
-
-.toc li .tocnumber {
-    padding-right: .5rem;
 }
 
 .hide_toc .toc > ul {

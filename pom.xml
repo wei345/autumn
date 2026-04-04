@@ -13,7 +13,7 @@
     <properties>
         <java.version>24</java.version>
         <spring-boot-starter-aop.version>4.0.0-M2</spring-boot-starter-aop.version>
-        <highlightjs.version>9.8.0</highlightjs.version>
+        <highlightjs.version>11.11.1</highlightjs.version>
         <mathjax.version>3.2.2</mathjax.version>
         <!-- Downgrade Groovy, because Thymeleaf Layout Dialect 3.4.0 is
             incompatibility with Groovy 5's reworked MetaObject Protocol -->
@@ -81,6 +81,37 @@
             <groupId>org.asciidoctor</groupId>
             <artifactId>asciidoctorj</artifactId>
             <version>3.0.1</version>
+        </dependency>
+        <!-- Markdown parser -->
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark</artifactId>
+            <version>0.64.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-ext-tables</artifactId>
+            <version>0.64.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-ext-gitlab</artifactId>
+            <version>0.64.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-ext-toc</artifactId>
+            <version>0.64.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-ext-anchorlink</artifactId>
+            <version>0.64.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-ext-yaml-front-matter</artifactId>
+            <version>0.64.8</version>
         </dependency>
         <!-- Utils -->
         <dependency>

@@ -13,8 +13,8 @@ autumn:
     aes-key: 91A97D3979C440AC7FA09EAD3AD7B3DF
   data:
     dir: src/test/data
-    # 排除的目录或文件名. e.g. /a/b,/a/c.adoc
-    excludes: ''
+    # Excluded paths. Regex is supported. e.g. */target, .*/logs
+    excludes: '.*/target, .*/logs, .*/renv'
     # 数据刷新间隔，0 表示禁用。
     # 还可以通过 HTTP 接口触发数据刷新，例如 curl -s -X POST http://localhost:8601/data/reload
     reload-interval-seconds: 5
@@ -36,18 +36,35 @@ autumn:
     # highlighter rouge runs on server side.
     # js 和 css 中会自动增加相应内容
     # see https://docs.asciidoctor.org/asciidoc/latest/verbatim/source-highlighter/
-    highlighter: rouge
+    highlighter: highlightjs
     highlightjs:
       # highlightjs version，用于构造 highlightjs 完整资源路径，会被 Maven 自动替换为 pom 里的 highlightjs.version 属性值
       version: '@highlightjs.version@'
+      hljs: highlight.min.js
       # 设置对哪些语言启用高亮，多个值以英文逗号分隔，每个值对应
       # highlightjs-9.8.0.jar!/META-INF/resources/webjars/highlightjs/9.8.0/languages 里的文件名，不含扩展名
-      languages: bash,clojure,css,java,javascript,json,lisp,lua,nginx,php,python,ruby,sql,xml,yaml
+      language-js:
+        - bash.min.js
+        - clojure.min.js
+        - css.min.js
+        - java.min.js
+        - javascript.min.js
+        - json.min.js
+        - lisp.min.js
+        - lua.min.js
+        - nginx.min.js
+        - php.min.js
+        - python.min.js
+        - ruby.min.js
+        - sql.min.js
+        - xml.min.js
+        - yaml.min.js
       # 代码块高亮样式，对应 highlightjs-9.8.0.jar!/META-INF/resources/webjars/highlightjs/9.8.0/styles
-      # 里的文件名，不含扩展名。这个几个都不错：default, atom-one-light, solarized-light 和 solarized-dark
-      theme: default
+      # 里的文件名，不含扩展名。这个几个都不错：default, atom-one-dark, atom-one-light, solarized-light 和 solarized-dark
+      theme-css: atom-one-light.min.css
       # 是否显示代码块行号
       line-number-enabled: false
+      register-lang-functions: false
   breadcrumb:
     # 是否显示面包屑
     enabled: false

@@ -62,7 +62,7 @@ public class Highlighter {
             searchingPage.setPathPreview(StringEscapeUtils.escapeHtml4(page.getPath()));
             searchingPage.setTitlePreview(StringEscapeUtils.escapeHtml4(page.getTitle()));
             searchingPage.setBodyPreview(StringEscapeUtils.escapeHtml4(
-                    StringUtils.substring(page.getContent(), 0, maxPreviewLength)));
+                    StringUtils.substring(page.getBody(), 0, maxPreviewLength)));
             return;
         }
 
@@ -81,7 +81,7 @@ public class Highlighter {
         searchingPage.setTitlePreview(
                 highlightHits(page.getTitle(), titleHits, true));
         searchingPage.setBodyPreview(
-                highlightHitsLessOrEqLength(page.getContent(), new ArrayList<>(bodyHits), maxPreviewLength));
+                highlightHitsLessOrEqLength(page.getBody(), new ArrayList<>(bodyHits), maxPreviewLength));
 
         Set<String> searchStrSet = Sets.union(getSearchStrs(titleHits), getSearchStrs(bodyHits));
         String highlightString = toHighlightString(searchStrSet);

@@ -8,10 +8,11 @@ import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.DataInfo;
 import io.liuwei.autumn.model.Media;
-import io.liuwei.autumn.component.AsciidocArticleParser;
+import io.liuwei.autumn.parser.CompositeArticleParser;
 import io.liuwei.autumn.util.CollectionUtil;
 import io.liuwei.autumn.util.DiffUtil;
 import io.liuwei.autumn.util.MediaTypeUtil;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -24,7 +25,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -51,7 +51,7 @@ public class MediaManager {
     private Cache viewCache;
 
     @Autowired
-    private AsciidocArticleParser asciidocArticleParser;
+    private CompositeArticleParser articleParser;
 
     /**
      * 包含数据目录下所有文件，包括文章
@@ -100,9 +100,11 @@ public class MediaManager {
                 File file = fileMap2.get(path);
                 Media media = toMedia(file, path);
                 mediaMap2.put(path, media);
-                String articlePath = toArticlePath(path);
-                if (articlePath != null) {
-                    Article article = toArticle(file, articlePath);
+
+                SourceFormatEnum format = SourceFormatEnum.getByFileName(path);
+                if (format != null && format.isArticle()) {
+                    String articlePath = toArticlePath(path);
+                    Article article = toArticle(file, articlePath, format);
                     articleMap2.put(articlePath, article);
                     media.setAccessLevel(article.getAccessLevel());
                 }
@@ -110,8 +112,10 @@ public class MediaManager {
 
             for (String path : diff.getNotChanged()) {
                 mediaMap2.put(path, mediaMap1.get(path));
-                String articlePath = toArticlePath(path);
-                if (articlePath != null) {
+
+                SourceFormatEnum format = SourceFormatEnum.getByFileName(path);
+                if (format != null && format.isArticle()) {
+                    String articlePath = toArticlePath(path);
                     articleMap2.put(articlePath, articleMap1.get(articlePath));
                 }
             }
@@ -129,9 +133,8 @@ public class MediaManager {
         return dataInfo;
     }
 
-    private String toArticlePath(String mediaPath) {
-        return SourceFormatEnum.getByFileName(mediaPath) == SourceFormatEnum.ASCIIDOC ?
-                StringUtils.substringBeforeLast(mediaPath, ".") : null;
+    private String toArticlePath(String filePath) {
+        return StringUtils.substringBeforeLast(filePath, ".");
     }
 
     public Media getMedia(String path) {
@@ -164,7 +167,7 @@ public class MediaManager {
         return media;
     }
 
-    private Article toArticle(File file, String path) {
+    private Article toArticle(File file, String path, SourceFormatEnum format) {
         if (file == null) {
             return null;
         }
@@ -176,7 +179,7 @@ public class MediaManager {
             throw new RuntimeException(e);
         }
 
-        Article article = asciidocArticleParser.parse(fileContent, path);
+        Article article = articleParser.parseArticle(fileContent, path, format);
         if (article.getCreated() == null) {
             article.setCreated(new Date(file.lastModified()));
         }

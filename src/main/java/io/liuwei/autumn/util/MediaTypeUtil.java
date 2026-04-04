@@ -41,8 +41,13 @@ public class MediaTypeUtil {
     static {
         Map<String, MediaType> mediaTypeMap = parseMimeTypes();
         mediaTypeMap.put("adoc", MediaType.valueOf("text/asciidoc"));
+        mediaTypeMap.put("md", MediaType.valueOf("text/markdown"));
+        mediaTypeMap.put("markdown", MediaType.valueOf("text/markdown"));
+        mediaTypeMap.put("Rmd", MediaType.valueOf("text/markdown"));
+        mediaTypeMap.put("rmd", MediaType.valueOf("text/markdown"));
         mediaTypeMap.put("asciidoc", MediaType.valueOf("text/asciidoc"));
-        mediaTypeMap.put("pl", MediaType.valueOf("text/plain"));
+        mediaTypeMap.put("pl", MediaType.valueOf("text/x-script.perl"));
+        mediaTypeMap.put("py", MediaType.valueOf("text/x-python"));
         mediaTypeMap.put("sh", MediaType.valueOf("text/x-script.sh"));
         EXTENSION_2_MEDIA_TYPE_MAP = mediaTypeMap;
     }

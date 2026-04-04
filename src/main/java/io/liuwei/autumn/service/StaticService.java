@@ -1,17 +1,18 @@
 package io.liuwei.autumn.service;
 
 import com.vip.vjtools.vjkit.text.StringBuilderHolder;
-import io.liuwei.autumn.component.AsciidocArticleParser;
 import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.constant.CacheKeys;
 import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.constant.Constants;
-import io.liuwei.autumn.converter.ArticleHtmlConverter;
+import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.manager.ResourceFileManager;
 import io.liuwei.autumn.manager.RevisionContentManager;
+import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.ArticleHtml;
 import io.liuwei.autumn.model.ResourceFile;
 import io.liuwei.autumn.model.RevisionContent;
+import io.liuwei.autumn.parser.CompositeArticleParser;
 import io.liuwei.autumn.util.HtmlUtil;
 import io.liuwei.autumn.util.IOUtil;
 import io.liuwei.autumn.util.JsCompressor;
@@ -25,7 +26,6 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.liuwei.autumn.enums.CodeBlockHighlighterEnum.*;
@@ -46,9 +46,7 @@ public class StaticService {
 
     private final RevisionContentManager revisionContentManager;
 
-    private final ArticleHtmlConverter articleHtmlConverter;
-
-    private final AsciidocArticleParser asciidocArticleParser;
+    private final CompositeArticleParser articleParser;
 
     private final AppProperties.StaticResource staticResource;
 
@@ -151,8 +149,9 @@ public class StaticService {
     public ArticleHtml getHelpArticleHtml() {
         log.info("building {}", Constants.HELP);
         ResourceFile help = getStaticResourceFile("/help.adoc");
-        String content = asciidocArticleParser.parse(help.getContentAsString(), "/help").getContent();
-        ArticleHtml articleHtml = articleHtmlConverter.convert("Help", content);
+        Article article = articleParser.parseArticle(help.getContentAsString(),
+                "/help", SourceFormatEnum.ASCIIDOC);
+        ArticleHtml articleHtml = articleParser.toHtml(article);
         articleHtml.setContentHtml(HtmlUtil.addHeadingClass(articleHtml.getContentHtml()));
         return articleHtml;
     }
@@ -179,18 +178,30 @@ public class StaticService {
                 .append("\n");
 
         codeBlock
-                .getHighlightjs().getLanguages()
+                .getHighlightjs().getLanguageJs()
                 .forEach(lang -> {
                     String content = IOUtil.resourceToString(h.languagePath(lang));
-                    String function = content.substring(content.indexOf("function"));
 
-                    // hljs.registerLanguage('language', function(hljs){...});
-                    sb
-                            .append("hljs.registerLanguage('")
-                            .append(lang)
-                            .append("', ")
-                            .append(function)
-                            .append(");\n");
+                    if (codeBlock.getHighlightjs().isRegisterLangFunctions()) {
+                        int fnStart = content.indexOf("function");
+                        if (fnStart > 0) {
+                            // // highlightjs 9.8
+                            String function = content.substring(fnStart);
+                            // hljs.registerLanguage('language', function(hljs){...});
+                            sb
+                                    .append("hljs.registerLanguage('")
+                                    .append(lang)
+                                    .append("', ")
+                                    .append(function)
+                                    .append(");\n");
+                        } else {
+                            // highlightjs 11.11.1
+                            sb.append(content);
+                        }
+                    }
+
+                    sb.append(content);
+
                 });
 
         sb
@@ -199,7 +210,9 @@ public class StaticService {
                 .append("        .forEach(block => {\n")
                 .append("            var isText = block.classList.contains('text');\n")
                 .append("            if(isText) block.classList.remove('text');\n")
-                .append("            hljs.highlightBlock(block);\n")
+                // hljs.highlightElement for hljs 11
+                // hljs.highlightBlock for hljs 9.8
+                .append("            (hljs.highlightElement || hljs.highlightBlock)(block);\n")
                 .append("            if(isText) block.classList.add('text');\n")
                 .append("        });\n")
                 .append("});\n");

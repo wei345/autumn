@@ -120,21 +120,26 @@ public class HtmlUtil {
         return path.substring(0, lastSlash + 1);
     }
 
+
     public static String toNumberedTocHtml(String tocHtml) {
         if (tocHtml == null) {
             return null;
         }
         Document document = Jsoup.parse(tocHtml);
+        addNumbersToToc(document);
+        return document.body().html();
+    }
+
+    public static void addNumbersToToc(Element document) {
         Elements topLis = document.select("div > ul > li");
-        if (topLis == null || topLis.isEmpty() || document.select("li").size() < 3) {
-            return "";
-        }
+        if (topLis == null || topLis.isEmpty() || document.select("li").size() < 3)
+            return;
 
         Elements startLis;
         if (topLis.size() == 1) {
             Elements uls = topLis.select("ul");
             if (uls == null || uls.isEmpty()) {
-                return tocHtml;
+                return;
             }
             startLis = uls.first().children();
         } else { // topLis.size() > 1
@@ -142,14 +147,13 @@ public class HtmlUtil {
         }
 
         if (startLis == null || startLis.isEmpty()) {
-            return tocHtml;
+            return;
         }
 
-        toNumberedLis(startLis, "");
-        return document.select("div").outerHtml();
+        addNumbersToLis(startLis, "");
     }
 
-    private static void toNumberedLis(Elements lis, String prefix) {
+    private static void addNumbersToLis(Elements lis, String prefix) {
         if (lis == null || lis.isEmpty()) {
             return;
         }
@@ -159,16 +163,16 @@ public class HtmlUtil {
             // <a href="#xxx">xxx</a>
             // 为：
             // <a href="#xxx"><span class="tocnumber">1</span><span class="toctext">xxx</span></a>
-            String num = prefix + (i++);
+            String num = prefix + (i++) + ".";
             Element a = li.selectFirst("a");
             Element textSpan = new Element("span").addClass("toctext").text(a.text());
             a.textNodes().forEach(org.jsoup.nodes.Node::remove);
             a.insertChildren(0, textSpan)
-                    .insertChildren(0, new Element("span").addClass("tocnumber").text(num));
+                    .insertChildren(0, new Element("span").addClass("tocnumber").text(num + " "));
             // 递归子节点
             Elements uls = li.select("ul");
             if (uls != null && !uls.isEmpty()) {
-                toNumberedLis(uls.first().children(), num + ".");
+                addNumbersToLis(uls.first().children(), num);
             }
         }
     }
@@ -178,6 +182,18 @@ public class HtmlUtil {
         document.select("a.anchor")
                 .forEach(a -> a.parent().addClass("heading").appendChild(a));
         return document.body().html();
+    }
+
+    public static void addSectionNumbers(Element doc, Element toc) {
+        for (Element a : toc.select("a")) {
+            Element tocNumber = a.selectFirst(".tocnumber");
+            if (tocNumber != null) {
+                String secId = a.attr("href").substring(1); // after #
+                Element h = doc.getElementById(secId);
+                if (h != null)
+                    h.prependText(tocNumber.text() + " ");
+            }
+        }
     }
 
 }

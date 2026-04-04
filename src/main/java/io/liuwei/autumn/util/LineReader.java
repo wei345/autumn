@@ -12,8 +12,8 @@ import java.util.Iterator;
 public class LineReader implements Iterable<String> {
     @Getter
     private final String text;
-    private int start; // default 0
-    private int prev;
+    private int pos; // default 0
+    private int prevPos;
 
     public LineReader(String text) {
         this.text = text;
@@ -21,7 +21,7 @@ public class LineReader implements Iterable<String> {
 
     private String readLine() {
         String text = this.text;
-        int start = this.start;
+        int start = this.pos;
 
         if (start >= text.length()) {
             return null;
@@ -34,17 +34,17 @@ public class LineReader implements Iterable<String> {
 
         String line = text.substring(start, end);
 
-        this.prev = start;
-        this.start = end + 1;
+        this.prevPos = start;
+        this.pos = end + 1;
         return line;
     }
 
     public void back() {
-        this.start = this.prev;
+        this.pos = this.prevPos;
     }
 
     public String remainingText() {
-        return text.substring(start);
+        return text.substring(pos);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class LineReader implements Iterable<String> {
         return new Iterator<String>() {
             @Override
             public boolean hasNext() {
-                return start < text.length();
+                return pos < text.length();
             }
 
             @Override

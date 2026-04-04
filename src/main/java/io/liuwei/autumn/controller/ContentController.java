@@ -150,7 +150,7 @@ public class ContentController {
         vo.setCategory(article.getCategory());
         vo.setTags(article.getTags());
         vo.setAccessLevel(article.getAccessLevel());
-        vo.setContent(article.getContent());
+        vo.setContent(article.getBody());
         vo.setSource(article.getSource());
         vo.setSourceMd5(article.getSourceMd5());
         vo.setTitleHtml(articleHtml.getTitleHtml());
@@ -175,7 +175,6 @@ public class ContentController {
     @GetMapping("/**/*.*")
     @ResponseBody
     public ResponseEntity<byte[]> getFile(AccessLevelEnum accessLevel,
-                                          @RequestParam(defaultValue = "false") boolean raw,
                                           HttpServletRequest request,
                                           HttpServletResponse response) throws IOException {
         String path = WebUtil.getInternalPath(request);
@@ -197,14 +196,14 @@ public class ContentController {
         }
 
         if (re.getRevisionContent() != null) {
-            MediaType ct = decideContentType(re.getRevisionContent().getMediaType(), raw);
+            MediaType ct = decideContentType(re.getRevisionContent().getMediaType());
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .eTag(re.getEtag())
                     .contentType(ct)
                     .body(re.getRevisionContent().getContent());
         } else {
-            String ct = decideContentType(media.getMediaType(), raw).toString();
+            String ct = decideContentType(media.getMediaType()).toString();
             WebUtil.setEtag(re.getEtag(), response);
             response.setContentType(ct);
             OutputStream out = response.getOutputStream();
@@ -216,8 +215,8 @@ public class ContentController {
         }
     }
 
-    private MediaType decideContentType(MediaType contentType, boolean raw) {
-        if (raw && WebUtil.isText(contentType))
+    private MediaType decideContentType(MediaType contentType) {
+        if (WebUtil.isText(contentType))
             return TEXT_PLAIN_UTF8;
         return contentType;
     }

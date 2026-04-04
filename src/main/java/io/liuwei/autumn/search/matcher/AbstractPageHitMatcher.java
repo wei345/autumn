@@ -47,7 +47,7 @@ public abstract class AbstractPageHitMatcher extends AbstractMatcher {
                 List<Hit> n = find.apply(page.getName());
                 List<Hit> p = find.apply(page.getPath());
                 List<Hit> t = find.apply(page.getTitle());
-                List<Hit> b = find.apply(page.getContent());
+                List<Hit> b = find.apply(page.getBody());
                 Hit h;
                 boolean nameEq = (n.size() == 1)
                         && (h = n.get(0)).getStart() == 0
