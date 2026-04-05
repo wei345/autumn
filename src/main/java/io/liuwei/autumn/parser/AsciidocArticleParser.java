@@ -2,12 +2,9 @@ package io.liuwei.autumn.parser;
 
 import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.model.Article;
-import io.liuwei.autumn.model.ArticleHtml;
 import io.liuwei.autumn.util.LineReader;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.Attributes;
 import org.asciidoctor.Options;
@@ -17,25 +14,24 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.Map;
 
 import static io.liuwei.autumn.enums.CodeBlockHighlighterEnum.*;
+import static org.apache.commons.lang3.StringUtils.*;
 
 /**
  * @author liuwei
  * @since 2021-07-07 17:21
  */
 @Component
-@SuppressWarnings("FieldCanBeLocal")
 @RequiredArgsConstructor
 public class AsciidocArticleParser extends AbstractArticleParser {
+    private static final String ATTR_PREFIX = ":";
+    private static final String TITLE_PREFIX = "= ";
+
     private final Asciidoctor asciidoctor;
     private final AppProperties appProperties;
-
-    private final String attrPrefix = ":";
-    private final String titlePrefix = "= ";
     private Options options;
 
     @PostConstruct
@@ -64,85 +60,53 @@ public class AsciidocArticleParser extends AbstractArticleParser {
 
     @Override
     protected void parseSource(Article article) {
-        // Use the builder to load only the header (fast and modern)
-        Options options = Options.builder()
-                .parseHeaderOnly(true)
-                .safe(SafeMode.SAFE)
-                .build();
-
         String source = article.getSource();
         LineReader lineReader = new LineReader(source);
 
         parseTitle(lineReader, article);
         parseAttributes(lineReader, article);
         parseBody(lineReader, article);
-
-    }
-
-    private void parseAttributes(LineReader lineReader, Article article) {
-        List<String> lines = new ArrayList<>();
-        for (String line : lineReader) {
-            if (StringUtils.isBlank(line)) continue;
-            if (line.startsWith(":"))
-                lines.add(line);
-            else {
-                lineReader.back();
-                break;
-            }
-        }
-        String s = StringUtils.join(lines);
-        Document document = asciidoctor.load(s, options);
-        Map<String, Object> attributes = document.getAttributes();
-        setAttributes(attributes, article);
     }
 
     private void parseTitle(LineReader lineReader, Article article) {
-        String title = "";
-        for (String line : lineReader) {
-            if (StringUtils.isBlank(line)) continue;
-            if (line.startsWith(titlePrefix))
-                title = line.substring(titlePrefix.length()).trim();
-            else {
-                lineReader.back();
-                break;
-            }
+        article.setTitle(parseTitle(lineReader, TITLE_PREFIX));
+    }
+
+    private void parseAttributes(LineReader lineReader, Article article) {
+        Map<String, Object> attributes = Collections.emptyMap();
+
+        String attrText = lineReader.nextLinesAsString(line ->
+                        isBlank(line) || line.startsWith(ATTR_PREFIX))
+                .trim();
+
+        if (isNotBlank(attrText)) {
+
+            Options options = Options.builder()
+                    .parseHeaderOnly(true)
+                    .safe(SafeMode.SAFE)
+                    .build();
+
+            Document doc = asciidoctor.load(attrText, options);
+            attributes = doc.getAttributes();
         }
-        article.setTitle(title);
+        setAttributes(attributes, article);
     }
 
     private void parseBody(LineReader lineReader, Article article) {
-        for (String line : lineReader) {
-            if (StringUtils.isNotBlank(line)) {
-                lineReader.back();
-                break;
-            }
-        }
-        article.setBody(lineReader.remainingText());
+        article.setBody(lineReader.remainingText().trim());
     }
 
     @Override
-    public ArticleHtml toHtml(Article article) {
-        String title = article.getTitle();
-        String content = article.getBody();
-        // title html
-        String titleId = "article-title";
-        String titleHtml = "<h1 id=\"" + titleId + "\" class=\"heading\">" +
-                StringEscapeUtils.escapeHtml4(title) +
-                "<a class=\"anchor\" href=\"\"></a>" +
-                "</h1>";
+    protected org.jsoup.nodes.Document renderBodyAsDocument(Article article) {
 
-        // content html
-        String contentHtml = asciidoctor.convert(content, options);
+        String body = article.getBody();
 
-        // toc html
-        String tocHtml = null;
-        org.jsoup.nodes.Document document = Jsoup.parse(contentHtml);
-        Element tocEl = document.getElementById("toc");
+        String bodyHtml = asciidoctor.convert(body, options);
+
+        org.jsoup.nodes.Document bodyDoc = Jsoup.parse(bodyHtml);
+
+        Element tocEl = bodyDoc.getElementById("toc");
         if (tocEl != null) {
-            // 从 content html 中删除 toc
-            tocEl.remove();
-            contentHtml = document.body().html();
-
             // 把 toc 标题标签改为 h3
             tocEl
                     .select("#toctitle")
@@ -151,22 +115,8 @@ public class AsciidocArticleParser extends AbstractArticleParser {
                             .attr("id", "toctitle")
                             .text(appProperties.getToc().getTitle()));
 
-            // 在 toc 第一行插入文章标题，点击可以跳到标题
-            Element oldUl = tocEl.selectFirst("ul.sectlevel1");
-            Element articleTitleLink = new Element("a")
-                    .attr("href", "#" + titleId)
-                    .text(title);
-            Element articleTitleLi = new Element("li")
-                    .appendChild(articleTitleLink)
-                    .appendChild(oldUl);
-            Element newUl = new Element("ul")
-                    .attr("class", "sectlevel0")
-                    .appendChild(articleTitleLi);
-            tocEl.appendChild(newUl);
-
-            tocHtml = tocEl.outerHtml();
         }
 
-        return new ArticleHtml(title, titleHtml, tocHtml, contentHtml);
+        return bodyDoc;
     }
 }

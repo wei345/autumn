@@ -4,8 +4,13 @@ import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.enums.AccessLevelEnum;
 import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.model.Article;
+import io.liuwei.autumn.model.ArticleHtml;
+import io.liuwei.autumn.util.LineReader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
+import org.apache.commons.text.StringEscapeUtils;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -18,12 +23,13 @@ import java.util.*;
  */
 public abstract class AbstractArticleParser implements ArticleParser {
 
-    protected static final FastDateFormat DATE_PARSER_ON_SECOND = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
-    protected final String attrCreated = "created";
-    protected final String attrModified = "modified";
-    protected final String attrCategory = "category";
-    protected final String attrTags = "tags";
-    protected final String attrAccessLevel = "access";
+    protected static final FastDateFormat DATE_PARSER_ON_SECOND =
+            FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");
+    protected static final String ATTR_CREATED = "created";
+    protected static final String ATTR_MODIFIED = "modified";
+    protected static final String ATTR_CATEGORY = "category";
+    protected static final String ATTR_TAGS = "tags";
+    protected static final String ATTR_ACCESS = "access";
 
     @Override
     public Article parseArticle(String text, String articlePath, SourceFormatEnum format) {
@@ -44,8 +50,20 @@ public abstract class AbstractArticleParser implements ArticleParser {
         try {
             return DATE_PARSER_ON_SECOND.parse(dateString);
         } catch (ParseException e) {
-            throw new RuntimeException("解析日期出错. dateString=" + dateString, e);
+            throw new RuntimeException("Error parsing date. dateString=" + dateString, e);
         }
+    }
+
+    protected String parseTitle(LineReader lineReader, String prefix) {
+        String title = "";
+        String line = lineReader.nextNonBlankLine();
+        if (line != null) {
+            if (line.startsWith(prefix))
+                title = line.substring(prefix.length()).trim();
+            else
+                lineReader.back(); // Did not consume, return back
+        }
+        return title;
     }
 
     /**
@@ -55,23 +73,65 @@ public abstract class AbstractArticleParser implements ArticleParser {
         if (attributes == null)
             attributes = Collections.emptyMap();
 
-        if (attributes.get(attrCreated) != null)
-            article.setCreated(parseDate((String) attributes.get(attrCreated)));
+        if (attributes.get(ATTR_CREATED) != null)
+            article.setCreated(parseDate((String) attributes.get(ATTR_CREATED)));
 
-        if (attributes.get(attrModified) != null)
-            article.setModified(parseDate((String) attributes.get(attrModified)));
+        if (attributes.get(ATTR_MODIFIED) != null)
+            article.setModified(parseDate((String) attributes.get(ATTR_MODIFIED)));
 
-        String tagsString = StringUtils.trimToNull((String) attributes.get(attrTags));
+        String tagsString = StringUtils.trimToNull((String) attributes.get(ATTR_TAGS));
         if (tagsString != null)
             article.setTags(new LinkedHashSet<>(Arrays.asList(tagsString.split("\\s*,\\s*"))));
         else
             article.setTags(Collections.emptySet());
-        article.setCategory(StringUtils.trimToNull((String) attributes.get(attrCategory)));
-        article.setAccessLevel(AccessLevelEnum.of((String) attributes.get(attrAccessLevel), AccessLevelEnum.OWNER));
+        article.setCategory(StringUtils.trimToNull((String) attributes.get(ATTR_CATEGORY)));
+        article.setAccessLevel(AccessLevelEnum.of((String) attributes.get(ATTR_ACCESS), AccessLevelEnum.OWNER));
     }
 
     /**
      * Parse attributes, title, and body.
      */
     protected abstract void parseSource(Article article);
+
+    @Override
+    public ArticleHtml toHtml(Article article) {
+        String title = article.getTitle();
+
+        // Generate title HTML
+        String titleId = "article-title";
+        String titleHtml = "<h1 id=\"" + titleId + "\" class=\"heading\">" +
+                StringEscapeUtils.escapeHtml4(title) +
+                "<a class=\"anchor\" href=\"\"></a>" +
+                "</h1>";
+
+        Document bodyDoc = renderBodyAsDocument(article);
+
+        String tocHtml = null;
+        Element tocEl = bodyDoc.select("div.toc").first();
+        if (tocEl != null) {
+            // Remove TOC from the main content body
+            tocEl.remove();
+
+            // Insert Article Title at the top of the TOC list
+            Element oldUl = tocEl.selectFirst("ul");
+            if (oldUl != null) {
+                Element articleTitleLink = new Element("a")
+                        .attr("href", "#" + titleId)
+                        .text(title);
+                Element articleTitleLi = new Element("li")
+                        .appendChild(articleTitleLink)
+                        .appendChild(oldUl);
+                Element newUl = new Element("ul")
+                        .attr("class", "sectlevel0")
+                        .appendChild(articleTitleLi);
+                tocEl.appendChild(newUl);
+            }
+            tocHtml = tocEl.outerHtml();
+        }
+
+        String bodyHtml = bodyDoc.html();
+        return new ArticleHtml(title, titleHtml, tocHtml, bodyHtml);
+    }
+
+    protected abstract Document renderBodyAsDocument(Article article);
 }

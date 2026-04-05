@@ -3,6 +3,7 @@ package io.liuwei.autumn.parser;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.ArticleHtml;
 import lombok.RequiredArgsConstructor;
+import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Component;
 
 /**
@@ -24,6 +25,11 @@ public class CompositeArticleParser extends AbstractArticleParser {
     @Override
     public ArticleHtml toHtml(Article article) {
         return getParser(article).toHtml(article);
+    }
+
+    @Override
+    protected Document renderBodyAsDocument(Article article) {
+        return getParser(article).renderBodyAsDocument(article);
     }
 
     private AbstractArticleParser getParser(Article article) {

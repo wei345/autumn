@@ -8,13 +8,10 @@ import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import io.liuwei.autumn.config.AppProperties;
 import io.liuwei.autumn.model.Article;
-import io.liuwei.autumn.model.ArticleHtml;
 import io.liuwei.autumn.util.HtmlUtil;
 import io.liuwei.autumn.util.LineReader;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -23,11 +20,11 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 import java.util.Map;
-import java.util.regex.Pattern;
+
+import static org.apache.commons.lang3.StringUtils.*;
 
 /**
  * @author liuwei
@@ -37,10 +34,11 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class MarkdownArticleParser extends AbstractArticleParser {
 
+    private static final String TITLE_PREFIX = "# ";
+    private static final String YAML_BOUNDARY = "---";
+    private static final String TITLE_ATTR = "title";
+
     private final AppProperties appProperties;
-    private final Pattern YAML_HEADER = Pattern.compile("(^|\\n)---(\\s*\\n.+?\\n)---(\\n|$)", Pattern.MULTILINE);
-    private final String titlePrefix = "# ";
-    private final String titleAttr = "title";
     private Parser parser;
     private HtmlRenderer renderer;
 
@@ -78,85 +76,53 @@ public class MarkdownArticleParser extends AbstractArticleParser {
         parseBody(lineReader, article);
     }
 
+    private void parseTitle(LineReader lineReader, Article article) {
+        article.setTitle(parseTitle(lineReader, TITLE_PREFIX));
+    }
+
+    private boolean isYamlHeaderBoundary(String str) {
+        return str != null && str.startsWith(YAML_BOUNDARY) && str.trim().equals(YAML_BOUNDARY);
+    }
+
     private void parseHeader(LineReader lineReader, Article article) {
-        boolean hasBegun = false;
-        List<String> lines = new ArrayList<>();
-        for (String line : lineReader) {
-            if (StringUtils.isBlank(line)) continue;
-            if (line.equals("---")) {
-                if (hasBegun) break;
-                else hasBegun = true;
-            }
-            if (hasBegun)
-                lines.add(line);
-            else {
-                lineReader.back();
-                break;
-            }
+        Map<String, Object> attrs = Collections.emptyMap();
+
+        String line = lineReader.nextNonBlankLine();
+        if (isYamlHeaderBoundary(line)) {
+            String attrText = lineReader.nextLinesAsStringUntil(this::isYamlHeaderBoundary);
+            lineReader.nextLine(); // Consume the closing boundary
+            attrs = new Yaml().load(new ByteArrayInputStream(attrText.getBytes(StandardCharsets.UTF_8)));
+        } else {
+            lineReader.back(); // Did not consume, return back
         }
 
-        String s = StringUtils.join(lines, "\n");
-        Map<String, Object> attrs = new Yaml().load(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)));
         setAttributes(attrs, article);
 
-        if (StringUtils.isBlank(article.getTitle()) && attrs != null) {
-            Object titleObj = attrs.get(titleAttr);
-            if (titleObj != null) {
-                String title = String.valueOf(titleObj).trim();
-                if (!title.isEmpty())
-                    article.setTitle(title);
-            }
+        // Fix title
+        if (isBlank(article.getTitle()) && attrs != null) {
+            Object titleObj = attrs.getOrDefault(TITLE_ATTR, "");
+            String title = String.valueOf(titleObj).trim();
+            if (!title.isEmpty())
+                article.setTitle(title);
         }
     }
 
-    private void parseTitle(LineReader lineReader, Article article) {
-        String title = "";
-        for (String line : lineReader) {
-            if (StringUtils.isBlank(line)) continue;
-            if (line.startsWith(titlePrefix))
-                title = line.substring(titlePrefix.length()).trim();
-            else {
-                lineReader.back();
-                break;
-            }
-        }
-        article.setTitle(title);
-    }
 
     private void parseBody(LineReader lineReader, Article article) {
-        for (String line : lineReader) {
-            if (StringUtils.isNotBlank(line)) {
-                lineReader.back();
-                break;
-            }
-        }
-        article.setBody(lineReader.remainingText());
+        article.setBody(lineReader.remainingText().trim());
     }
 
-    public ArticleHtml toHtml(Article article) {
-        String title = article.getTitle();
+    @Override
+    protected org.jsoup.nodes.Document renderBodyAsDocument(Article article) {
         String body = "[TOC]\n" + article.getBody();
 
-        // 1. Generate Title HTML
-        String titleId = "article-title";
-        String titleHtml = "<h1 id=\"" + titleId + "\" class=\"heading\">" +
-                StringEscapeUtils.escapeHtml4(title) +
-                "<a class=\"anchor\" href=\"\"></a>" +
-                "</h1>";
-
-        // 2. Convert Content to HTML
         com.vladsch.flexmark.util.ast.Node documentNode = parser.parse(body);
         String bodyHtml = renderer.render(documentNode);
 
-        // 3. Handle TOC Extraction and Manipulation via Jsoup
-        String tocHtml = null;
         Document bodyDoc = Jsoup.parseBodyFragment(bodyHtml);
+
         Element tocEl = bodyDoc.select("div.toc").first();
-
         if (tocEl != null) {
-            // Remove TOC from the main content body
-            tocEl.remove();
-
             // Add id="toc"
             tocEl.attr("id", "toc");
 
@@ -168,26 +134,9 @@ public class MarkdownArticleParser extends AbstractArticleParser {
                         .text(appProperties.getToc().getTitle()));
             }
 
-            // Insert Article Title at the top of the TOC list
-            Element rootUl = tocEl.select("ul").first();
-            if (rootUl != null) {
-                Element articleTitleLi = new Element("li")
-                        .appendChild(new Element("a")
-                                .attr("href", "#" + titleId)
-                                .text(title));
-
-                // Nest the original TOC under this new root
-                rootUl.before(new Element("ul").attr("class", "sectlevel0").appendChild(articleTitleLi));
-                articleTitleLi.appendChild(rootUl);
-            }
-
             HtmlUtil.addNumbersToToc(tocEl);
             HtmlUtil.addSectionNumbers(bodyDoc, tocEl);
-
-            bodyHtml = bodyDoc.html();
-            tocHtml = tocEl.outerHtml();
         }
-
-        return new ArticleHtml(title, titleHtml, tocHtml, bodyHtml);
+        return bodyDoc;
     }
 }
