@@ -238,6 +238,16 @@ mjx-container[jax="SVG"][display="true"] {
     margin: 0 !important;
 }
 
+mjx-container[jax="SVG"] mjx-assistive-mml {
+    /* Avoid unnecessary horizontal scroll bars when formulas are long */
+    width: stretch !important;
+}
+
+.mobi mjx-container[jax="SVG"] mjx-assistive-mml {
+    /* Avoid horizontal scroll bars on mobile */
+    width: 100% !important;
+}
+
 pre {
     background-color: #f7f7f8;
 }
@@ -246,7 +256,7 @@ pre {
     display: block !important;
 }
 
-.scrollable, .stemblock {
+.scrollable, .stemblock, .note {
     overflow-x: auto;
 }
 

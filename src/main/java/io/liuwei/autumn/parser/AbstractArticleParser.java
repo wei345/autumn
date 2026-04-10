@@ -9,7 +9,6 @@ import io.liuwei.autumn.util.LineReader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.text.StringEscapeUtils;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -131,7 +130,7 @@ public abstract class AbstractArticleParser implements ArticleParser {
             tocHtml = tocEl.outerHtml();
         }
 
-        scrollable(bodyDoc.select("table"));
+        scrollable(bodyDoc.select("table:not(.note > table)"));
 
         String bodyHtml = bodyDoc.html();
         return new ArticleHtml(title, titleHtml, tocHtml, bodyHtml);
