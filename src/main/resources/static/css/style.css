@@ -246,7 +246,7 @@ pre {
     display: block !important;
 }
 
-.scrollable {
+.scrollable, .stemblock {
     overflow-x: auto;
 }
 

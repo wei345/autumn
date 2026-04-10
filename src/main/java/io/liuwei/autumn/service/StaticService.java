@@ -223,21 +223,27 @@ public class StaticService {
     private String getMathJaxJs() {
         String v = appProperties.getMathJaxVersion();
         String basePath = "/META-INF/resources/webjars/mathjax/" + v + "/es5";
-        String baseUrl = "/webjars/mathjax/" + v + "/es5";
 
-        String config = "window.MathJax = {\n" +
-                /*"  options: {\n" +
-                "    enableMenu: false,\n" + // This turns off the right-click context menu
-                "  },\n" +*/
-                /*"  loader: {\n" +
-                "    paths: {\n" +
-                "      mathjax: '" + baseUrl + "'\n" +
-                "    }\n" +
-                "  },\n" +*/
-                "  svg: {\n" +
-                "    fontCache: 'global'\n" +
-                "  }\n" +
-                "};";
+        // Turns off the right-click context menu
+        // MathJax.options.enableMenu = false
+
+        // Disable the A11y module which handles complex keyboard navigation
+        // MathJax.options.enableAssistiveMml = false
+
+        // required if tex-chtml.js is used
+        // String baseUrl = "/webjars/mathjax/" + v + "/es5";
+        // MathJax.loader.paths.mathjax = baseUrl
+
+        String config = """
+                window.MathJax = {
+                  "options": {
+                    "enableMenu": true
+                  },
+                  "svg": {
+                    "fontCache": "global"
+                  }
+                };
+                """;
 
         return StringBuilderHolder.getGlobal()
                 .append(config)

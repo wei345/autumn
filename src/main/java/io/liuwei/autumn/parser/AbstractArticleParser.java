@@ -9,8 +9,10 @@ import io.liuwei.autumn.util.LineReader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.text.StringEscapeUtils;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -129,9 +131,16 @@ public abstract class AbstractArticleParser implements ArticleParser {
             tocHtml = tocEl.outerHtml();
         }
 
+        scrollable(bodyDoc.select("table"));
+
         String bodyHtml = bodyDoc.html();
         return new ArticleHtml(title, titleHtml, tocHtml, bodyHtml);
     }
 
     protected abstract Document renderBodyAsDocument(Article article);
+
+    public void scrollable(Elements elements) {
+        // Wrap each item in elements in the div
+        elements.wrap("<div class='scrollable'></div>");
+    }
 }
