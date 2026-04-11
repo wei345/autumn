@@ -239,17 +239,24 @@ mjx-container[jax="SVG"][display="true"] {
 }
 
 mjx-container[jax="SVG"] mjx-assistive-mml {
-    /* Avoid unnecessary horizontal scroll bars when formulas are long */
+    /* Avoid unnecessary horizontal scroll bars when formulas contain
+      long fractions, overriding MathJax setting "auto !important" */
     width: stretch !important;
 }
 
 .mobi mjx-container[jax="SVG"] mjx-assistive-mml {
-    /* Avoid horizontal scroll bars on mobile */
-    width: 100% !important;
+    /* Avoid horizontal scroll bars on mobile,
+       overriding MathJax setting "auto !important" */
+    max-width: 100% !important;
 }
 
 pre {
     background-color: #f7f7f8;
+}
+
+/* For markdown codeblocks */
+pre + p {
+    margin-top: 1.25em;
 }
 
 .show {
