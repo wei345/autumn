@@ -12,7 +12,7 @@ import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.ArticleHtml;
 import io.liuwei.autumn.model.ResourceFile;
 import io.liuwei.autumn.model.RevisionContent;
-import io.liuwei.autumn.parser.CompositeArticleParser;
+import io.liuwei.autumn.converter.DocumentToHtmlConverterFacade;
 import io.liuwei.autumn.util.HtmlUtil;
 import io.liuwei.autumn.util.IOUtil;
 import io.liuwei.autumn.util.JsCompressor;
@@ -46,7 +46,7 @@ public class StaticService {
 
     private final RevisionContentManager revisionContentManager;
 
-    private final CompositeArticleParser articleParser;
+    private final DocumentToHtmlConverterFacade documentToHtmlConverterFacade;
 
     private final AppProperties.StaticResource staticResource;
 
@@ -149,9 +149,9 @@ public class StaticService {
     public ArticleHtml getHelpArticleHtml() {
         log.info("building {}", Constants.HELP);
         ResourceFile help = getStaticResourceFile("/help.adoc");
-        Article article = articleParser.parseArticle(help.getContentAsString(),
+        Article article = documentToHtmlConverterFacade.parseArticle(help.getContentAsString(),
                 "/help", SourceFormatEnum.ASCIIDOC);
-        ArticleHtml articleHtml = articleParser.toHtml(article);
+        ArticleHtml articleHtml = documentToHtmlConverterFacade.toHtml(article);
         articleHtml.setContentHtml(HtmlUtil.addHeadingClass(articleHtml.getContentHtml()));
         return articleHtml;
     }

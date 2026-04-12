@@ -1,4 +1,4 @@
-package io.liuwei.autumn.parser;
+package io.liuwei.autumn.converter;
 
 import io.liuwei.autumn.component.MediaRevisionResolver;
 import io.liuwei.autumn.enums.AccessLevelEnum;
@@ -22,7 +22,7 @@ import java.util.*;
  * @author liuwei
  * @since 2026-04-04 16:59
  */
-public abstract class AbstractArticleParser implements ArticleParser {
+public abstract class AbstractDocumentToHtmlConverter implements DocumentToHtmlConverter {
 
     protected static final FastDateFormat DATE_PARSER_ON_SECOND =
             FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss");

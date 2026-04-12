@@ -1,6 +1,7 @@
-package io.liuwei.autumn.parser;
+package io.liuwei.autumn.converter;
 
 import io.liuwei.autumn.config.AppProperties;
+import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.util.LineReader;
 import jakarta.annotation.PostConstruct;
@@ -26,7 +27,7 @@ import static org.apache.commons.lang3.StringUtils.*;
  */
 @Component
 @RequiredArgsConstructor
-public class AsciidocArticleParser extends AbstractArticleParser {
+public class AsciidocToHtmlConverter extends AbstractDocumentToHtmlConverter {
     private static final String ATTR_PREFIX = ":";
     private static final String TITLE_PREFIX = "= ";
 
@@ -118,5 +119,10 @@ public class AsciidocArticleParser extends AbstractArticleParser {
         }
 
         return bodyDoc;
+    }
+
+    @Override
+    public boolean supports(SourceFormatEnum format) {
+        return format== SourceFormatEnum.ASCIIDOC;
     }
 }

@@ -1,4 +1,4 @@
-package io.liuwei.autumn.parser;
+package io.liuwei.autumn.converter;
 
 import com.vladsch.flexmark.ext.gitlab.GitLabExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
@@ -7,6 +7,7 @@ import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import io.liuwei.autumn.config.AppProperties;
+import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.util.HtmlUtil;
 import io.liuwei.autumn.util.LineReader;
@@ -32,7 +33,7 @@ import static org.apache.commons.lang3.StringUtils.*;
  */
 @Component
 @RequiredArgsConstructor
-public class MarkdownArticleParser extends AbstractArticleParser {
+public class MarkdownToHtmlConverter extends AbstractDocumentToHtmlConverter {
 
     private static final String TITLE_PREFIX = "# ";
     private static final String YAML_BOUNDARY = "---";
@@ -138,5 +139,10 @@ public class MarkdownArticleParser extends AbstractArticleParser {
             HtmlUtil.addSectionNumbers(bodyDoc, tocEl);
         }
         return bodyDoc;
+    }
+
+    @Override
+    public boolean supports(SourceFormatEnum format) {
+        return format == SourceFormatEnum.MARKDOWN;
     }
 }

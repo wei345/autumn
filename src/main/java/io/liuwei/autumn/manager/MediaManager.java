@@ -8,7 +8,7 @@ import io.liuwei.autumn.enums.SourceFormatEnum;
 import io.liuwei.autumn.model.Article;
 import io.liuwei.autumn.model.DataInfo;
 import io.liuwei.autumn.model.Media;
-import io.liuwei.autumn.parser.CompositeArticleParser;
+import io.liuwei.autumn.converter.DocumentToHtmlConverterFacade;
 import io.liuwei.autumn.util.CollectionUtil;
 import io.liuwei.autumn.util.DiffUtil;
 import io.liuwei.autumn.util.MediaTypeUtil;
@@ -51,7 +51,7 @@ public class MediaManager {
     private Cache viewCache;
 
     @Autowired
-    private CompositeArticleParser articleParser;
+    private DocumentToHtmlConverterFacade documentToHtmlConverterFacade;
 
     /**
      * 包含数据目录下所有文件，包括文章
@@ -179,7 +179,7 @@ public class MediaManager {
             throw new RuntimeException(e);
         }
 
-        Article article = articleParser.parseArticle(fileContent, path, format);
+        Article article = documentToHtmlConverterFacade.parseArticle(fileContent, path, format);
         if (article.getCreated() == null) {
             article.setCreated(new Date(file.lastModified()));
         }

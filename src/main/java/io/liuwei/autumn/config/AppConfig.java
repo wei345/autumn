@@ -4,7 +4,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.io.BaseEncoding;
 import com.vip.vjtools.vjkit.concurrent.threadpool.ThreadPoolUtil;
 import io.liuwei.autumn.aop.CommonModelAttributeInterceptor;
-import io.liuwei.autumn.parser.AsciidocArticleParser;
 import io.liuwei.autumn.constant.CacheNames;
 import io.liuwei.autumn.service.UserService;
 import io.liuwei.autumn.util.JsonMapper;
